@@ -906,7 +906,7 @@ export function CampaignEditor() {
       ])
       setSelectedBlockId(newBlock.id)
     } else {
-      const { blockId, fromIndex } = drag
+      const { blockId } = drag
       setCanvasBlocks((prev) => {
         const blocks = [...prev]
         const actualFrom = blocks.findIndex((b) => b.id === blockId)
