@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/* Proxima Nova — Travefy brand font */
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Light-Italic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Regular-Italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Medium-Italic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Semibold-Italic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/fonts/ProximaNova/Bold-Italic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Design tokens — sourced from FannyPack Figma design system */
+@theme {
+  /* Primary action (Figma: primary/600, primary/700, primary/100) */
+  --color-travefy-blue: #2a79a6;
+  --color-travefy-blue-dark: #1b6793;
+  --color-travefy-blue-light: #daf1ff;
+
+  /* Dark text / headings (Figma: blue gray/900) */
+  --color-travefy-navy: #223e47;
+
+  /* Blue-gray neutral scale (Figma: blue gray/*) */
+  --color-travefy-gray-50: #f4f7fb;
+  --color-travefy-gray-100: #e1e7ec;
+  --color-travefy-gray-200: #d1dae0;
+  --color-travefy-gray-300: #b9c7ce;
+  --color-travefy-gray-400: #96a7ae;
+  --color-travefy-gray-500: #72868d;
+  --color-travefy-gray-600: #4f666d;
+  --color-travefy-gray-700: #435b63;
+  --color-travefy-gray-800: #375059;
+  --color-travefy-gray-900: #223e47;
+
+  /* Semantic status colors — sourced from low-fi Figma designs */
+  /* Success (green palette — used for "Sent" badge) */
+  --color-travefy-success: #156747;
+  --color-travefy-success-bg: #def7ec;     /* green/100 */
+  --color-travefy-success-border: #37d083; /* green/400 */
+  --color-travefy-success-dark: #14673f;   /* green/800 */
+  /* Warning (grandis/amber palette — used for "Scheduled" badge) */
+  --color-travefy-warning: #c63508;
+  --color-travefy-warning-bg: #ffeed5;     /* grandis/100 */
+  --color-travefy-warning-border: #e2a03d; /* grandis/400 */
+  --color-travefy-warning-dark: #83381d;   /* grandis/800 */
+  /* Danger (red palette) */
+  --color-travefy-danger: #ac2a2a;         /* red/700 */
+  --color-travefy-danger-bg: #fde7e7;      /* red/100 */
+  --color-travefy-danger-border: #f47070;  /* red/400 approx */
+  --color-travefy-danger-dark: #a01414;    /* red/800 */
+  /* Primary badge tokens (used for "Draft" badge) */
+  --color-travefy-primary-border: #45bbff; /* primary/400 */
+  --color-travefy-primary-text: #1b5079;   /* primary/800 */
+
+  /* Font */
+  --font-sans: 'Proxima Nova', system-ui, -apple-system, sans-serif;
+}
+
+/* Base resets */
+body {
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
