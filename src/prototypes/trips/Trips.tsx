@@ -4,8 +4,8 @@ import {
   MoreHorizontal, Tag, Plus, ArrowUpDown, Pencil,
 } from 'lucide-react'
 import { clsx } from 'clsx'
-import { PrototypeShell } from '@/shared/layouts/PrototypeShell'
-import { Button } from '@/shared/components'
+import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
+import { Button } from '../../shared/components'
 
 // ---- Types ----------------------------------------------------------------
 
