@@ -15,6 +15,13 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'trips',
+    title: 'Trips Dashboard',
+    description: 'Trips list view with folder filters, sortable columns, status badges, tag pills, and avatar stacks — built from the Low-Fidelity Figma file.',
+    status: 'draft',
+    date: '2026-03-04',
+  },
+  {
     slug: 'email-marketing',
     title: 'Email Marketing',
     description: 'Contacts tab expansion — Lists, Campaigns dashboard, and a campaign editor with drag-and-drop designer.',
