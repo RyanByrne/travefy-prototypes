@@ -3,20 +3,8 @@ import { Avatar } from '../../shared/components'
 
 const NAV_ITEMS = ['Trips', 'Pages', 'Library', 'Marketplace', 'CRM'] as const
 
-// Travefy logo mark — simplified SVG matching the app chrome
 function TravefyLogo() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M11 1L20 7v8l-9 6-9-6V7l9-6z"
-        fill="white"
-        fillOpacity="0.2"
-        stroke="white"
-        strokeWidth="1.5"
-      />
-      <path d="M6 11h10M11 6v10" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
+  return <img src="/travefy-logo.png" alt="Travefy" className="w-5 h-5 object-contain" />
 }
 
 export function AppNav() {
@@ -27,7 +15,7 @@ export function AppNav() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 mr-2">
-        <div className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
           <TravefyLogo />
         </div>
         <div className="w-px h-5 bg-white/30" />
