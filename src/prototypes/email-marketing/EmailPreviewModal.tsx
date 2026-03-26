@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Monitor, Smartphone, X } from 'lucide-react'
+import { Monitor, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type Device = 'desktop' | 'mobile'

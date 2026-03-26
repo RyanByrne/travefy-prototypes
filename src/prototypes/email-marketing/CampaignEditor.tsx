@@ -27,7 +27,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Input, Select } from '../../shared/components'
 import { AudienceCriteriaBuilder, estimateMatchCount, makeConditionId, type Condition } from './AudienceCriteriaBuilder'
-import { contactLists } from './data'
 import { CampaignSuccessScreen, ConfirmSendModal, ScheduleModal, SendTestModal } from './SendScheduleFlows'
 
 // ── Types ─────────────────────────────────────────────────────────────────────

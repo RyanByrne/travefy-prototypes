@@ -1,8 +1,5 @@
 import { clsx } from 'clsx'
 import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
   Bold,
   Calendar,
   ChevronDown,
