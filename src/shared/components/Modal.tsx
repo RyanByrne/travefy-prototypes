@@ -42,8 +42,8 @@ export function Modal({ open, onClose, title, size = 'md', children, footer }: M
         )}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-travefy-gray-200">
-            <h2 className="text-base font-semibold text-travefy-navy">{title}</h2>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-travefy-gray-200">
+            <h2 className="text-lg font-semibold text-travefy-navy">{title}</h2>
             <button
               onClick={onClose}
               className="text-travefy-gray-400 hover:text-travefy-gray-700 transition-colors -mr-1"
@@ -52,9 +52,9 @@ export function Modal({ open, onClose, title, size = 'md', children, footer }: M
             </button>
           </div>
         )}
-        <div className="px-6 py-5 overflow-y-auto flex-1">{children}</div>
+        <div className="px-6 py-6 overflow-y-auto flex-1">{children}</div>
         {footer && (
-          <div className="px-6 py-4 border-t border-travefy-gray-100 flex items-center justify-end gap-3">
+          <div className="px-6 py-4 border-t border-travefy-gray-200 bg-travefy-gray-50 flex items-center justify-between gap-3 rounded-b-lg">
             {footer}
           </div>
         )}

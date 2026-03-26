@@ -1,7 +1,7 @@
 import { Bell } from 'lucide-react'
 import { Avatar } from '../../shared/components'
 
-const NAV_ITEMS = ['Trips', 'Pages', 'Library', 'Marketplace', 'Contacts'] as const
+const NAV_ITEMS = ['Trips', 'Pages', 'Library', 'Marketplace', 'CRM'] as const
 
 // Travefy logo mark — simplified SVG matching the app chrome
 function TravefyLogo() {
@@ -36,7 +36,7 @@ export function AppNav() {
       {/* Navigation items */}
       <div className="flex items-center gap-0.5 flex-1">
         {NAV_ITEMS.map((item) => {
-          const active = item === 'Contacts'
+          const active = item === 'CRM'
           return (
             <button
               key={item}

@@ -6,7 +6,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Clock,
   FileImage,
   Footprints,
   GripVertical,
@@ -26,8 +25,10 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Input, Modal, Select } from '../../shared/components'
+import { Button, Input, Select } from '../../shared/components'
+import { AudienceCriteriaBuilder, estimateMatchCount, makeConditionId, type Condition } from './AudienceCriteriaBuilder'
 import { contactLists } from './data'
+import { CampaignSuccessScreen, ConfirmSendModal, ScheduleModal, SendTestModal } from './SendScheduleFlows'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -826,18 +827,17 @@ function LaunchDropdown({
 
 // ── Accordion section ─────────────────────────────────────────────────────────
 
-function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen)
+function Section({ title, children, isOpen, onToggle }: { title: string; children: React.ReactNode; isOpen: boolean; onToggle: () => void }) {
   return (
     <div className="border-b border-travefy-gray-100">
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={onToggle}
         className="flex items-center justify-between w-full px-4 py-3 text-sm font-semibold text-travefy-navy hover:bg-travefy-gray-50 transition-colors"
       >
         {title}
-        {open ? <ChevronUp className="w-4 h-4 text-travefy-gray-400" /> : <ChevronDown className="w-4 h-4 text-travefy-gray-400" />}
+        {isOpen ? <ChevronUp className="w-4 h-4 text-travefy-gray-400" /> : <ChevronDown className="w-4 h-4 text-travefy-gray-400" />}
       </button>
-      {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
+      {isOpen && <div className="px-4 pb-4 space-y-3">{children}</div>}
     </div>
   )
 }
@@ -850,16 +850,17 @@ export function CampaignEditor() {
   const navigate = useNavigate()
   const [campaignName, setCampaignName] = useState('')
   const [subjectLine, setSubjectLine] = useState('')
-  const [selectedList, setSelectedList] = useState('')
+  const [conditions, setConditions] = useState<Condition[]>([
+    { id: makeConditionId(), field: 'label', operator: 'is_any_of', values: [] },
+  ])
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [loadedTemplateName, setLoadedTemplateName] = useState('')
   const [designerTab, setDesignerTab] = useState<DesignerTab>('content')
+  const [openSection, setOpenSection] = useState<string>('settings')
+  const [showSendModal, setShowSendModal] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [scheduleDate, setScheduleDate] = useState('')
-  const [scheduleTime, setScheduleTime] = useState('')
-  const [scheduled, setScheduled] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [showTestModal, setShowTestModal] = useState(false)
+  const [completedAction, setCompletedAction] = useState<'sent' | 'scheduled' | null>(null)
 
   // DnD state
   const [canvasBlocks, setCanvasBlocks] = useState<CanvasBlock[]>([])
@@ -954,42 +955,33 @@ export function CampaignEditor() {
 
   const selectedBlock = canvasBlocks.find((b) => b.id === selectedBlockId) ?? null
 
-  const recipientCount = selectedList
-    ? (contactLists.find((l) => l.id === selectedList)?.contacts ?? 0)
-    : 0
+  const recipientCount = estimateMatchCount(conditions)
 
-  const handleSendNow = () => {
-    if (!campaignName || !selectedList) return
-    setShowConfirmModal(true)
+  const campaignMeta = {
+    campaignName,
+    subjectLine,
+    recipientCount,
+    hasConditions: conditions.some((c) => c.values.length > 0),
   }
 
-  const handleConfirmSend = () => {
-    setShowConfirmModal(false)
-    setSent(true)
-    setTimeout(() => navigate('/email-marketing/campaigns'), 1500)
+  const handleSendConfirmed = () => {
+    setShowSendModal(false)
+    setCompletedAction('sent')
+    setTimeout(() => navigate('/email-marketing/campaigns'), 3000)
   }
 
-  const handleSchedule = () => setShowScheduleModal(true)
-
-  const handleConfirmSchedule = () => {
+  const handleScheduleConfirmed = () => {
     setShowScheduleModal(false)
-    setScheduled(true)
-    setTimeout(() => navigate('/email-marketing/campaigns'), 1500)
+    setCompletedAction('scheduled')
+    setTimeout(() => navigate('/email-marketing/campaigns'), 3000)
   }
 
-  if (sent || scheduled) {
+  if (completedAction) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-travefy-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <Send className="w-8 h-8 text-green-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-travefy-navy">
-            {sent ? 'Campaign Sent!' : 'Campaign Scheduled!'}
-          </h2>
-          <p className="text-sm text-travefy-gray-500 mt-2">Redirecting to campaigns...</p>
-        </div>
-      </div>
+      <CampaignSuccessScreen
+        type={completedAction}
+        recipientCount={recipientCount}
+      />
     )
   }
 
@@ -998,7 +990,7 @@ export function CampaignEditor() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left sidebar */}
         <aside className="w-80 shrink-0 bg-white border-r border-travefy-gray-200 flex flex-col overflow-y-auto">
-          <Section title="Campaign Settings">
+          <Section title="Campaign Settings" isOpen={openSection === 'settings'} onToggle={() => setOpenSection(openSection === 'settings' ? '' : 'settings')}>
             <Input
               label="Campaign Name (Internal)"
               placeholder="Enter campaign name"
@@ -1019,25 +1011,10 @@ export function CampaignEditor() {
               placeholder="e.g. Travefy Travel"
               defaultValue="Kim Anderson"
             />
-            <div>
-              <Select
-                label="Recipients"
-                value={selectedList}
-                onChange={(e) => setSelectedList(e.target.value)}
-              >
-                <option value="">Select a list…</option>
-                {contactLists.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name} ({l.contacts.toLocaleString()})
-                  </option>
-                ))}
-              </Select>
-              <p className="text-xs text-travefy-gray-500 mt-1">
-                {selectedList
-                  ? `${recipientCount.toLocaleString()} contacts will receive this email`
-                  : 'Total contacts: 0'}
-              </p>
-            </div>
+            <AudienceCriteriaBuilder
+              conditions={conditions}
+              onChange={setConditions}
+            />
             <div>
               <Select
                 label="Load Template"
@@ -1060,7 +1037,7 @@ export function CampaignEditor() {
             </div>
           </Section>
 
-          <Section title="Designer">
+          <Section title="Designer" isOpen={openSection === 'designer'} onToggle={() => setOpenSection(openSection === 'designer' ? '' : 'designer')}>
             <div className="flex border border-travefy-gray-200 rounded overflow-hidden">
               {(['content', 'layouts', 'themes'] as DesignerTab[]).map((tab) => (
                 <button
@@ -1196,64 +1173,28 @@ export function CampaignEditor() {
           Save &amp; Exit
         </button>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" size="sm">Send Test</Button>
-          <Button variant="secondary" size="sm">Import Template</Button>
-          <LaunchDropdown onSendNow={handleSendNow} onSchedule={handleSchedule} />
+          <Button variant="secondary" size="sm" onClick={() => setShowTestModal(true)}>Send Test</Button>
+          <LaunchDropdown onSendNow={() => setShowSendModal(true)} onSchedule={() => setShowScheduleModal(true)} />
         </div>
       </div>
 
-      {/* Schedule modal */}
-      <Modal
+      <SendTestModal
+        open={showTestModal}
+        onClose={() => setShowTestModal(false)}
+        meta={campaignMeta}
+      />
+      <ConfirmSendModal
+        open={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        onConfirm={handleSendConfirmed}
+        meta={campaignMeta}
+      />
+      <ScheduleModal
         open={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
-        title="Schedule Campaign"
-        size="sm"
-        footer={
-          <>
-            <Button variant="link" onClick={() => setShowScheduleModal(false)}>Cancel</Button>
-            <Button onClick={handleConfirmSchedule} disabled={!scheduleDate || !scheduleTime}>
-              Schedule Campaign
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <Input
-            label="Select Date"
-            type="date"
-            value={scheduleDate}
-            onChange={(e) => setScheduleDate(e.target.value)}
-            leadingIcon={<Calendar className="w-4 h-4" />}
-          />
-          <Input
-            label="Select Time"
-            type="time"
-            value={scheduleTime}
-            onChange={(e) => setScheduleTime(e.target.value)}
-            leadingIcon={<Clock className="w-4 h-4" />}
-          />
-        </div>
-      </Modal>
-
-      {/* Confirm send modal */}
-      <Modal
-        open={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        title="Confirm Campaign Launch"
-        size="sm"
-        footer={
-          <>
-            <Button variant="link" onClick={() => setShowConfirmModal(false)}>Cancel</Button>
-            <Button onClick={handleConfirmSend}>Yes, Continue</Button>
-          </>
-        }
-      >
-        <p className="text-sm text-travefy-gray-700">
-          You are about to launch this campaign to{' '}
-          <strong className="text-travefy-navy">{recipientCount.toLocaleString()} contacts</strong>.
-          Are you sure you want to continue?
-        </p>
-      </Modal>
+        onConfirm={handleScheduleConfirmed}
+        meta={campaignMeta}
+      />
     </div>
   )
 }

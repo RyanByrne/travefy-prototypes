@@ -129,3 +129,10 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Rich text editor placeholder */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-travefy-gray-400);
+  pointer-events: none;
+}

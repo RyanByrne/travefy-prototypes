@@ -1,14 +1,8 @@
 import { clsx } from 'clsx'
-import { Filter, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { Copy, Filter, MoreHorizontal, Plus, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { Avatar } from '../../shared/components'
 import { contacts } from './data'
-
-const travelingColor: Record<string, string> = {
-  Upcoming: 'text-travefy-blue',
-  Currently: 'text-travefy-success',
-  Past: 'text-travefy-gray-500',
-}
 
 export function ContactsTab() {
   const [search, setSearch] = useState('')
@@ -100,7 +94,7 @@ export function ContactsTab() {
                 <th className="w-10 px-4 py-3">
                   <input type="checkbox" checked={allSelected} onChange={toggleAll} className="rounded border-travefy-gray-300 text-travefy-blue" />
                 </th>
-                {['First Name', 'Last Name', 'Phone Number', 'Email', 'Trips', 'Traveling', 'Last Updated'].map((col) => (
+                {['First Name', 'Last Name', 'Phone Number', 'Email', 'Last Updated'].map((col) => (
                   <th key={col} className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">
                     {col}
                   </th>
@@ -130,10 +124,13 @@ export function ContactsTab() {
                     </td>
                     <td className="px-4 py-3 text-travefy-gray-700">{c.lastName}</td>
                     <td className="px-4 py-3 text-travefy-blue">{c.phone}</td>
-                    <td className="px-4 py-3 text-travefy-gray-500">{c.email}</td>
-                    <td className="px-4 py-3 text-center text-travefy-gray-700">{c.trips ?? '—'}</td>
-                    <td className={clsx('px-4 py-3 font-medium', c.traveling ? travelingColor[c.traveling] : 'text-travefy-gray-400')}>
-                      {c.traveling ?? '—'}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-travefy-gray-500">{c.email}</span>
+                        <button className="text-travefy-gray-300 hover:text-travefy-gray-500 transition-colors">
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-travefy-gray-500">{c.lastUpdated}</td>
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
