@@ -14,7 +14,6 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Badge } from '../../shared/components'
 import { CampaignDrawer } from './CampaignDrawer'
 import { CampaignReportDrawer } from './CampaignReportDrawer'
@@ -93,7 +92,6 @@ function SortIcon({ col, active, dir }: { col: string; active: string; dir: Sort
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function CampaignsTab() {
-  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [sortKey, setSortKey] = useState<SortKey>('name')

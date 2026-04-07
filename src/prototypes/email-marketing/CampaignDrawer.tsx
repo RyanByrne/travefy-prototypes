@@ -1,4 +1,3 @@
-import { clsx } from 'clsx'
 import {
   Bold,
   ChevronDown,
@@ -19,7 +18,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Button, Input, Select } from '../../shared/components'
+import { Button } from '../../shared/components'
 import { AudienceCriteriaBuilder, estimateMatchCount, makeConditionId, type Condition } from './AudienceCriteriaBuilder'
 import { PersonalizationDropdown } from './PersonalizationTokens'
 
