@@ -16,6 +16,8 @@ import {
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../../shared/components'
+import { CampaignDrawer } from './CampaignDrawer'
+import { CampaignReportDrawer } from './CampaignReportDrawer'
 import { campaigns, type Campaign, type CampaignStatus } from './data'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -96,6 +98,8 @@ export function CampaignsTab() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [reportCampaign, setReportCampaign] = useState<Campaign | null>(null)
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -144,7 +148,7 @@ export function CampaignsTab() {
       <div className="bg-white border border-travefy-gray-200 rounded-lg">
         <div className="flex items-center gap-3 p-4 border-b border-travefy-gray-100">
           <button
-            onClick={() => navigate('/email-marketing/campaigns/new')}
+            onClick={() => setDrawerOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors shrink-0"
           >
             <Plus className="w-4 h-4" />
@@ -242,7 +246,7 @@ export function CampaignsTab() {
                 return (
                   <tr
                     key={c.id}
-                    onClick={() => navigate(`/email-marketing/campaigns/${c.id}/${c.status === 'sent' ? 'report' : 'edit'}`)}
+                    onClick={() => c.status === 'sent' ? setReportCampaign(c) : setDrawerOpen(true)}
                     className={clsx(
                       'border-b border-travefy-gray-100 cursor-pointer transition-colors',
                       isSelected ? 'bg-travefy-blue-light' : 'hover:bg-travefy-gray-50',
@@ -273,8 +277,8 @@ export function CampaignsTab() {
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <RowMenu
                         campaign={c}
-                        onEdit={() => navigate(`/email-marketing/campaigns/${c.id}/edit`)}
-                        onViewReport={() => navigate(`/email-marketing/campaigns/${c.id}/report`)}
+                        onEdit={() => setDrawerOpen(true)}
+                        onViewReport={() => setReportCampaign(c)}
                       />
                     </td>
                   </tr>
@@ -293,6 +297,9 @@ export function CampaignsTab() {
           </table>
         </div>
       </div>
+
+      <CampaignDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <CampaignReportDrawer open={!!reportCampaign} onClose={() => setReportCampaign(null)} campaign={reportCampaign} />
     </div>
   )
 }
