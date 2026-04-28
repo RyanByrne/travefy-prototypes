@@ -1,13 +1,25 @@
 import { Bell } from 'lucide-react'
-import { Avatar } from '../../shared/components'
+import { Avatar } from './Avatar'
 
-const NAV_ITEMS = ['Trips', 'Pages', 'Library', 'Marketplace', 'CRM'] as const
+interface AppNavProps {
+  navItems?: readonly string[]
+  activeItem?: string
+  userName?: string
+  notificationCount?: number
+}
+
+const DEFAULT_NAV_ITEMS = ['Trips', 'Pages', 'Library', 'Marketplace', 'CRM'] as const
 
 function TravefyLogo() {
   return <img src="/travefy-logo.png" alt="Travefy" className="w-5 h-5 object-contain" />
 }
 
-export function AppNav() {
+export function AppNav({
+  navItems = DEFAULT_NAV_ITEMS,
+  activeItem = 'CRM',
+  userName = 'Kim Anderson',
+  notificationCount = 8,
+}: AppNavProps) {
   return (
     <nav
       className="flex items-center h-14 px-4 gap-1 shrink-0"
@@ -23,8 +35,8 @@ export function AppNav() {
 
       {/* Navigation items */}
       <div className="flex items-center gap-0.5 flex-1">
-        {NAV_ITEMS.map((item) => {
-          const active = item === 'CRM'
+        {navItems.map((item) => {
+          const active = item === activeItem
           return (
             <button
               key={item}
@@ -45,15 +57,17 @@ export function AppNav() {
         {/* Notification bell */}
         <button className="relative text-white/90 hover:text-white transition-colors">
           <Bell className="w-5 h-5" />
-          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
-            8
-          </span>
+          {notificationCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
+              {notificationCount}
+            </span>
+          )}
         </button>
 
         {/* User */}
         <div className="flex items-center gap-2 text-white">
-          <Avatar name="Kim Anderson" size="sm" className="bg-white/30 text-white" />
-          <span className="text-sm font-semibold hidden lg:block">Kim Anderson</span>
+          <Avatar name={userName} size="sm" className="bg-white/30 text-white" />
+          <span className="text-sm font-semibold hidden lg:block">{userName}</span>
         </div>
 
         {/* Learn */}

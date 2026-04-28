@@ -15,6 +15,13 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'bookings-agency',
+    title: 'Bookings Agency',
+    description: 'Agency bookings dashboard with commission stat cards, sortable bookings table, payout/recon status, and row-level action menu.',
+    status: 'draft',
+    date: '2026-04-24',
+  },
+  {
     slug: 'trips',
     title: 'Trips Dashboard',
     description: 'Trips list view with folder filters, sortable columns, status badges, tag pills, and avatar stacks — built from the Low-Fidelity Figma file.',

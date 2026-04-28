@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
-import { AppNav } from './AppNav'
+import { AppNav } from '../../shared/components'
 import { CampaignEditor } from './CampaignEditor'
 import { CampaignEditorRichText } from './CampaignEditorRichText'
 import { CampaignReport } from './CampaignReport'
