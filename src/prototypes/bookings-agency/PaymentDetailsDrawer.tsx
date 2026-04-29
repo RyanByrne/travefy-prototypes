@@ -19,9 +19,9 @@ import { samplePaymentStatement, type MatchStatus, type StatementRow } from './s
 const statusConfig: Record<MatchStatus, { label: string; className: string }> = {
   unmatched:   { label: 'Unmatched',   className: 'border-travefy-danger-border text-travefy-danger bg-white' },
   unclaimed:   { label: 'Unclaimed',   className: 'border-travefy-danger-border text-travefy-danger bg-white' },
-  matched:     { label: 'Matched',     className: 'border-travefy-blue text-white bg-travefy-blue' },
-  'in-dispute':{ label: 'In Dispute',  className: 'border-travefy-danger-border text-travefy-danger bg-white' },
-  reconciled:  { label: 'Reconciled',  className: 'border-travefy-blue/50 text-travefy-blue bg-travefy-blue-light' },
+  matched:     { label: 'Matched',     className: 'border-travefy-blue/50 text-travefy-blue bg-travefy-blue-light' },
+  'in-dispute':{ label: 'In Dispute',  className: 'border-travefy-danger text-white bg-travefy-danger' },
+  reconciled:  { label: 'Reconciled',  className: 'border-travefy-blue text-white bg-travefy-blue' },
 }
 
 function StatusPill({ status }: { status: MatchStatus }) {
