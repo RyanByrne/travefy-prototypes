@@ -19,11 +19,13 @@ import { useRef, useState } from 'react'
 import { AppNav, Badge, Toast, type ToastMessage } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
+import { IncomingTab } from './IncomingTab'
+import { initialIncomingPayments, type IncomingPayment } from './incomingData'
 import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ['Bookings', 'Incoming', 'Outgoing', 'Unclaimed'] as const
+const TABS = ['Bookings', 'Unclaimed', 'Incoming', 'Outgoing'] as const
 type Tab = (typeof TABS)[number]
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -218,9 +220,37 @@ export function BookingsAgency() {
   const [statusOpen, setStatusOpen] = useState(false)
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
   const [bookings, setBookings] = useState<Booking[]>(initialBookings)
+  const [incomingPayments, setIncomingPayments] = useState<IncomingPayment[]>(initialIncomingPayments)
   const [toast, setToast] = useState<ToastMessage | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
+
+  const todayLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+
+  const NEW_PAYMENT_SUPPLIERS = ['Marriott', 'Hilton', 'Norwegian Cruise Line', 'Hertz', 'Princess Cruises', 'Hyatt', 'Delta Vacations']
+  const generateRef = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('')
+
+  const addIncomingPayment = () => {
+    const supplier = NEW_PAYMENT_SUPPLIERS[incomingPayments.length % NEW_PAYMENT_SUPPLIERS.length]
+    const bookingsCount = Math.floor(Math.random() * 5) + 1
+    const total = Math.round((Math.random() * 1800 + 300) * 100) / 100
+    const newPayment: IncomingPayment = {
+      id: `p${Date.now()}`,
+      date: todayLabel,
+      supplier,
+      reference: generateRef(),
+      bookings: bookingsCount,
+      total,
+      reconciledCount: 0,
+    }
+    setIncomingPayments((p) => [newPayment, ...p])
+    showToast(`Added ${supplier} payment for ${bookingsCount} booking${bookingsCount === 1 ? '' : 's'}`)
+  }
+
+  const removeIncomingPayment = (id: string) => {
+    setIncomingPayments((p) => p.filter((x) => x.id !== id))
+    showToast('Payment removed')
+  }
 
   const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
@@ -307,6 +337,16 @@ export function BookingsAgency() {
               ))}
             </div>
 
+            {tab === 'Incoming' ? (
+              <IncomingTab
+                payments={incomingPayments}
+                onAddNew={addIncomingPayment}
+                onViewPayment={() => setPaymentDrawerOpen(true)}
+                onRemovePayment={removeIncomingPayment}
+                onToast={showToast}
+              />
+            ) : (
+              <>
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               <StatCard value={totals.totalBookings} label="Total Bookings" />
@@ -454,6 +494,8 @@ export function BookingsAgency() {
                 </table>
               </div>
             </div>
+              </>
+            )}
           </div>
         </div>
       </div>
