@@ -16,9 +16,9 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { AppNav, Badge } from '../../shared/components'
+import { AppNav, Badge, Toast, type ToastMessage } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
-import { bookings, locations, totals, type Booking, type ReconStatus } from './data'
+import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
 import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -212,15 +212,50 @@ export function BookingsAgency() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [locationOpen, setLocationOpen] = useState(false)
+  const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null)
+  const [advisorOpen, setAdvisorOpen] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [statusOpen, setStatusOpen] = useState(false)
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
+  const [bookings, setBookings] = useState<Booking[]>(initialBookings)
+  const [toast, setToast] = useState<ToastMessage | null>(null)
+
+  const showToast = (text: string) => setToast({ id: Date.now(), text })
+
+  const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
+  const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else { setSortKey(k); setSortDir('asc') }
   }
 
+  const resetAllFilters = () => {
+    setSelectedLocation(null)
+    setSelectedAdvisor(null)
+    setSelectedStatus(null)
+    setSearch('')
+    setTab('Bookings')
+  }
+
+  const removeBooking = (id: string) => {
+    setBookings((bs) => bs.filter((b) => b.id !== id))
+    showToast('Booking removed')
+  }
+
   const filtered = bookings.filter((b) => {
+    // Tab filter
+    if (tab === 'Incoming' && b.reconStatus !== 'expected') return false
+    if (tab === 'Outgoing' && b.reconStatus !== 'disbursed') return false
+    if (tab === 'Unclaimed' && b.bookingRef !== null && b.traveler !== null) return false
+    // Chip filters
     if (selectedLocation && b.location !== selectedLocation) return false
+    if (selectedAdvisor && b.advisor !== selectedAdvisor) return false
+    if (selectedStatus) {
+      const map: Record<string, ReconStatus> = { Reconciled: 'reconciled', Expected: 'expected', Disbursed: 'disbursed' }
+      if (b.reconStatus !== map[selectedStatus]) return false
+    }
+    // Search
     const q = search.toLowerCase()
     if (!q) return true
     return [b.bookingRef, b.supplier, b.advisor, b.location, b.traveler].some((f) => f?.toLowerCase().includes(q))
@@ -282,7 +317,10 @@ export function BookingsAgency() {
 
             {/* Toolbar */}
             <div className="flex items-center gap-3 flex-wrap">
-              <button className="flex items-center gap-2 px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors shrink-0">
+              <button
+                onClick={() => showToast('New booking flow not in this prototype')}
+                className="flex items-center gap-2 px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors shrink-0"
+              >
                 <Plus className="w-4 h-4" />
                 New Booking
               </button>
@@ -298,7 +336,10 @@ export function BookingsAgency() {
                 />
               </div>
 
-              <button className="px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors">
+              <button
+                onClick={() => showToast(`${sorted.length} booking${sorted.length === 1 ? '' : 's'} match`)}
+                className="px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors"
+              >
                 Search
               </button>
 
@@ -307,7 +348,10 @@ export function BookingsAgency() {
               </span>
 
               <div className="ml-auto flex items-center gap-3">
-                <button className="flex items-center gap-2 px-3 py-2 border border-travefy-gray-200 rounded bg-white text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50 transition-colors">
+                <button
+                  onClick={() => showToast('Column picker is mocked for this prototype')}
+                  className="flex items-center gap-2 px-3 py-2 border border-travefy-gray-200 rounded bg-white text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50 transition-colors"
+                >
                   <Layers className="w-4 h-4" />
                   Select Columns
                 </button>
@@ -324,8 +368,16 @@ export function BookingsAgency() {
             {/* Filter chips */}
             {showFilters && (
               <div className="flex items-center gap-2 flex-wrap justify-end">
-                <FilterChip icon={<Calendar className="w-4 h-4" />} label="Booking Date Range" />
-                <FilterChip icon={<Calendar className="w-4 h-4" />} label="Travel Date Range" />
+                <FilterChip
+                  icon={<Calendar className="w-4 h-4" />}
+                  label="Booking Date Range"
+                  onClick={() => showToast('Date range picker is mocked for this prototype')}
+                />
+                <FilterChip
+                  icon={<Calendar className="w-4 h-4" />}
+                  label="Travel Date Range"
+                  onClick={() => showToast('Date range picker is mocked for this prototype')}
+                />
                 <FilterChip
                   icon={<Building2 className="w-4 h-4" />}
                   label={selectedLocation ?? 'Location'}
@@ -336,10 +388,26 @@ export function BookingsAgency() {
                   selected={selectedLocation}
                   onSelect={(v) => { setSelectedLocation(v); setLocationOpen(false) }}
                 />
-                <FilterChip label="Advisor" dropdown />
-                <FilterChip label="Status" dropdown />
+                <FilterChip
+                  label={selectedAdvisor ?? 'Advisor'}
+                  dropdown
+                  onClick={() => setAdvisorOpen((v) => !v)}
+                  options={advisors}
+                  open={advisorOpen}
+                  selected={selectedAdvisor}
+                  onSelect={(v) => { setSelectedAdvisor(v); setAdvisorOpen(false) }}
+                />
+                <FilterChip
+                  label={selectedStatus ?? 'Status'}
+                  dropdown
+                  onClick={() => setStatusOpen((v) => !v)}
+                  options={statusOptions}
+                  open={statusOpen}
+                  selected={selectedStatus}
+                  onSelect={(v) => { setSelectedStatus(v); setStatusOpen(false) }}
+                />
                 <button
-                  onClick={() => { setSelectedLocation(null); setSearch('') }}
+                  onClick={resetAllFilters}
                   className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline"
                 >
                   Reset Filters
@@ -367,8 +435,21 @@ export function BookingsAgency() {
                   </thead>
                   <tbody>
                     {sorted.map((b) => (
-                      <BookingRow key={b.id} booking={b} />
+                      <BookingRow
+                        key={b.id}
+                        booking={b}
+                        onEdit={() => showToast(`Edit ${b.bookingRef ?? 'booking'} (mocked)`)}
+                        onViewPayout={() => setPaymentDrawerOpen(true)}
+                        onRemove={() => removeBooking(b.id)}
+                      />
                     ))}
+                    {sorted.length === 0 && (
+                      <tr>
+                        <td colSpan={10} className="px-4 py-12 text-center text-travefy-gray-500 text-sm">
+                          No bookings match the current filters.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -377,14 +458,26 @@ export function BookingsAgency() {
         </div>
       </div>
 
-      <PaymentDetailsDrawer open={paymentDrawerOpen} onClose={() => setPaymentDrawerOpen(false)} />
+      <PaymentDetailsDrawer
+        open={paymentDrawerOpen}
+        onClose={() => setPaymentDrawerOpen(false)}
+        onToast={showToast}
+      />
+      <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>
   )
 }
 
 // ── Row ───────────────────────────────────────────────────────────────────────
 
-function BookingRow({ booking: b }: { booking: Booking }) {
+interface BookingRowProps {
+  booking: Booking
+  onEdit: () => void
+  onViewPayout: () => void
+  onRemove: () => void
+}
+
+function BookingRow({ booking: b, onEdit, onViewPayout, onRemove }: BookingRowProps) {
   const recon = reconConfig[b.reconStatus]
 
   return (
@@ -412,9 +505,9 @@ function BookingRow({ booking: b }: { booking: Booking }) {
       </td>
       <td className="px-4 py-3">
         <RowMenu
-          onEdit={() => {}}
-          onViewPayout={() => {}}
-          onRemove={() => {}}
+          onEdit={onEdit}
+          onViewPayout={onViewPayout}
+          onRemove={onRemove}
         />
       </td>
     </tr>

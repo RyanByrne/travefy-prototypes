@@ -11,7 +11,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { samplePaymentStatement, type MatchStatus, type StatementRow } from './statementData'
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -24,18 +24,43 @@ const statusConfig: Record<MatchStatus, { label: string; className: string }> = 
   reconciled:  { label: 'Reconciled',  className: 'border-travefy-blue text-white bg-travefy-blue' },
 }
 
-function StatusPill({ status }: { status: MatchStatus }) {
+const ALL_STATUSES: MatchStatus[] = ['unmatched', 'unclaimed', 'matched', 'in-dispute', 'reconciled']
+
+function StatusPill({ status, onChange }: { status: MatchStatus; onChange: (s: MatchStatus) => void }) {
+  const [open, setOpen] = useState(false)
   const cfg = statusConfig[status]
   return (
-    <button
-      className={clsx(
-        'flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold transition-colors min-w-[110px] justify-between',
-        cfg.className,
+    <div className="relative">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+        className={clsx(
+          'flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold transition-colors min-w-[110px] justify-between',
+          cfg.className,
+        )}
+      >
+        <span>{cfg.label}</span>
+        <ChevronDown className="w-3.5 h-3.5" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-9 z-40 bg-white border border-travefy-gray-200 rounded-lg shadow-lg py-1 w-44 text-sm">
+            {ALL_STATUSES.map((s) => (
+              <button
+                key={s}
+                onClick={() => { onChange(s); setOpen(false) }}
+                className={clsx(
+                  'w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700',
+                  s === status && 'font-semibold text-travefy-navy',
+                )}
+              >
+                {statusConfig[s].label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
-    >
-      <span>{cfg.label}</span>
-      <ChevronDown className="w-3.5 h-3.5" />
-    </button>
+    </div>
   )
 }
 
@@ -82,7 +107,16 @@ const fmtUSDecimal = (n: number) => `US$${n.toFixed(2)}`
 
 // ── Match row ─────────────────────────────────────────────────────────────────
 
-function MatchRow({ row }: { row: StatementRow }) {
+interface MatchRowProps {
+  row: StatementRow
+  onStatusChange: (id: string, status: MatchStatus) => void
+  onMatch: (id: string) => void
+  onUnmatch: (id: string) => void
+  onDelete: (id: string) => void
+  onEdit: (id: string) => void
+}
+
+function MatchRow({ row, onStatusChange, onMatch, onUnmatch, onDelete, onEdit }: MatchRowProps) {
   const isUnmatched = row.matched === null
   const rowBg = isUnmatched ? 'bg-travefy-warning-bg/40' : 'bg-white'
 
@@ -99,8 +133,8 @@ function MatchRow({ row }: { row: StatementRow }) {
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <IconButton icon={<Pencil className="w-3.5 h-3.5" />} />
-          <IconButton icon={<Trash2 className="w-3.5 h-3.5" />} danger />
+          <IconButton icon={<Pencil className="w-3.5 h-3.5" />} onClick={() => onEdit(row.id)} />
+          <IconButton icon={<Trash2 className="w-3.5 h-3.5" />} danger onClick={() => onDelete(row.id)} />
         </div>
       </div>
 
@@ -111,7 +145,10 @@ function MatchRow({ row }: { row: StatementRow }) {
       <div className="flex items-center gap-3 px-4 py-3">
         {isUnmatched ? (
           <>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors">
+            <button
+              onClick={() => onMatch(row.id)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors"
+            >
               <Search className="w-3.5 h-3.5" />
               Match booking
             </button>
@@ -120,7 +157,7 @@ function MatchRow({ row }: { row: StatementRow }) {
               <span>--</span>
               <span>--</span>
             </div>
-            <IconButton icon={<Plus className="w-3.5 h-3.5" />} />
+            <IconButton icon={<Plus className="w-3.5 h-3.5" />} onClick={() => onMatch(row.id)} />
           </>
         ) : (
           <>
@@ -130,13 +167,13 @@ function MatchRow({ row }: { row: StatementRow }) {
               <span className="text-travefy-gray-700">{fmt(row.matched!.expected)}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <IconButton icon={<Pencil className="w-3.5 h-3.5" />} />
-              <IconButton icon={<Link2Off className="w-3.5 h-3.5" />} danger />
+              <IconButton icon={<Pencil className="w-3.5 h-3.5" />} onClick={() => onEdit(row.id)} />
+              <IconButton icon={<Link2Off className="w-3.5 h-3.5" />} danger onClick={() => onUnmatch(row.id)} />
             </div>
           </>
         )}
         <div className="shrink-0 ml-1">
-          <StatusPill status={row.status} />
+          <StatusPill status={row.status} onChange={(s) => onStatusChange(row.id, s)} />
         </div>
       </div>
     </div>
@@ -178,7 +215,17 @@ function MatchTableHeader() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+interface PaymentDetailsDrawerProps {
+  open: boolean
+  onClose: () => void
+  onToast?: (text: string) => void
+}
+
+const FAKE_ADVISORS = ['Sam Rivera', 'Brandon Jones', 'Suzy Smith', 'Kim Anderson']
+
+export function PaymentDetailsDrawer({ open, onClose, onToast }: PaymentDetailsDrawerProps) {
+  const [rows, setRows] = useState<StatementRow[]>(samplePaymentStatement.rows)
+
   useEffect(() => {
     if (!open) return
     document.body.style.overflow = 'hidden'
@@ -188,6 +235,45 @@ export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose
   if (!open) return null
 
   const s = samplePaymentStatement
+  const matchedCount = rows.filter((r) => r.matched !== null).length
+  const matchedAmount = rows.filter((r) => r.matched !== null).reduce((sum, r) => sum + r.amount, 0)
+
+  const updateStatus = (id: string, status: MatchStatus) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)))
+    onToast?.(`Status set to ${statusConfig[status].label}`)
+  }
+
+  const matchRow = (id: string) => {
+    setRows((rs) =>
+      rs.map((r) => {
+        if (r.id !== id) return r
+        const advisor = FAKE_ADVISORS[Math.floor(Math.random() * FAKE_ADVISORS.length)]
+        return {
+          ...r,
+          matched: { bookingRef: r.receivedRef, advisor, expected: r.amount },
+          split: r.split ?? 75,
+          status: 'matched',
+        }
+      }),
+    )
+    onToast?.('Booking matched')
+  }
+
+  const unmatchRow = (id: string) => {
+    setRows((rs) =>
+      rs.map((r) => (r.id === id ? { ...r, matched: null, split: null, status: 'unmatched' } : r)),
+    )
+    onToast?.('Match removed')
+  }
+
+  const deleteRow = (id: string) => {
+    setRows((rs) => rs.filter((r) => r.id !== id))
+    onToast?.('Row removed from statement')
+  }
+
+  const editRow = (id: string) => {
+    onToast?.(`Edit row ${id} (mocked)`)
+  }
 
   return (
     <>
@@ -221,11 +307,17 @@ export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-4">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-gray-200 bg-white text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50 transition-colors">
+                <button
+                  onClick={() => onToast?.('Edit statement details (mocked)')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-gray-200 bg-white text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50 transition-colors"
+                >
                   <Pencil className="w-3.5 h-3.5" />
                   Edit Details
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-blue bg-travefy-blue-light/60 text-sm font-semibold text-travefy-blue hover:bg-travefy-blue-light transition-colors">
+                <button
+                  onClick={() => onToast?.('Statement downloaded')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-blue bg-travefy-blue-light/60 text-sm font-semibold text-travefy-blue hover:bg-travefy-blue-light transition-colors"
+                >
                   <Download className="w-3.5 h-3.5" />
                   Download Statement
                 </button>
@@ -234,13 +326,13 @@ export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose
             <div className="text-right shrink-0">
               <p className="text-sm text-travefy-navy">
                 <span className="font-semibold">Matched: </span>
-                <span className="font-bold text-travefy-danger">{fmtUS(s.matchedAmount)}</span>
+                <span className="font-bold text-travefy-danger">{fmtUS(matchedAmount)}</span>
                 <span className="text-travefy-gray-700"> / {fmtUSDecimal(s.totalAmount)}</span>
               </p>
               <p className="text-sm text-travefy-navy mt-2">
                 <span className="font-semibold">Bookings Matched: </span>
-                <span className="font-bold text-travefy-danger">{s.bookingsMatched}</span>
-                <span className="text-travefy-gray-700"> / {s.bookingsTotal}</span>
+                <span className="font-bold text-travefy-danger">{matchedCount}</span>
+                <span className="text-travefy-gray-700"> / {rows.length}</span>
               </p>
             </div>
           </div>
@@ -249,7 +341,10 @@ export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose
           <div className="grid grid-cols-2 gap-0 mt-6 mb-3">
             <div className="flex items-center justify-between pr-4">
               <h4 className="text-base font-bold text-travefy-navy">Bookings on Statement</h4>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors">
+              <button
+                onClick={() => onToast?.('Add new line item (mocked)')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors"
+              >
                 <Plus className="w-4 h-4" />
                 Add New
               </button>
@@ -262,16 +357,29 @@ export function PaymentDetailsDrawer({ open, onClose }: { open: boolean; onClose
           {/* Match table */}
           <div className="border border-travefy-gray-200 rounded-lg overflow-hidden">
             <MatchTableHeader />
-            {s.rows.map((row) => (
-              <MatchRow key={row.id} row={row} />
+            {rows.map((row) => (
+              <MatchRow
+                key={row.id}
+                row={row}
+                onStatusChange={updateStatus}
+                onMatch={matchRow}
+                onUnmatch={unmatchRow}
+                onDelete={deleteRow}
+                onEdit={editRow}
+              />
             ))}
+            {rows.length === 0 && (
+              <div className="px-4 py-12 text-center text-travefy-gray-500 text-sm">
+                All rows removed.
+              </div>
+            )}
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end px-8 py-4 border-t border-travefy-gray-100 shrink-0 bg-travefy-gray-50">
           <button
-            onClick={onClose}
+            onClick={() => { onToast?.('Statement saved'); onClose() }}
             className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors"
           >
             Save & Close
