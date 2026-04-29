@@ -19,6 +19,7 @@ import { useRef, useState } from 'react'
 import { AppNav, Badge } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings, locations, totals, type Booking, type ReconStatus } from './data'
+import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -211,6 +212,7 @@ export function BookingsAgency() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [locationOpen, setLocationOpen] = useState(false)
+  const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
 
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -246,6 +248,7 @@ export function BookingsAgency() {
               title: 'New pay statement from PayMode',
               body: 'Your latest commission payout is ready to review.',
               ctaLabel: 'View statement',
+              onCtaClick: () => setPaymentDrawerOpen(true),
             },
           ]}
         />
@@ -373,6 +376,8 @@ export function BookingsAgency() {
           </div>
         </div>
       </div>
+
+      <PaymentDetailsDrawer open={paymentDrawerOpen} onClose={() => setPaymentDrawerOpen(false)} />
     </PrototypeShell>
   )
 }
