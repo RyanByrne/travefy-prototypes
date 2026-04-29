@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronUp,
   CircleDollarSign,
+  FileText,
   Filter,
   Info,
   Layers,
@@ -21,7 +22,7 @@ import { bookings, locations, totals, type Booking, type ReconStatus } from './d
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ['Bookings', 'Outgoing'] as const
+const TABS = ['Bookings', 'Incoming', 'Outgoing', 'Unclaimed'] as const
 type Tab = (typeof TABS)[number]
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -210,6 +211,7 @@ export function BookingsAgency() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [locationOpen, setLocationOpen] = useState(false)
+  const [showPayModeBanner, setShowPayModeBanner] = useState(true)
 
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -240,6 +242,32 @@ export function BookingsAgency() {
           userName="Sam Rivera"
           notificationCount={8}
         />
+
+        {showPayModeBanner && (
+          <div className="flex items-center gap-3 px-6 py-3 bg-travefy-blue-light border-b border-travefy-blue/20 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+              <FileText className="w-4 h-4 text-travefy-blue" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-travefy-navy">
+                New pay statement from PayMode
+              </p>
+              <p className="text-xs text-travefy-gray-600">
+                Your latest commission payout is ready to review.
+              </p>
+            </div>
+            <button className="px-3 py-1.5 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors shrink-0">
+              View statement
+            </button>
+            <button
+              onClick={() => setShowPayModeBanner(false)}
+              className="p-1.5 rounded text-travefy-gray-500 hover:text-travefy-gray-700 hover:bg-white/50 transition-colors shrink-0"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-auto">
           <div className="px-6 py-5 space-y-5">
