@@ -22,6 +22,7 @@ import { bookings as initialBookings, locations, totals, type Booking, type Reco
 import { IncomingTab } from './IncomingTab'
 import { initialIncomingPayments, type IncomingPayment } from './incomingData'
 import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
+import { samplePaymentStatement, type StatementRow } from './statementData'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -219,6 +220,7 @@ export function BookingsAgency() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [statusOpen, setStatusOpen] = useState(false)
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
+  const [drawerOrigin, setDrawerOrigin] = useState<'notification' | 'existing' | null>(null)
   const [bookings, setBookings] = useState<Booking[]>(initialBookings)
   const [incomingPayments, setIncomingPayments] = useState<IncomingPayment[]>(initialIncomingPayments)
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -250,6 +252,30 @@ export function BookingsAgency() {
   const removeIncomingPayment = (id: string) => {
     setIncomingPayments((p) => p.filter((x) => x.id !== id))
     showToast('Payment removed')
+  }
+
+  /** When the drawer is opened from the PayMode notification and saved, drop the statement into the Incoming list. */
+  const addStatementToIncoming = (rows: StatementRow[]) => {
+    const matchedCount = rows.filter((r) => r.matched !== null).length
+    setIncomingPayments((p) => {
+      // Avoid duplicating the row if the user opens & saves the notification multiple times — update in place instead.
+      const existing = p.findIndex((x) => x.reference === samplePaymentStatement.reference)
+      if (existing >= 0) {
+        const next = [...p]
+        next[existing] = { ...next[existing], reconciledCount: matchedCount, bookings: rows.length }
+        return next
+      }
+      const newPayment: IncomingPayment = {
+        id: `paymode-${samplePaymentStatement.reference}`,
+        date: '9 Oct 2025',
+        supplier: samplePaymentStatement.supplier,
+        reference: samplePaymentStatement.reference,
+        bookings: rows.length,
+        total: samplePaymentStatement.totalAmount,
+        reconciledCount: matchedCount,
+      }
+      return [newPayment, ...p]
+    })
   }
 
   const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
@@ -313,7 +339,7 @@ export function BookingsAgency() {
               title: 'New pay statement from PayMode',
               body: 'Your latest commission payout is ready to review.',
               ctaLabel: 'View statement',
-              onCtaClick: () => setPaymentDrawerOpen(true),
+              onCtaClick: () => { setDrawerOrigin('notification'); setPaymentDrawerOpen(true) },
             },
           ]}
         />
@@ -341,7 +367,7 @@ export function BookingsAgency() {
               <IncomingTab
                 payments={incomingPayments}
                 onAddNew={addIncomingPayment}
-                onViewPayment={() => setPaymentDrawerOpen(true)}
+                onViewPayment={() => { setDrawerOrigin('existing'); setPaymentDrawerOpen(true) }}
                 onRemovePayment={removeIncomingPayment}
                 onToast={showToast}
               />
@@ -479,7 +505,7 @@ export function BookingsAgency() {
                         key={b.id}
                         booking={b}
                         onEdit={() => showToast(`Edit ${b.bookingRef ?? 'booking'} (mocked)`)}
-                        onViewPayout={() => setPaymentDrawerOpen(true)}
+                        onViewPayout={() => { setDrawerOrigin('existing'); setPaymentDrawerOpen(true) }}
                         onRemove={() => removeBooking(b.id)}
                       />
                     ))}
@@ -504,6 +530,13 @@ export function BookingsAgency() {
         open={paymentDrawerOpen}
         onClose={() => setPaymentDrawerOpen(false)}
         onToast={showToast}
+        onSave={(rows) => {
+          if (drawerOrigin === 'notification') {
+            addStatementToIncoming(rows)
+            setTab('Incoming')
+          }
+          setDrawerOrigin(null)
+        }}
       />
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>

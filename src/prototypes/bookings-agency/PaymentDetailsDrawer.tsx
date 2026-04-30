@@ -219,11 +219,13 @@ interface PaymentDetailsDrawerProps {
   open: boolean
   onClose: () => void
   onToast?: (text: string) => void
+  /** Called on Save & Close with the current rows (so callers can react — e.g. adding a row to Incoming). */
+  onSave?: (rows: StatementRow[]) => void
 }
 
 const FAKE_ADVISORS = ['Sam Rivera', 'Brandon Jones', 'Suzy Smith', 'Kim Anderson']
 
-export function PaymentDetailsDrawer({ open, onClose, onToast }: PaymentDetailsDrawerProps) {
+export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: PaymentDetailsDrawerProps) {
   const [rows, setRows] = useState<StatementRow[]>(samplePaymentStatement.rows)
 
   useEffect(() => {
@@ -379,7 +381,7 @@ export function PaymentDetailsDrawer({ open, onClose, onToast }: PaymentDetailsD
         {/* Footer */}
         <div className="flex items-center justify-end px-8 py-4 border-t border-travefy-gray-100 shrink-0 bg-travefy-gray-50">
           <button
-            onClick={() => { onToast?.('Statement saved'); onClose() }}
+            onClick={() => { onSave?.(rows); onToast?.('Statement saved'); onClose() }}
             className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors"
           >
             Save & Close
