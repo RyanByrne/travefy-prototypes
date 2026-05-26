@@ -70,13 +70,13 @@ function StatusCell({
   onMarkUnclaimed,
   onUnmark,
   onReconcile,
-  onUnlink,
+  onUnreconcile,
 }: {
   row: StatementRow
   onMarkUnclaimed: () => void
   onUnmark: () => void
   onReconcile: () => void
-  onUnlink: () => void
+  onUnreconcile: () => void
 }) {
   if (row.status === 'unmatched') {
     return (
@@ -112,7 +112,7 @@ function StatusCell({
   return (
     <span className="inline-flex items-center gap-1 px-3 py-1 rounded border border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark text-xs font-semibold whitespace-nowrap">
       Reconciled
-      <button onClick={onUnlink} aria-label="Unlink" className="ml-0.5 hover:opacity-70">
+      <button onClick={onUnreconcile} aria-label="Remove reconciled status" className="ml-0.5 hover:opacity-70">
         <X className="w-3 h-3" />
       </button>
     </span>
@@ -127,12 +127,13 @@ interface MatchRowProps {
   onMarkUnclaimed: (id: string) => void
   onUnmarkUnclaimed: (id: string) => void
   onReconcile: (id: string) => void
+  onUnreconcile: (id: string) => void
   onUnlink: (id: string) => void
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }
 
-function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconcile, onUnlink, onEdit, onDelete }: MatchRowProps) {
+function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconcile, onUnreconcile, onUnlink, onEdit, onDelete }: MatchRowProps) {
   const isUnlinked = row.matched === null
   const refClass = isUnlinked ? 'text-travefy-danger font-semibold' : 'text-travefy-blue font-medium'
 
@@ -184,7 +185,7 @@ function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconci
               onMarkUnclaimed={() => onMarkUnclaimed(row.id)}
               onUnmark={() => onUnmarkUnclaimed(row.id)}
               onReconcile={() => onReconcile(row.id)}
-              onUnlink={() => onUnlink(row.id)}
+              onUnreconcile={() => onUnreconcile(row.id)}
             />
           </>
         ) : (
@@ -199,7 +200,7 @@ function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconci
               onMarkUnclaimed={() => onMarkUnclaimed(row.id)}
               onUnmark={() => onUnmarkUnclaimed(row.id)}
               onReconcile={() => onReconcile(row.id)}
-              onUnlink={() => onUnlink(row.id)}
+              onUnreconcile={() => onUnreconcile(row.id)}
             />
           </>
         )}
@@ -272,6 +273,11 @@ export function PaymentDetailsDrawer({
   const reconcile = (id: string) => {
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: 'reconciled' } : r)))
     onToast?.('Booking reconciled')
+  }
+  const unreconcile = (id: string) => {
+    // Removing the Reconciled badge keeps the match but reverts to "ready to reconcile".
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: 'matched' } : r)))
+    onToast?.('Reconciled status removed')
   }
   const unlink = (id: string) => {
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, matched: null, status: 'unmatched' } : r)))
@@ -373,6 +379,7 @@ export function PaymentDetailsDrawer({
                 onMarkUnclaimed={markUnclaimed}
                 onUnmarkUnclaimed={unmarkUnclaimed}
                 onReconcile={reconcile}
+                onUnreconcile={unreconcile}
                 onUnlink={unlink}
                 onEdit={editRow}
                 onDelete={deleteRow}

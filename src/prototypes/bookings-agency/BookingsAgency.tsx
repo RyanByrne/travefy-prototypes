@@ -224,7 +224,7 @@ export function BookingsAgency() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
   const [statusOpen, setStatusOpen] = useState(false)
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
-  const [drawerOrigin, setDrawerOrigin] = useState<'notification' | 'existing' | null>(null)
+  const [drawerOrigin, setDrawerOrigin] = useState<'notification' | 'existing' | 'new-payment' | null>(null)
   const [role, setRole] = useState<'agency' | 'advisor'>('agency')
   const [unclaimedItems, setUnclaimedItems] = useState<UnclaimedItem[]>(initialUnclaimedItems)
   const [searchModalOpen, setSearchModalOpen] = useState(false)
@@ -236,28 +236,6 @@ export function BookingsAgency() {
   const [toast, setToast] = useState<ToastMessage | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
-
-  const todayLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-
-  const NEW_PAYMENT_SUPPLIERS = ['Marriott', 'Hilton', 'Norwegian Cruise Line', 'Hertz', 'Princess Cruises', 'Hyatt', 'Delta Vacations']
-  const generateRef = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('')
-
-  const addIncomingPayment = () => {
-    const supplier = NEW_PAYMENT_SUPPLIERS[incomingPayments.length % NEW_PAYMENT_SUPPLIERS.length]
-    const bookingsCount = Math.floor(Math.random() * 5) + 1
-    const total = Math.round((Math.random() * 1800 + 300) * 100) / 100
-    const newPayment: IncomingPayment = {
-      id: `p${Date.now()}`,
-      date: todayLabel,
-      supplier,
-      reference: generateRef(),
-      bookings: bookingsCount,
-      total,
-      reconciledCount: 0,
-    }
-    setIncomingPayments((p) => [newPayment, ...p])
-    showToast(`Added ${supplier} payment for ${bookingsCount} booking${bookingsCount === 1 ? '' : 's'}`)
-  }
 
   const removeIncomingPayment = (id: string) => {
     setIncomingPayments((p) => p.filter((x) => x.id !== id))
@@ -491,7 +469,7 @@ export function BookingsAgency() {
             ) : tab === 'Incoming' ? (
               <IncomingTab
                 payments={incomingPayments}
-                onAddNew={addIncomingPayment}
+                onAddNew={() => { setDrawerOrigin('new-payment'); setPaymentDrawerOpen(true) }}
                 onViewPayment={() => { setDrawerOrigin('existing'); setPaymentDrawerOpen(true) }}
                 onRemovePayment={removeIncomingPayment}
                 onToast={showToast}
@@ -656,7 +634,7 @@ export function BookingsAgency() {
         onClose={() => setPaymentDrawerOpen(false)}
         onToast={showToast}
         onSave={(rows) => {
-          if (drawerOrigin === 'notification') {
+          if (drawerOrigin === 'notification' || drawerOrigin === 'new-payment') {
             addStatementToIncoming(rows)
             setTab('Incoming')
           }
