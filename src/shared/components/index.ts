@@ -1,5 +1,5 @@
 export { Alert } from './Alert'
-export { AppNav } from './AppNav'
+export { AppNav, AccountIcon, SignOutIcon, type NavNode, type NavLeaf, type UserMenuItem } from './AppNav'
 export { Avatar } from './Avatar'
 export { Badge } from './Badge'
 export { Button } from './Button'

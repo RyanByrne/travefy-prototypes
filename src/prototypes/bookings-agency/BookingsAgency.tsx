@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { AppNav, Badge, Toast, type ToastMessage } from '../../shared/components'
+import { AccountIcon, AppNav, Badge, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
 import { AddBookingDetailsModal, type NewBookingDraft } from './AddBookingDetailsModal'
@@ -27,6 +27,35 @@ import { SearchBookingModal, type CandidateBooking } from './SearchBookingModal'
 import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow } from './statementData'
 import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
+
+// ── Top nav (new Compass IA) ────────────────────────────────────────────────────
+
+const NAV_MENU: NavNode[] = [
+  { type: 'link', label: 'Compass' },
+  { type: 'link', label: 'Trips' },
+  {
+    type: 'mega',
+    label: 'Business Hub',
+    columns: [
+      { heading: 'CRM', items: [{ label: 'Contacts' }, { label: 'Tasks & Automations' }, { label: 'Bookings' }, { label: 'Fees' }] },
+      { heading: 'Marketing', items: [{ label: 'Campaigns' }, { label: 'Pages' }, { label: 'Profile' }] },
+      { heading: 'Agency', items: [{ label: 'Team' }, { label: 'Commission Splits' }, { label: 'Suppliers' }] },
+    ],
+  },
+  {
+    type: 'dropdown',
+    label: 'Resources',
+    groups: [
+      [{ label: 'Template Library' }, { label: 'Forms' }, { label: 'Template Marketplace' }],
+      [{ label: 'Support Center' }, { label: 'Education' }, { label: 'Schedule Training', highlight: true }],
+    ],
+  },
+]
+
+const USER_MENU: UserMenuItem[] = [
+  { label: 'Account', icon: <AccountIcon className="w-4 h-4 text-travefy-gray-500" /> },
+  { label: 'Sign Out', icon: <SignOutIcon className="w-4 h-4 text-travefy-gray-500" /> },
+]
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -237,6 +266,16 @@ export function BookingsAgency() {
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
+  // Top-nav clicks: "Bookings" jumps to the Bookings tab, everything else is a demo toast.
+  const handleNavSelect = (label: string) => {
+    if (label === 'Bookings') {
+      setTab('Bookings')
+      showToast('Bookings')
+      return
+    }
+    showToast(label)
+  }
+
   const removeIncomingPayment = (id: string) => {
     setIncomingPayments((p) => p.filter((x) => x.id !== id))
     showToast('Payment removed')
@@ -409,9 +448,11 @@ export function BookingsAgency() {
     <PrototypeShell title="Bookings Agency" fullBleed>
       <div className="flex flex-col flex-1 min-h-0 bg-travefy-gray-50">
         <AppNav
-          navItems={['Trips', 'Pages', 'Library', 'Marketplace', 'Contacts']}
-          activeItem=""
+          menu={NAV_MENU}
+          activeItem="Business Hub"
           userName="Sam Rivera"
+          userMenu={USER_MENU}
+          onNavSelect={handleNavSelect}
           notifications={[
             {
               id: 'paymode-statement',
