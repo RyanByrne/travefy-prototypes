@@ -1,7 +1,6 @@
 import { clsx } from 'clsx'
 import {
   AlertTriangle,
-  ChevronDown,
   Download,
   Link2Off,
   Pencil,
@@ -14,72 +13,11 @@ import {
 import { useEffect, useState } from 'react'
 import { samplePaymentStatement, type MatchStatus, type StatementRow } from './statementData'
 
-// ── Status badge ──────────────────────────────────────────────────────────────
+// ── Money formatters ──────────────────────────────────────────────────────────
 
-const statusConfig: Record<MatchStatus, { label: string; className: string }> = {
-  unmatched:   { label: 'Unmatched',   className: 'border-travefy-danger-border text-travefy-danger bg-white' },
-  unclaimed:   { label: 'Unclaimed',   className: 'border-travefy-danger-border text-travefy-danger bg-white' },
-  matched:     { label: 'Matched',     className: 'border-travefy-blue/50 text-travefy-blue bg-travefy-blue-light' },
-  'in-dispute':{ label: 'In Dispute',  className: 'border-travefy-danger text-white bg-travefy-danger' },
-  reconciled:  { label: 'Reconciled',  className: 'border-travefy-blue text-white bg-travefy-blue' },
-}
-
-const ALL_STATUSES: MatchStatus[] = ['unmatched', 'unclaimed', 'matched', 'in-dispute', 'reconciled']
-
-function StatusPill({ status, onChange }: { status: MatchStatus; onChange: (s: MatchStatus) => void }) {
-  const [open, setOpen] = useState(false)
-  const cfg = statusConfig[status]
-  return (
-    <div className="relative">
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
-        className={clsx(
-          'flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold transition-colors min-w-[110px] justify-between',
-          cfg.className,
-        )}
-      >
-        <span>{cfg.label}</span>
-        <ChevronDown className="w-3.5 h-3.5" />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-9 z-40 bg-white border border-travefy-gray-200 rounded-lg shadow-lg py-1 w-44 text-sm">
-            {ALL_STATUSES.map((s) => (
-              <button
-                key={s}
-                onClick={() => { onChange(s); setOpen(false) }}
-                className={clsx(
-                  'w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700',
-                  s === status && 'font-semibold text-travefy-navy',
-                )}
-              >
-                {statusConfig[s].label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-// ── Row icon (warning vs matched-star) ────────────────────────────────────────
-
-function RowMarker({ status }: { status: MatchStatus }) {
-  if (status === 'unmatched' || status === 'unclaimed') {
-    return (
-      <div className="w-6 h-6 rounded-full bg-travefy-warning-bg border border-travefy-warning-border flex items-center justify-center shrink-0">
-        <AlertTriangle className="w-3 h-3 text-travefy-warning" />
-      </div>
-    )
-  }
-  return (
-    <div className="w-6 h-6 rounded-full bg-travefy-success-bg border border-travefy-success-border flex items-center justify-center shrink-0">
-      <Sparkles className="w-3 h-3 text-travefy-success" />
-    </div>
-  )
-}
+const fmt = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`)
+const fmtUS = (n: number) => (Number.isInteger(n) ? `US$${n}` : `US$${n.toFixed(2)}`)
+const fmtUSDecimal = (n: number) => `US$${n.toFixed(2)}`
 
 // ── Icon button ───────────────────────────────────────────────────────────────
 
@@ -88,7 +26,7 @@ function IconButton({ icon, danger, onClick }: { icon: React.ReactNode; danger?:
     <button
       onClick={onClick}
       className={clsx(
-        'w-8 h-8 flex items-center justify-center rounded border border-travefy-gray-200 transition-colors',
+        'w-8 h-8 flex items-center justify-center rounded border border-travefy-gray-200 transition-colors shrink-0',
         danger
           ? 'text-travefy-danger hover:bg-travefy-danger-bg'
           : 'text-travefy-gray-500 hover:bg-travefy-gray-50 hover:text-travefy-gray-700',
@@ -99,115 +37,172 @@ function IconButton({ icon, danger, onClick }: { icon: React.ReactNode; danger?:
   )
 }
 
-// ── Money formatter ───────────────────────────────────────────────────────────
+// ── Match table header ────────────────────────────────────────────────────────
 
-const fmt = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`)
-const fmtUS = (n: number) => (Number.isInteger(n) ? `US$${n}` : `US$${n.toFixed(2)}`)
-const fmtUSDecimal = (n: number) => `US$${n.toFixed(2)}`
+function MatchTableHeader() {
+  return (
+    <div className="grid grid-cols-[1fr_auto_1.4fr] border-b border-travefy-gray-200 bg-travefy-gray-50">
+      <div className="grid grid-cols-[1.4fr_1fr_auto] gap-3 items-center px-4 py-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">Received Booking</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">Amount</span>
+        <span className="w-[76px]" />
+      </div>
+      <div className="w-px bg-transparent" />
+      <div className="grid grid-cols-[1fr_1.1fr_0.8fr_0.6fr_auto_auto] gap-3 items-center px-4 py-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">Booking Ref</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">Advisor</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600 flex items-center gap-1">
+          Expected
+          <span className="w-3.5 h-3.5 rounded-full bg-travefy-gray-400 text-white text-[8px] flex items-center justify-center">i</span>
+        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">Split</span>
+        <span className="w-[40px]" />
+        <span className="w-[120px]" />
+      </div>
+    </div>
+  )
+}
+
+// ── Status pill / action ──────────────────────────────────────────────────────
+
+function StatusCell({
+  row,
+  onMarkUnclaimed,
+  onUnmark,
+  onReconcile,
+  onUnlink,
+}: {
+  row: StatementRow
+  onMarkUnclaimed: () => void
+  onUnmark: () => void
+  onReconcile: () => void
+  onUnlink: () => void
+}) {
+  if (row.status === 'unmatched') {
+    return (
+      <button
+        onClick={onMarkUnclaimed}
+        className="px-3 py-1 rounded border border-travefy-danger-border text-travefy-danger text-xs font-semibold hover:bg-travefy-danger-bg transition-colors whitespace-nowrap"
+      >
+        Mark Unclaimed
+      </button>
+    )
+  }
+  if (row.status === 'unclaimed') {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded border border-travefy-danger-border bg-travefy-danger-bg text-travefy-danger text-xs font-semibold whitespace-nowrap">
+        Unclaimed
+        <button onClick={onUnmark} aria-label="Unmark unclaimed" className="ml-0.5 hover:opacity-70">
+          <X className="w-3 h-3" />
+        </button>
+      </span>
+    )
+  }
+  if (row.status === 'matched') {
+    return (
+      <button
+        onClick={onReconcile}
+        className="px-3 py-1 rounded border border-travefy-blue text-travefy-blue text-xs font-semibold hover:bg-travefy-blue-light transition-colors whitespace-nowrap"
+      >
+        Reconcile
+      </button>
+    )
+  }
+  // reconciled
+  return (
+    <span className="inline-flex items-center gap-1 px-3 py-1 rounded border border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark text-xs font-semibold whitespace-nowrap">
+      Reconciled
+      <button onClick={onUnlink} aria-label="Unlink" className="ml-0.5 hover:opacity-70">
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  )
+}
 
 // ── Match row ─────────────────────────────────────────────────────────────────
 
 interface MatchRowProps {
   row: StatementRow
-  onStatusChange: (id: string, status: MatchStatus) => void
-  onMatch: (id: string) => void
-  onUnmatch: (id: string) => void
-  onDelete: (id: string) => void
+  onSearch: (id: string) => void
+  onMarkUnclaimed: (id: string) => void
+  onUnmarkUnclaimed: (id: string) => void
+  onReconcile: (id: string) => void
+  onUnlink: (id: string) => void
   onEdit: (id: string) => void
+  onDelete: (id: string) => void
 }
 
-function MatchRow({ row, onStatusChange, onMatch, onUnmatch, onDelete, onEdit }: MatchRowProps) {
-  const isUnmatched = row.matched === null
-  const rowBg = isUnmatched ? 'bg-travefy-warning-bg/40' : 'bg-white'
+function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconcile, onUnlink, onEdit, onDelete }: MatchRowProps) {
+  const isUnlinked = row.matched === null
+  const refClass = isUnlinked ? 'text-travefy-danger font-semibold' : 'text-travefy-blue font-medium'
 
   return (
-    <div className={clsx('grid grid-cols-[1fr_auto_1fr] gap-0 border-b border-travefy-gray-100', rowBg)}>
+    <div className="grid grid-cols-[1fr_auto_1.4fr] border-b border-travefy-gray-100 last:border-0">
       {/* LEFT — Bookings on Statement */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        <RowMarker status={row.status} />
-        <div className="flex-1 grid grid-cols-[1.4fr_1fr_0.8fr] gap-3 items-center text-sm">
-          <span className="text-travefy-navy font-medium">{row.receivedRef}</span>
-          <span className="text-travefy-gray-700">{fmt(row.amount)}</span>
-          <span className="text-travefy-gray-700">
-            {row.split !== null ? `${row.split}%` : <span className="text-travefy-gray-400">--</span>}
-          </span>
+      <div className="grid grid-cols-[1.4fr_1fr_auto] gap-3 items-center px-4 py-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={refClass}>{row.receivedRef}</span>
+          {isUnlinked && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-travefy-danger-border bg-travefy-danger-bg text-travefy-danger text-[10px] font-semibold whitespace-nowrap">
+              <AlertTriangle className="w-2.5 h-2.5" />
+              Unmatched
+            </span>
+          )}
+          {row.status === 'matched' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark text-[10px] font-semibold whitespace-nowrap">
+              <Sparkles className="w-2.5 h-2.5" />
+              Matched
+            </span>
+          )}
         </div>
+        <span className="text-travefy-gray-700 text-sm">{fmt(row.amount)}</span>
         <div className="flex items-center gap-1.5 shrink-0">
           <IconButton icon={<Pencil className="w-3.5 h-3.5" />} onClick={() => onEdit(row.id)} />
           <IconButton icon={<Trash2 className="w-3.5 h-3.5" />} danger onClick={() => onDelete(row.id)} />
         </div>
       </div>
 
-      {/* MIDDLE — small visual divider so the two halves read as paired */}
       <div className="w-px bg-travefy-gray-100" />
 
       {/* RIGHT — Advisor Bookings */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        {isUnmatched ? (
+      <div className="grid grid-cols-[1fr_1.1fr_0.8fr_0.6fr_auto_auto] gap-3 items-center px-4 py-3">
+        {isUnlinked ? (
           <>
             <button
-              onClick={() => onMatch(row.id)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors"
+              onClick={() => onSearch(row.id)}
+              className="col-span-1 flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors justify-center"
             >
               <Search className="w-3.5 h-3.5" />
-              Match booking
+              Search for booking
             </button>
-            <div className="flex-1 grid grid-cols-[1fr_1fr_1fr] gap-3 text-sm text-travefy-gray-400">
-              <span>--</span>
-              <span>--</span>
-              <span>--</span>
-            </div>
-            <IconButton icon={<Plus className="w-3.5 h-3.5" />} onClick={() => onMatch(row.id)} />
+            <span className="text-travefy-gray-400 text-sm">--</span>
+            <span className="text-travefy-gray-400 text-sm">--</span>
+            <span className="text-travefy-gray-400 text-sm">--</span>
+            <IconButton icon={<Plus className="w-3.5 h-3.5" />} onClick={() => onSearch(row.id)} />
+            <StatusCell
+              row={row}
+              onMarkUnclaimed={() => onMarkUnclaimed(row.id)}
+              onUnmark={() => onUnmarkUnclaimed(row.id)}
+              onReconcile={() => onReconcile(row.id)}
+              onUnlink={() => onUnlink(row.id)}
+            />
           </>
         ) : (
           <>
-            <div className="flex-1 grid grid-cols-[1fr_1.2fr_0.9fr] gap-3 items-center text-sm">
-              <span className="text-travefy-navy font-medium">{row.matched!.bookingRef}</span>
-              <span className="text-travefy-gray-700">{row.matched!.advisor}</span>
-              <span className="text-travefy-gray-700">{fmt(row.matched!.expected)}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <IconButton icon={<Pencil className="w-3.5 h-3.5" />} onClick={() => onEdit(row.id)} />
-              <IconButton icon={<Link2Off className="w-3.5 h-3.5" />} danger onClick={() => onUnmatch(row.id)} />
-            </div>
+            <span className="text-travefy-blue font-medium text-sm">{row.matched!.bookingRef}</span>
+            <span className="text-travefy-gray-700 text-sm">{row.matched!.advisor}</span>
+            <span className="text-travefy-gray-700 text-sm">{fmt(row.matched!.expected)}</span>
+            <span className="text-travefy-gray-700 text-sm">{row.matched!.split}%</span>
+            <IconButton icon={<Link2Off className="w-3.5 h-3.5" />} danger onClick={() => onUnlink(row.id)} />
+            <StatusCell
+              row={row}
+              onMarkUnclaimed={() => onMarkUnclaimed(row.id)}
+              onUnmark={() => onUnmarkUnclaimed(row.id)}
+              onReconcile={() => onReconcile(row.id)}
+              onUnlink={() => onUnlink(row.id)}
+            />
           </>
         )}
-        <div className="shrink-0 ml-1">
-          <StatusPill status={row.status} onChange={(s) => onStatusChange(row.id, s)} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Header rows for the two-column table ──────────────────────────────────────
-
-function MatchTableHeader() {
-  return (
-    <div className="grid grid-cols-[1fr_auto_1fr] gap-0 border-b border-travefy-gray-200 bg-travefy-gray-50">
-      <div className="flex items-center gap-3 px-4 py-2.5">
-        <div className="w-6 shrink-0" />
-        <div className="flex-1 grid grid-cols-[1.4fr_1fr_0.8fr] gap-3 text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">
-          <span>Received Booking</span>
-          <span>Amount</span>
-          <span>Split</span>
-        </div>
-        <div className="w-[76px] shrink-0" />
-      </div>
-      <div className="w-px bg-transparent" />
-      <div className="flex items-center gap-3 px-4 py-2.5">
-        <div className="flex-1 grid grid-cols-[1fr_1.2fr_0.9fr] gap-3 text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600">
-          <span>Booking Ref</span>
-          <span>Advisor</span>
-          <span className="flex items-center gap-1">
-            Expected
-            <span className="w-3.5 h-3.5 rounded-full bg-travefy-gray-400 text-white text-[8px] flex items-center justify-center">i</span>
-          </span>
-        </div>
-        <div className="w-[76px] shrink-0" />
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-travefy-gray-600 min-w-[110px] text-right">
-          Select Action
-        </div>
       </div>
     </div>
   )
@@ -219,13 +214,27 @@ interface PaymentDetailsDrawerProps {
   open: boolean
   onClose: () => void
   onToast?: (text: string) => void
-  /** Called on Save & Close with the current rows (so callers can react — e.g. adding a row to Incoming). */
+  /** Called on Save & Close with the current rows */
   onSave?: (rows: StatementRow[]) => void
+  /** Called whenever rows change (used to live-update Unclaimed badges in parent) */
+  onRowsChange?: (rows: StatementRow[]) => void
+  /** Open the booking-search modal for a given row id */
+  onSearchBooking?: (rowId: string) => void
+  /** Allow the parent to push a freshly linked match back into the drawer */
+  pendingMatch?: { rowId: string; match: import('./statementData').MatchedAdvisorBooking } | null
+  onPendingMatchHandled?: () => void
 }
 
-const FAKE_ADVISORS = ['Sam Rivera', 'Brandon Jones', 'Suzy Smith', 'Kim Anderson']
-
-export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: PaymentDetailsDrawerProps) {
+export function PaymentDetailsDrawer({
+  open,
+  onClose,
+  onToast,
+  onSave,
+  onRowsChange,
+  onSearchBooking,
+  pendingMatch,
+  onPendingMatchHandled,
+}: PaymentDetailsDrawerProps) {
   const [rows, setRows] = useState<StatementRow[]>(samplePaymentStatement.rows)
 
   useEffect(() => {
@@ -234,55 +243,53 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
     return () => { document.body.style.overflow = '' }
   }, [open])
 
+  // Apply a match that came in from the SearchBookingModal
+  useEffect(() => {
+    if (!pendingMatch) return
+    setRows((rs) => rs.map((r) => (r.id === pendingMatch.rowId ? { ...r, matched: pendingMatch.match, status: 'matched' } : r)))
+    onPendingMatchHandled?.()
+  }, [pendingMatch, onPendingMatchHandled])
+
+  // Push row changes to parent for cross-tab updates
+  useEffect(() => {
+    onRowsChange?.(rows)
+  }, [rows, onRowsChange])
+
   if (!open) return null
 
   const s = samplePaymentStatement
-  const matchedCount = rows.filter((r) => r.matched !== null).length
-  const matchedAmount = rows.filter((r) => r.matched !== null).reduce((sum, r) => sum + r.amount, 0)
+  const matchesFound = rows.filter((r) => r.matched !== null).length
+  const reconciledCount = rows.filter((r) => r.status === 'reconciled').length
+  const reconciledAmount = rows.filter((r) => r.status === 'reconciled').reduce((sum, r) => sum + r.amount, 0)
 
-  const updateStatus = (id: string, status: MatchStatus) => {
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)))
-    onToast?.(`Status set to ${statusConfig[status].label}`)
+  const markUnclaimed = (id: string) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: 'unclaimed' } : r)))
+    onToast?.('Marked as unclaimed')
   }
-
-  const matchRow = (id: string) => {
-    setRows((rs) =>
-      rs.map((r) => {
-        if (r.id !== id) return r
-        const advisor = FAKE_ADVISORS[Math.floor(Math.random() * FAKE_ADVISORS.length)]
-        return {
-          ...r,
-          matched: { bookingRef: r.receivedRef, advisor, expected: r.amount },
-          split: r.split ?? 75,
-          status: 'matched',
-        }
-      }),
-    )
-    onToast?.('Booking matched')
+  const unmarkUnclaimed = (id: string) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: 'unmatched' } : r)))
   }
-
-  const unmatchRow = (id: string) => {
-    setRows((rs) =>
-      rs.map((r) => (r.id === id ? { ...r, matched: null, split: null, status: 'unmatched' } : r)),
-    )
+  const reconcile = (id: string) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status: 'reconciled' } : r)))
+    onToast?.('Booking reconciled')
+  }
+  const unlink = (id: string) => {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, matched: null, status: 'unmatched' } : r)))
     onToast?.('Match removed')
   }
-
+  const editRow = (id: string) => { onToast?.(`Edit row ${id} (mocked)`) }
   const deleteRow = (id: string) => {
     setRows((rs) => rs.filter((r) => r.id !== id))
     onToast?.('Row removed from statement')
   }
-
-  const editRow = (id: string) => {
-    onToast?.(`Edit row ${id} (mocked)`)
+  const searchForBooking = (id: string) => {
+    onSearchBooking?.(id)
   }
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 z-40 bg-travefy-navy/30 backdrop-blur-[1px]" onClick={onClose} />
 
-      {/* Drawer */}
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-6xl flex flex-col bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 shrink-0">
@@ -310,13 +317,6 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
               </div>
               <div className="flex items-center gap-3 mt-4">
                 <button
-                  onClick={() => onToast?.('Edit statement details (mocked)')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-gray-200 bg-white text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50 transition-colors"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                  Edit Details
-                </button>
-                <button
                   onClick={() => onToast?.('Statement downloaded')}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-blue bg-travefy-blue-light/60 text-sm font-semibold text-travefy-blue hover:bg-travefy-blue-light transition-colors"
                 >
@@ -328,20 +328,25 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
             <div className="text-right shrink-0">
               <p className="text-sm text-travefy-navy">
                 <span className="font-semibold">Matched: </span>
-                <span className="font-bold text-travefy-danger">{fmtUS(matchedAmount)}</span>
+                <span className="font-bold text-travefy-danger">{fmtUS(reconciledAmount)}</span>
                 <span className="text-travefy-gray-700"> / {fmtUSDecimal(s.totalAmount)}</span>
               </p>
               <p className="text-sm text-travefy-navy mt-2">
-                <span className="font-semibold">Bookings Matched: </span>
-                <span className="font-bold text-travefy-danger">{matchedCount}</span>
+                <span className="font-semibold">Bookings Reconciled: </span>
+                <span className="font-bold text-travefy-danger">{reconciledCount}</span>
                 <span className="text-travefy-gray-700"> / {rows.length}</span>
               </p>
             </div>
           </div>
 
+          {/* Totals subline */}
+          <p className="mt-5 text-sm text-travefy-gray-700">
+            {rows.length} Total Bookings. {matchesFound} {matchesFound === 1 ? 'Match' : 'Matches'} Found.
+          </p>
+
           {/* Two-column section header */}
-          <div className="grid grid-cols-2 gap-0 mt-6 mb-3">
-            <div className="flex items-center justify-between pr-4">
+          <div className="grid grid-cols-[1fr_auto_1.4fr] items-center mt-3 mb-3">
+            <div className="flex items-center justify-between px-4">
               <h4 className="text-base font-bold text-travefy-navy">Bookings on Statement</h4>
               <button
                 onClick={() => onToast?.('Add new line item (mocked)')}
@@ -351,7 +356,8 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
                 Add New
               </button>
             </div>
-            <div className="pl-4">
+            <div />
+            <div className="px-4">
               <h4 className="text-base font-bold text-travefy-navy">Advisor Bookings</h4>
             </div>
           </div>
@@ -363,11 +369,13 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
               <MatchRow
                 key={row.id}
                 row={row}
-                onStatusChange={updateStatus}
-                onMatch={matchRow}
-                onUnmatch={unmatchRow}
-                onDelete={deleteRow}
+                onSearch={searchForBooking}
+                onMarkUnclaimed={markUnclaimed}
+                onUnmarkUnclaimed={unmarkUnclaimed}
+                onReconcile={reconcile}
+                onUnlink={unlink}
                 onEdit={editRow}
+                onDelete={deleteRow}
               />
             ))}
             {rows.length === 0 && (
@@ -391,3 +399,6 @@ export function PaymentDetailsDrawer({ open, onClose, onToast, onSave }: Payment
     </>
   )
 }
+
+/** Helper for the parent to identify rows for cross-tab linking. */
+export type { MatchStatus, StatementRow }

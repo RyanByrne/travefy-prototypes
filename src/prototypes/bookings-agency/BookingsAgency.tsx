@@ -19,10 +19,14 @@ import { useRef, useState } from 'react'
 import { AppNav, Badge, Toast, type ToastMessage } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
+import { AddBookingDetailsModal, type NewBookingDraft } from './AddBookingDetailsModal'
 import { IncomingTab } from './IncomingTab'
 import { initialIncomingPayments, type IncomingPayment } from './incomingData'
 import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
-import { samplePaymentStatement, type StatementRow } from './statementData'
+import { SearchBookingModal, type CandidateBooking } from './SearchBookingModal'
+import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow } from './statementData'
+import { UnclaimedTab } from './UnclaimedTab'
+import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -221,6 +225,12 @@ export function BookingsAgency() {
   const [statusOpen, setStatusOpen] = useState(false)
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
   const [drawerOrigin, setDrawerOrigin] = useState<'notification' | 'existing' | null>(null)
+  const [role, setRole] = useState<'agency' | 'advisor'>('agency')
+  const [unclaimedItems, setUnclaimedItems] = useState<UnclaimedItem[]>(initialUnclaimedItems)
+  const [searchModalOpen, setSearchModalOpen] = useState(false)
+  const [searchContextRow, setSearchContextRow] = useState<{ id: string; receivedRef: string } | null>(null)
+  const [addBookingOpen, setAddBookingOpen] = useState(false)
+  const [pendingMatch, setPendingMatch] = useState<{ rowId: string; match: MatchedAdvisorBooking } | null>(null)
   const [bookings, setBookings] = useState<Booking[]>(initialBookings)
   const [incomingPayments, setIncomingPayments] = useState<IncomingPayment[]>(initialIncomingPayments)
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -281,6 +291,100 @@ export function BookingsAgency() {
   const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
+  const visibleTabs = role === 'advisor' ? (['Bookings', 'Unclaimed'] as const) : TABS
+
+  // ── Unclaimed handlers ──────────────────────────────────────────────────────
+  const handleUnclaimedView = (item: UnclaimedItem) => {
+    setDrawerOrigin('existing')
+    setPaymentDrawerOpen(true)
+    if (item.statementRowId) {
+      // No further action — the drawer reads samplePaymentStatement which already contains the row.
+    }
+  }
+  const handleUnclaimedClaim = (item: UnclaimedItem) => {
+    setSearchContextRow({ id: item.statementRowId ?? item.id, receivedRef: item.bookingRef })
+    setSearchModalOpen(true)
+  }
+  const handleUnclaimedRemove = (id: string) => {
+    setUnclaimedItems((u) => u.filter((x) => x.id !== id))
+    showToast('Unclaimed item removed')
+  }
+
+  // ── Drawer ↔ Unclaimed sync ─────────────────────────────────────────────────
+  const syncUnclaimedFromRows = (rows: StatementRow[]) => {
+    setUnclaimedItems((items) => {
+      let changed = false
+      const next = items.flatMap((item) => {
+        if (!item.statementRowId) return [item]
+        const row = rows.find((r) => r.id === item.statementRowId)
+        if (!row) return [item]
+        // If the row was reconciled, drop the item from Unclaimed entirely.
+        if (row.status === 'reconciled') {
+          changed = true
+          return []
+        }
+        const nextMatch: UnclaimedItem['match'] = row.matched !== null ? 'match-found' : 'no-match'
+        if (item.match !== nextMatch) {
+          changed = true
+          return [{ ...item, match: nextMatch }]
+        }
+        return [item]
+      })
+      return changed ? next : items
+    })
+  }
+
+  // ── Search booking modal handlers ───────────────────────────────────────────
+  const openSearchForDrawerRow = (rowId: string) => {
+    const row = samplePaymentStatement.rows.find((r) => r.id === rowId)
+    setSearchContextRow({ id: rowId, receivedRef: row?.receivedRef ?? '' })
+    setSearchModalOpen(true)
+  }
+  const handleSearchLink = (candidate: CandidateBooking) => {
+    if (!searchContextRow) return
+    const match: MatchedAdvisorBooking = {
+      bookingRef: candidate.bookingRef,
+      advisor: candidate.travelers !== '--' ? candidate.travelers : 'Sam Rivera',
+      expected: candidate.total ?? 0,
+      split: 75,
+    }
+    setPendingMatch({ rowId: searchContextRow.id, match })
+    setSearchModalOpen(false)
+    showToast(`Linked ${candidate.bookingRef}`)
+    if (role === 'advisor') {
+      // Advisor "Claim" flow doesn't open the drawer — just toast.
+      return
+    }
+    setPaymentDrawerOpen(true)
+  }
+  const handleSearchAddNew = () => {
+    setSearchModalOpen(false)
+    setAddBookingOpen(true)
+  }
+  const handleAddBookingBack = () => {
+    setAddBookingOpen(false)
+    setSearchModalOpen(true)
+  }
+  const handleAddBookingSave = (draft: NewBookingDraft) => {
+    if (!searchContextRow) {
+      setAddBookingOpen(false)
+      return
+    }
+    const generatedRef = draft.bookingRef || `BK-${Math.floor(Math.random() * 90000 + 10000)}`
+    const match: MatchedAdvisorBooking = {
+      bookingRef: generatedRef,
+      advisor: draft.traveler || 'Sam Rivera',
+      expected: draft.bookingTotal ?? 0,
+      split: draft.commissionSplit || 75,
+    }
+    setPendingMatch({ rowId: searchContextRow.id, match })
+    setAddBookingOpen(false)
+    showToast(`New booking ${generatedRef} created and linked`)
+    if (role === 'agency') {
+      setPaymentDrawerOpen(true)
+    }
+  }
+
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else { setSortKey(k); setSortDir('asc') }
@@ -300,10 +404,8 @@ export function BookingsAgency() {
   }
 
   const filtered = bookings.filter((b) => {
-    // Tab filter
-    if (tab === 'Incoming' && b.reconStatus !== 'expected') return false
+    // Tab filter — Unclaimed/Incoming have their own views; Bookings/Outgoing share the bookings table.
     if (tab === 'Outgoing' && b.reconStatus !== 'disbursed') return false
-    if (tab === 'Unclaimed' && b.bookingRef !== null && b.traveler !== null) return false
     // Chip filters
     if (selectedLocation && b.location !== selectedLocation) return false
     if (selectedAdvisor && b.advisor !== selectedAdvisor) return false
@@ -346,24 +448,47 @@ export function BookingsAgency() {
 
         <div className="flex-1 overflow-auto">
           <div className="px-6 py-5 space-y-5">
-            {/* Tabs */}
-            <div className="flex gap-2">
-              {TABS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={
-                    tab === t
-                      ? 'px-5 py-2 text-sm font-semibold text-white bg-travefy-navy rounded'
-                      : 'px-5 py-2 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 rounded transition-colors'
-                  }
-                >
-                  {t}
-                </button>
-              ))}
+            {/* Tabs + role toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                {visibleTabs.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={
+                      tab === t
+                        ? 'px-5 py-2 text-sm font-semibold text-white bg-travefy-navy rounded'
+                        : 'px-5 py-2 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 rounded transition-colors'
+                    }
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const next = role === 'agency' ? 'advisor' : 'agency'
+                  setRole(next)
+                  // If switching to advisor while on a hidden tab, fall back to Bookings
+                  if (next === 'advisor' && (tab === 'Incoming' || tab === 'Outgoing')) setTab('Bookings')
+                  showToast(`Viewing as ${next === 'agency' ? 'Agency' : 'Advisor'}`)
+                }}
+                className="text-xs font-semibold text-travefy-blue hover:underline"
+              >
+                View as {role === 'agency' ? 'Advisor' : 'Agency'}
+              </button>
             </div>
 
-            {tab === 'Incoming' ? (
+            {tab === 'Unclaimed' ? (
+              <UnclaimedTab
+                items={unclaimedItems}
+                variant={role}
+                onViewStatement={handleUnclaimedView}
+                onClaim={handleUnclaimedClaim}
+                onRemove={handleUnclaimedRemove}
+                onToast={showToast}
+              />
+            ) : tab === 'Incoming' ? (
               <IncomingTab
                 payments={incomingPayments}
                 onAddNew={addIncomingPayment}
@@ -537,7 +662,29 @@ export function BookingsAgency() {
           }
           setDrawerOrigin(null)
         }}
+        onRowsChange={syncUnclaimedFromRows}
+        onSearchBooking={openSearchForDrawerRow}
+        pendingMatch={pendingMatch}
+        onPendingMatchHandled={() => setPendingMatch(null)}
       />
+
+      <SearchBookingModal
+        open={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        onLink={handleSearchLink}
+        onAddNew={handleSearchAddNew}
+        contextRef={searchContextRow?.receivedRef ?? null}
+      />
+
+      <AddBookingDetailsModal
+        open={addBookingOpen}
+        onClose={() => setAddBookingOpen(false)}
+        onBack={handleAddBookingBack}
+        onSave={handleAddBookingSave}
+        defaultSupplier={samplePaymentStatement.supplier === 'Safari Hotel Inc.' ? 'Aberdeen' : samplePaymentStatement.supplier}
+        defaultBookingTotal={480}
+      />
+
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>
   )
