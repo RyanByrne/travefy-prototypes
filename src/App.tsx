@@ -3,6 +3,7 @@ import { PrototypeIndex } from './PrototypeIndex'
 import { BookingsAgency } from './prototypes/bookings-agency/BookingsAgency'
 import { ExamplePrototype } from './prototypes/example-prototype/ExamplePrototype'
 import { EmailMarketing } from './prototypes/email-marketing/EmailMarketing'
+import { MarketingCampaigns } from './prototypes/marketing-campaigns/MarketingCampaigns'
 import { Trips } from './prototypes/trips/Trips'
 
 export default function App() {
@@ -11,6 +12,7 @@ export default function App() {
       <Route path="/" element={<PrototypeIndex />} />
       <Route path="/example-prototype/*" element={<ExamplePrototype />} />
       <Route path="/email-marketing/*" element={<EmailMarketing />} />
+      <Route path="/marketing-campaigns/*" element={<MarketingCampaigns />} />
       <Route path="/bookings-agency/*" element={<BookingsAgency />} />
       <Route path="/trips/*" element={<Trips />} />
     </Routes>

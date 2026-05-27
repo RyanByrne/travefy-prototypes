@@ -15,6 +15,13 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'marketing-campaigns',
+    title: 'Marketing Campaigns',
+    description: 'Campaigns list with a multi-step launch wizard (audience query builder → compose → sending options → confirm) and a campaign results drawer. Lives under Business Hub → Marketing → Campaigns.',
+    status: 'draft',
+    date: '2026-05-27',
+  },
+  {
     slug: 'bookings-agency',
     title: 'Bookings Agency',
     description: 'Agency bookings dashboard with commission stat cards, sortable bookings table, payout/recon status, and row-level action menu.',
