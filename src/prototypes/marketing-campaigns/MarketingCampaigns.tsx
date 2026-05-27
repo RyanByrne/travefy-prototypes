@@ -72,7 +72,7 @@ function SortableHeader({ label, sortKey, current, dir, onSort, align = 'left' }
 
 // ── Row menu ────────────────────────────────────────────────────────────────────
 
-function RowMenu({ canViewResults, onViewResults, onDuplicate, onDelete }: { canViewResults: boolean; onViewResults: () => void; onDuplicate: () => void; onDelete: () => void }) {
+function RowMenu({ onViewSummary, onDuplicate, onDelete }: { onViewSummary: () => void; onDuplicate: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   return (
@@ -84,9 +84,7 @@ function RowMenu({ canViewResults, onViewResults, onDuplicate, onDelete }: { can
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-9 z-20 bg-white border border-travefy-gray-200 rounded-lg shadow-lg py-1 w-40 text-sm">
-            {canViewResults && (
-              <button onClick={() => { onViewResults(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">View Results</button>
-            )}
+            <button onClick={() => { onViewSummary(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">View Summary</button>
             <button onClick={() => { onDuplicate(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">Duplicate</button>
             <button onClick={() => { onDelete(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-danger-bg text-travefy-danger">Delete</button>
           </div>
@@ -115,6 +113,25 @@ export function MarketingCampaigns() {
   }
 
   const handleNavSelect = (label: string) => showToast(label)
+
+  const duplicateCampaign = (c: Campaign) => {
+    const copy: Campaign = {
+      ...c,
+      id: `c-${Date.now()}`,
+      name: `${c.name} (Copy)`,
+      status: 'draft',
+      delivered: 0, opened: 0, clicked: 0, bounced: 0, unsubscribed: 0, spamReports: 0,
+      sentAt: undefined, scheduledFor: undefined,
+    }
+    setCampaigns((cs) => [copy, ...cs])
+    showToast(`Duplicated "${c.name}"`)
+  }
+
+  const deleteCampaign = (id: string, name: string) => {
+    setCampaigns((cs) => cs.filter((x) => x.id !== id))
+    setResultsCampaign((cur) => (cur?.id === id ? null : cur))
+    showToast(`Deleted "${name}"`)
+  }
 
   const handleLaunch = (r: LaunchResult) => {
     const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -223,12 +240,11 @@ export function MarketingCampaigns() {
                   </thead>
                   <tbody>
                     {sorted.map((c) => {
-                      const canViewResults = c.status === 'sent' || c.status === 'active'
                       return (
                         <tr
                           key={c.id}
-                          onClick={() => canViewResults && setResultsCampaign(c)}
-                          className={clsx('border-b border-travefy-gray-100 transition-colors', canViewResults ? 'cursor-pointer hover:bg-travefy-gray-50' : 'hover:bg-travefy-gray-50')}
+                          onClick={() => setResultsCampaign(c)}
+                          className="border-b border-travefy-gray-100 transition-colors cursor-pointer hover:bg-travefy-gray-50"
                         >
                           <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                             <input type="checkbox" className="rounded border-travefy-gray-300 text-travefy-blue" />
@@ -245,10 +261,9 @@ export function MarketingCampaigns() {
                           </td>
                           <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                             <RowMenu
-                              canViewResults={canViewResults}
-                              onViewResults={() => setResultsCampaign(c)}
-                              onDuplicate={() => showToast(`Duplicated "${c.name}"`)}
-                              onDelete={() => { setCampaigns((cs) => cs.filter((x) => x.id !== c.id)); showToast('Campaign deleted') }}
+                              onViewSummary={() => setResultsCampaign(c)}
+                              onDuplicate={() => duplicateCampaign(c)}
+                              onDelete={() => deleteCampaign(c.id, c.name)}
                             />
                           </td>
                         </tr>
@@ -277,7 +292,11 @@ export function MarketingCampaigns() {
         open={!!resultsCampaign}
         onClose={() => setResultsCampaign(null)}
         campaign={resultsCampaign}
-        onToast={showToast}
+        onViewEmail={() => showToast('Email preview (mocked)')}
+        onDuplicate={() => { if (resultsCampaign) { duplicateCampaign(resultsCampaign); setResultsCampaign(null) } }}
+        onEdit={() => showToast('Edit campaign (mocked)')}
+        onExport={() => showToast('Results exported (mocked)')}
+        onDelete={() => { if (resultsCampaign) deleteCampaign(resultsCampaign.id, resultsCampaign.name) }}
       />
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>
