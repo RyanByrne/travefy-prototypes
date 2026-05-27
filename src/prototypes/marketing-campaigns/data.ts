@@ -33,6 +33,15 @@ export const campaigns: Campaign[] = [
 /** Total addressable contacts, used by the audience query builder. */
 export const TOTAL_CONTACTS = 1200
 
+/** Fallback email body shown in the preview for seed campaigns or an empty draft. */
+export const SAMPLE_EMAIL_HTML = `
+  <p style="margin:0 0 16px;">Hi there,</p>
+  <p style="margin:0 0 16px;"><strong>It's almost wave season!</strong> Have you thought about your next trip?</p>
+  <p style="margin:0 0 16px;">From sun-soaked beaches to once-in-a-lifetime cruises, we've handpicked our best 2026 getaways just for you.</p>
+  <p style="margin:0 0 16px;">Maybe we can help? <a href="#" style="color:#2a79a6;font-weight:600;text-decoration:none;">Get In Touch</a></p>
+  <p style="margin:24px 0 0;color:#72868d;">Safe travels,<br/>The Voyage Crest Travel Team</p>
+`
+
 /** Sample Bcc recipients shown as chips in the compose step. */
 export const SAMPLE_BCC = [
   'Kim Anderson (kimmya8@gmail.com)',

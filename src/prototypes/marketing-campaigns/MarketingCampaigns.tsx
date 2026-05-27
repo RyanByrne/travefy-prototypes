@@ -5,7 +5,8 @@ import { AccountIcon, AppNav, Badge, SignOutIcon, Toast, type NavNode, type Toas
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { CampaignResultsDrawer } from './CampaignResultsDrawer'
 import { CampaignWizard, type LaunchResult } from './CampaignWizard'
-import { campaigns as initialCampaigns, type Campaign, type CampaignStatus } from './data'
+import { EmailPreviewModal } from './EmailPreviewModal'
+import { campaigns as initialCampaigns, SAMPLE_EMAIL_HTML, type Campaign, type CampaignStatus } from './data'
 
 // ── Top nav (Compass IA) ────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ export function MarketingCampaigns() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [wizardOpen, setWizardOpen] = useState(false)
   const [resultsCampaign, setResultsCampaign] = useState<Campaign | null>(null)
+  const [preview, setPreview] = useState<{ subject: string; fromName: string; html: string } | null>(null)
   const [toast, setToast] = useState<ToastMessage | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
@@ -286,17 +288,24 @@ export function MarketingCampaigns() {
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         onLaunch={handleLaunch}
-        onToast={showToast}
+        onPreview={(subject, html) => setPreview({ subject, fromName: 'Voyage Crest Travel', html: html || SAMPLE_EMAIL_HTML })}
       />
       <CampaignResultsDrawer
         open={!!resultsCampaign}
         onClose={() => setResultsCampaign(null)}
         campaign={resultsCampaign}
-        onViewEmail={() => showToast('Email preview (mocked)')}
+        onViewEmail={() => { if (resultsCampaign) setPreview({ subject: resultsCampaign.name, fromName: resultsCampaign.owner, html: SAMPLE_EMAIL_HTML }) }}
         onDuplicate={() => { if (resultsCampaign) { duplicateCampaign(resultsCampaign); setResultsCampaign(null) } }}
         onEdit={() => showToast('Edit campaign (mocked)')}
         onExport={() => showToast('Results exported (mocked)')}
         onDelete={() => { if (resultsCampaign) deleteCampaign(resultsCampaign.id, resultsCampaign.name) }}
+      />
+      <EmailPreviewModal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        subjectLine={preview?.subject ?? ''}
+        fromName={preview?.fromName ?? ''}
+        html={preview?.html ?? ''}
       />
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>

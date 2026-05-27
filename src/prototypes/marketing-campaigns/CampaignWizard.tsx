@@ -279,13 +279,25 @@ function ComposeStep({
 }: {
   count: number
   onCancel: () => void
-  onPreview: () => void
+  onPreview: (subject: string, html: string) => void
   onContinue: () => void
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
+  const [subject, setSubject] = useState('')
   const [includeSignature, setIncludeSignature] = useState(true)
   const [includeUnsub] = useState(true)
   const [sfOpen, setSfOpen] = useState(false)
+
+  const handlePreview = () => {
+    const editor = editorRef.current
+    let html = ''
+    if (editor) {
+      const clone = editor.cloneNode(true) as HTMLElement
+      clone.querySelectorAll('[data-sf-remove]').forEach((el) => el.remove())
+      html = clone.innerHTML.trim()
+    }
+    onPreview(subject, html)
+  }
 
   const insertField = (text: string) => {
     const editor = editorRef.current
@@ -345,7 +357,7 @@ function ComposeStep({
         <>
           <button onClick={onCancel} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
           <div className="flex items-center gap-3">
-            <button onClick={onPreview} className="px-4 py-2 rounded border border-travefy-blue text-travefy-blue text-sm font-semibold hover:bg-travefy-blue-light transition-colors">Preview Email</button>
+            <button onClick={handlePreview} className="px-4 py-2 rounded border border-travefy-blue text-travefy-blue text-sm font-semibold hover:bg-travefy-blue-light transition-colors">Preview Email</button>
             <button onClick={onContinue} className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors">Continue</button>
           </div>
         </>
@@ -382,6 +394,8 @@ function ComposeStep({
           <input
             type="text"
             placeholder="Email subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
             className="flex-1 px-3 py-2 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
           />
         </div>
@@ -605,12 +619,12 @@ export function CampaignWizard({
   open,
   onClose,
   onLaunch,
-  onToast,
+  onPreview,
 }: {
   open: boolean
   onClose: () => void
   onLaunch: (result: LaunchResult) => void
-  onToast?: (text: string) => void
+  onPreview: (subject: string, html: string) => void
 }) {
   const [step, setStep] = useState<Step>('audience')
   const [name, setName] = useState('')
@@ -649,7 +663,7 @@ export function CampaignWizard({
         <ComposeStep
           count={count}
           onCancel={onClose}
-          onPreview={() => onToast?.('Email preview (mocked)')}
+          onPreview={onPreview}
           onContinue={() => setStep('sending')}
         />
       )}
