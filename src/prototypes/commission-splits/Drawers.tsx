@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Headphones, Plus, X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
 import { LABEL_PALETTE, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
@@ -251,9 +251,6 @@ export function TeamMemberDrawer({
             Advisor <span className="text-travefy-danger">*</span>
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <span className="w-8 h-8 rounded-full bg-travefy-gray-100 flex items-center justify-center">
-              <Headphones className="w-4 h-4 text-travefy-gray-700" />
-            </span>
             <Avatar name={member.name} size="sm" />
             <span className="text-base font-semibold text-travefy-navy">{member.name}</span>
           </div>
