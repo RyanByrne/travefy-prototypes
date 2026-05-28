@@ -15,6 +15,13 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'commission-splits',
+    title: 'Commission Splits',
+    description: 'Create custom commission split tiers (name, percentage, description, labels) and assign them to team members. Includes Splits + Team views under Business Hub → Agency.',
+    status: 'draft',
+    date: '2026-05-28',
+  },
+  {
     slug: 'marketing-campaigns',
     title: 'Marketing Campaigns',
     description: 'Campaigns list with a multi-step launch wizard (audience query builder → compose → sending options → confirm) and a campaign results drawer. Lives under Business Hub → Marketing → Campaigns.',
