@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { ChevronDown, ChevronUp, ClipboardCheck, Eye, EyeOff, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
@@ -211,20 +211,7 @@ function SplitsView({
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" className="rounded border-travefy-gray-300 text-travefy-blue" />
                 </td>
-                <td className="px-4 py-3 font-medium text-travefy-navy">
-                  <div className="flex items-center gap-2">
-                    <span>{s.name}</span>
-                    {s.advisorSelectable ? (
-                      <span title="Advisors can select this split" className="inline-flex items-center text-travefy-blue">
-                        <Eye className="w-3.5 h-3.5" />
-                      </span>
-                    ) : (
-                      <span title="Not selectable by advisors" className="inline-flex items-center text-travefy-gray-300">
-                        <EyeOff className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-                  </div>
-                </td>
+                <td className="px-4 py-3 font-medium text-travefy-navy">{s.name}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{s.description}</td>
                 <td className="px-4 py-3 text-right text-travefy-gray-700 font-medium">{s.percentage}%</td>
                 <td className="px-4 py-3">
