@@ -2,7 +2,7 @@ import { clsx } from 'clsx'
 import { Plus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
-import { LABEL_PALETTE, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { formatSplit, LABEL_PALETTE, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
 
 // ── Drawer shell (reused by both drawers) ──────────────────────────────────────
 
@@ -142,6 +142,7 @@ export function SplitDrawer({
   const [percentage, setPercentage] = useState('0%')
   const [description, setDescription] = useState('')
   const [labels, setLabels] = useState<SplitLabel[]>([])
+  const [advisorSelectable, setAdvisorSelectable] = useState(true)
 
   useEffect(() => {
     if (open) {
@@ -149,6 +150,7 @@ export function SplitDrawer({
       setPercentage(split ? `${split.percentage}%` : '0%')
       setDescription(split?.description ?? '')
       setLabels(split?.labels ?? [])
+      setAdvisorSelectable(split?.advisorSelectable ?? true)
     }
   }, [open, split])
 
@@ -160,6 +162,7 @@ export function SplitDrawer({
       description: description.trim(),
       percentage: pct,
       labels,
+      advisorSelectable,
     })
   }
 
@@ -176,7 +179,7 @@ export function SplitDrawer({
               placeholder="Set an internal name"
               className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             />
-            <p className="text-xs text-travefy-gray-500 mt-1">Used to identify split tiers</p>
+            <p className="text-xs text-travefy-gray-500 mt-1">Used to identify splits</p>
           </div>
           <div>
             <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Commission percentage</label>
@@ -207,6 +210,23 @@ export function SplitDrawer({
           <label className="block text-sm font-semibold text-travefy-navy mb-2">Labels</label>
           <LabelPicker value={labels} onChange={setLabels} />
         </div>
+
+        <div className="border-t border-travefy-gray-100 pt-5">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={advisorSelectable}
+              onChange={(e) => setAdvisorSelectable(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-travefy-gray-300 text-travefy-blue focus:ring-2 focus:ring-travefy-blue/20"
+            />
+            <span className="flex-1">
+              <span className="block text-sm font-semibold text-travefy-navy">Allow advisor to select this split</span>
+              <span className="block text-xs text-travefy-gray-500 mt-0.5">
+                When enabled, advisors who are allowed to override their default split can pick this one per booking.
+              </span>
+            </span>
+          </label>
+        </div>
       </div>
     </DrawerShell>
   )
@@ -228,19 +248,21 @@ export function TeamMemberDrawer({
   onSave: (next: TeamMember) => void
 }) {
   const [role, setRole] = useState<TeamMember['role']>('Member')
-  const [tierId, setTierId] = useState<string>('')
+  const [splitId, setSplitId] = useState<string>('')
+  const [canOverrideSplit, setCanOverrideSplit] = useState(false)
 
   useEffect(() => {
     if (open && member) {
       setRole(member.role)
-      setTierId(member.commissionTierId)
+      setSplitId(member.commissionSplitId)
+      setCanOverrideSplit(member.canOverrideSplit)
     }
   }, [open, member])
 
   if (!member) return null
 
   const handleSave = () => {
-    onSave({ ...member, role, commissionTierId: tierId })
+    onSave({ ...member, role, commissionSplitId: splitId, canOverrideSplit })
   }
 
   return (
@@ -280,17 +302,34 @@ export function TeamMemberDrawer({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Commission Tier</label>
+            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Commission Split</label>
             <select
-              value={tierId}
-              onChange={(e) => setTierId(e.target.value)}
+              value={splitId}
+              onChange={(e) => setSplitId(e.target.value)}
               className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             >
               {splits.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.id}>{formatSplit(s)}</option>
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="border-t border-travefy-gray-100 pt-5">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={canOverrideSplit}
+              onChange={(e) => setCanOverrideSplit(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-travefy-gray-300 text-travefy-blue focus:ring-2 focus:ring-travefy-blue/20"
+            />
+            <span className="flex-1">
+              <span className="block text-sm font-semibold text-travefy-navy">Allow advisor to override commission split</span>
+              <span className="block text-xs text-travefy-gray-500 mt-0.5">
+                When enabled, this advisor can pick a different commission split per booking from the splits marked "advisor selectable".
+              </span>
+            </span>
+          </label>
         </div>
       </div>
     </DrawerShell>

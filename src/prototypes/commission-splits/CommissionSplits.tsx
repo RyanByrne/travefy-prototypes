@@ -1,10 +1,10 @@
 import { clsx } from 'clsx'
-import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardCheck, Eye, EyeOff, MoreHorizontal, Plus, Search, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { SplitDrawer, TeamMemberDrawer } from './Drawers'
-import { initialSplits, initialTeam, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { formatSplit, initialSplits, initialTeam, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
 
 // ── Nav config (Compass IA) ────────────────────────────────────────────────────
 
@@ -105,7 +105,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
         </div>
         <h3 className="text-base font-bold text-travefy-navy">Start building your commission split list</h3>
         <p className="text-sm italic text-travefy-gray-600 mt-3 leading-relaxed">
-          Set up your commission split tiers to manage how earnings are divided. Define different levels, assign percentages,
+          Set up your commission splits to manage how earnings are divided. Define different levels, assign percentages,
           and customize terms to fit your agency's needs. This helps keep your commission structure clear and organized.
         </p>
         <button
@@ -211,7 +211,20 @@ function SplitsView({
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <input type="checkbox" className="rounded border-travefy-gray-300 text-travefy-blue" />
                 </td>
-                <td className="px-4 py-3 font-medium text-travefy-navy">{s.name}</td>
+                <td className="px-4 py-3 font-medium text-travefy-navy">
+                  <div className="flex items-center gap-2">
+                    <span>{s.name}</span>
+                    {s.advisorSelectable ? (
+                      <span title="Advisors can select this split" className="inline-flex items-center text-travefy-blue">
+                        <Eye className="w-3.5 h-3.5" />
+                      </span>
+                    ) : (
+                      <span title="Not selectable by advisors" className="inline-flex items-center text-travefy-gray-300">
+                        <EyeOff className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-travefy-gray-700">{s.description}</td>
                 <td className="px-4 py-3 text-right text-travefy-gray-700 font-medium">{s.percentage}%</td>
                 <td className="px-4 py-3">
@@ -245,7 +258,7 @@ function TeamView({
   onRemove: (m: TeamMember) => void
   onToast: (text: string) => void
 }) {
-  const splitName = (id: string) => splits.find((s) => s.id === id)?.name ?? '—'
+  const splitLabel = (id: string) => formatSplit(splits.find((s) => s.id === id))
 
   return (
     <div className="bg-white border border-travefy-gray-200 rounded-lg overflow-hidden">
@@ -286,7 +299,7 @@ function TeamView({
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Email</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Status</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Commission Tier</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Commission Split</th>
               <th className="w-12 px-4 py-3" />
             </tr>
           </thead>
@@ -306,7 +319,19 @@ function TeamView({
                 <td className="px-4 py-3 text-travefy-gray-700">{m.email}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{m.status}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{m.role}</td>
-                <td className="px-4 py-3 text-travefy-gray-700">{splitName(m.commissionTierId)}</td>
+                <td className="px-4 py-3 text-travefy-gray-700">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span>{splitLabel(m.commissionSplitId)}</span>
+                    {m.canOverrideSplit && (
+                      <span
+                        title="This advisor can override their default split per booking"
+                        className="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-semibold bg-travefy-blue-light text-travefy-blue border-travefy-blue/40"
+                      >
+                        Can override
+                      </span>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <RowMenu onEdit={() => onEdit(m)} onDelete={() => onRemove(m)} />
                 </td>
