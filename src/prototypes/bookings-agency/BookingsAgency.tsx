@@ -20,6 +20,7 @@ import { AccountIcon, AppNav, Badge, SignOutIcon, Toast, type NavNode, type Toas
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
 import { AddBookingDetailsModal, type NewBookingDraft } from './AddBookingDetailsModal'
+import { EditAdvisorBookingDrawer } from './EditAdvisorBookingDrawer'
 import { IncomingTab } from './IncomingTab'
 import { initialIncomingPayments, type IncomingPayment } from './incomingData'
 import { PaymentDetailsDrawer } from './PaymentDetailsDrawer'
@@ -261,6 +262,7 @@ export function BookingsAgency() {
   const [addBookingOpen, setAddBookingOpen] = useState(false)
   const [pendingMatch, setPendingMatch] = useState<{ rowId: string; match: MatchedAdvisorBooking } | null>(null)
   const [bookings, setBookings] = useState<Booking[]>(initialBookings)
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null)
   const [incomingPayments, setIncomingPayments] = useState<IncomingPayment[]>(initialIncomingPayments)
   const [toast, setToast] = useState<ToastMessage | null>(null)
 
@@ -648,7 +650,7 @@ export function BookingsAgency() {
                       <BookingRow
                         key={b.id}
                         booking={b}
-                        onEdit={() => showToast(`Edit ${b.bookingRef ?? 'booking'} (mocked)`)}
+                        onEdit={() => setEditingBooking(b)}
                         onViewPayout={() => { setDrawerOrigin('existing'); setPaymentDrawerOpen(true) }}
                         onRemove={() => removeBooking(b.id)}
                       />
@@ -702,6 +704,17 @@ export function BookingsAgency() {
         onSave={handleAddBookingSave}
         defaultSupplier={samplePaymentStatement.supplier === 'Safari Hotel Inc.' ? 'Aberdeen' : samplePaymentStatement.supplier}
         defaultBookingTotal={480}
+      />
+
+      <EditAdvisorBookingDrawer
+        open={editingBooking !== null}
+        booking={editingBooking}
+        onClose={() => setEditingBooking(null)}
+        onSave={(next) => {
+          setBookings((prev) => prev.map((b) => (b.id === next.id ? next : b)))
+          showToast(`Saved ${next.bookingRef ?? 'booking'}`)
+          setEditingBooking(null)
+        }}
       />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
