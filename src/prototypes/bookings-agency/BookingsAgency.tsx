@@ -735,7 +735,10 @@ function BookingRow({ booking: b, onEdit, onViewPayout, onRemove }: BookingRowPr
   const recon = reconConfig[b.reconStatus]
 
   return (
-    <tr className="border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
+    <tr
+      onClick={onEdit}
+      className="border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors cursor-pointer"
+    >
       <td className="px-4 py-3 text-travefy-blue font-medium">
         {b.bookingRef ?? <span className="text-travefy-gray-400">--</span>}
       </td>
@@ -757,7 +760,7 @@ function BookingRow({ booking: b, onEdit, onViewPayout, onRemove }: BookingRowPr
       <td className="px-4 py-3">
         <Badge variant={recon.variant} size="sm">{recon.label}</Badge>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <RowMenu
           onEdit={onEdit}
           onViewPayout={onViewPayout}
