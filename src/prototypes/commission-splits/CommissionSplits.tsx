@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, X } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { SplitDrawer, TeamMemberDrawer } from './Drawers'
@@ -336,6 +337,7 @@ function TeamView({
 type View = 'splits' | 'team'
 
 export function CommissionSplits() {
+  const navigate = useNavigate()
   const [view, setView] = useState<View>('splits')
   const [splits, setSplits] = useState<CommissionSplit[]>(initialSplits)
   const [team, setTeam] = useState<TeamMember[]>(initialTeam)
@@ -372,10 +374,12 @@ export function CommissionSplits() {
     return [m.name, m.email].some((f) => f.toLowerCase().includes(q))
   })
 
-  // ── Nav handler — Agency menu navigates between Splits and Team
+  // ── Nav handler — Agency menu navigates between Splits and Team;
+  //    "Bookings" jumps over to the bookings-agency prototype.
   const handleNavSelect = (label: string) => {
     if (label === 'Commission Splits') { setView('splits'); showToast('Commission Splits') }
     else if (label === 'Team') { setView('team'); showToast('Team') }
+    else if (label === 'Bookings') { navigate('/bookings-agency') }
     else showToast(label)
   }
 
