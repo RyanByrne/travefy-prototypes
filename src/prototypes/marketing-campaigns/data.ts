@@ -68,3 +68,33 @@ export const VALUE_OPTIONS: Record<ConditionField, string[]> = {
   'Travel Status': ['Upcoming', 'Currently Traveling', 'Past'],
   'Has Trips': ['Yes', 'No'],
 }
+
+// ── Label picker options ────────────────────────────────────────────────────────
+// Used by the Marketing Campaign modal to pick recipients by label. Each label
+// has a mock contact count; selected labels' counts sum to the campaign's
+// total recipients.
+
+export interface LabelOption {
+  name: string
+  /** Mocked count of contacts holding this label. */
+  count: number
+}
+
+export const LABEL_OPTIONS: LabelOption[] = [
+  { name: 'River Cruise',     count: 142 },
+  { name: 'Ocean Cruise',     count: 218 },
+  { name: 'Holiday',          count: 200 },
+  { name: 'Honeymoon',        count: 64 },
+  { name: 'Family Travel',    count: 312 },
+  { name: 'Adventure Travel', count: 178 },
+  { name: 'Luxury',           count: 96 },
+  { name: 'Romantic Getaway', count: 108 },
+  { name: 'Group Tours',      count: 154 },
+  { name: 'Wellness Retreat', count: 72 },
+]
+
+export function totalForLabels(selected: string[]): number {
+  return LABEL_OPTIONS
+    .filter((l) => selected.includes(l.name))
+    .reduce((sum, l) => sum + l.count, 0)
+}

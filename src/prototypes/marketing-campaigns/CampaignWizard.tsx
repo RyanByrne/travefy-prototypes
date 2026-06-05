@@ -11,21 +11,18 @@ import {
   Link2,
   MoreVertical,
   Paperclip,
+  Search,
   Strikethrough,
   Underline,
   User,
   X,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Toggle } from '../../shared/components'
 import {
-  FIELD_OPTIONS,
-  OPERATOR_OPTIONS,
+  LABEL_OPTIONS,
   SAMPLE_BCC,
-  TOTAL_CONTACTS,
-  VALUE_OPTIONS,
-  type ConditionField,
-  type ConditionOperator,
+  totalForLabels,
 } from './data'
 
 // ── Shared modal shell ──────────────────────────────────────────────────────────
@@ -73,29 +70,7 @@ function ModalShell({
   )
 }
 
-// ── Audience query builder ────────────────────────────────────────────────────
-
-interface Condition {
-  id: string
-  field: ConditionField
-  operator: ConditionOperator
-  value: string
-  join: 'And' | 'Or'
-}
-
-const newCondition = (): Condition => ({
-  id: `c-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
-  field: 'Label',
-  operator: 'Is any of',
-  value: '',
-  join: 'And',
-})
-
-function recipientCount(conditions: Condition[]): number {
-  const active = conditions.filter((c) => c.value)
-  if (active.length === 0) return TOTAL_CONTACTS
-  return Math.max(50, Math.round(TOTAL_CONTACTS / 2 ** active.length))
-}
+// ── Marketing Campaign step (name + label picker) ─────────────────────────────
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -106,50 +81,70 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Selectbox({ value, onChange, options, placeholder }: { value: string; onChange: (v: string) => void; options: readonly string[]; placeholder?: string }) {
+/** Renders a label name with the search term portion bolded for visibility. */
+function HighlightedLabel({ name, query }: { name: string; query: string }) {
+  if (!query) return <span>{name}</span>
+  const lower = name.toLowerCase()
+  const q = query.toLowerCase()
+  const idx = lower.indexOf(q)
+  if (idx < 0) return <span>{name}</span>
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => <option key={o} value={o}>{o}</option>)}
-    </select>
+    <span>
+      {name.slice(0, idx)}
+      <span className="font-bold text-travefy-blue">{name.slice(idx, idx + query.length)}</span>
+      {name.slice(idx + query.length)}
+    </span>
   )
 }
 
 function AudienceStep({
   name,
   setName,
-  conditions,
-  setConditions,
+  selectedLabels,
+  setSelectedLabels,
   onCancel,
   onContinue,
 }: {
   name: string
   setName: (v: string) => void
-  conditions: Condition[]
-  setConditions: (c: Condition[]) => void
+  selectedLabels: string[]
+  setSelectedLabels: (l: string[]) => void
   onCancel: () => void
   onContinue: () => void
 }) {
-  const count = recipientCount(conditions)
+  const [search, setSearch] = useState('')
 
-  const updateCondition = (id: string, patch: Partial<Condition>) =>
-    setConditions(conditions.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return LABEL_OPTIONS
+    return LABEL_OPTIONS.filter(
+      (l) => l.name.toLowerCase().includes(q) || selectedLabels.includes(l.name),
+    )
+  }, [search, selectedLabels])
 
-  const addCondition = (join: 'And' | 'Or') =>
-    setConditions([...conditions, { ...newCondition(), join }])
+  const toggleLabel = (labelName: string) => {
+    if (selectedLabels.includes(labelName)) {
+      setSelectedLabels(selectedLabels.filter((l) => l !== labelName))
+    } else {
+      setSelectedLabels([...selectedLabels, labelName])
+    }
+  }
 
   return (
     <ModalShell
       title="Marketing Campaign"
       onClose={onCancel}
+      maxWidth="max-w-lg"
       footer={
         <>
           <button onClick={onCancel} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
-          <button onClick={onContinue} className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors">Continue</button>
+          <button
+            onClick={onContinue}
+            disabled={selectedLabels.length === 0}
+            className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-travefy-blue"
+          >
+            Send email
+          </button>
         </>
       }
     >
@@ -164,65 +159,53 @@ function AudienceStep({
           />
         </Field>
 
-        <div>
-          <p className="text-sm font-bold text-travefy-navy">
-            {conditions.length === 0
-              ? `All Recipients (${TOTAL_CONTACTS.toLocaleString()} Contacts)`
-              : `Recipients (${count.toLocaleString()} Contacts)`}
-          </p>
-
-          {conditions.length === 0 ? (
-            <button
-              onClick={() => addCondition('And')}
-              className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded border border-travefy-blue text-travefy-blue text-sm font-semibold hover:bg-travefy-blue-light transition-colors"
-            >
-              Add Condition
-            </button>
-          ) : (
-            <div className="mt-3 space-y-3">
-              {conditions.map((c, i) => (
-                <div key={c.id}>
-                  {i > 0 && (
-                    <div className="mb-3">
-                      <span className="inline-flex px-3 py-1 rounded bg-travefy-blue text-white text-xs font-semibold">{c.join}</span>
-                    </div>
-                  )}
-                  <p className="text-sm font-semibold text-travefy-navy mb-1.5">Where</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Selectbox
-                      value={c.field}
-                      onChange={(v) => updateCondition(c.id, { field: v as ConditionField, operator: OPERATOR_OPTIONS[v as ConditionField][0], value: '' })}
-                      options={FIELD_OPTIONS}
-                    />
-                    <Selectbox
-                      value={c.operator}
-                      onChange={(v) => updateCondition(c.id, { operator: v as ConditionOperator })}
-                      options={OPERATOR_OPTIONS[c.field]}
-                    />
-                  </div>
-                  <div className="mt-3">
-                    <Selectbox
-                      value={c.value}
-                      onChange={(v) => updateCondition(c.id, { value: v })}
-                      options={VALUE_OPTIONS[c.field]}
-                      placeholder="Select"
-                    />
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex items-center gap-2">
-                <button onClick={() => addCondition('And')} className="px-4 py-1.5 rounded border border-travefy-gray-200 text-travefy-blue text-sm font-semibold hover:bg-travefy-gray-50 transition-colors">And</button>
-                <button onClick={() => addCondition('Or')} className="px-4 py-1.5 rounded border border-travefy-gray-200 text-travefy-blue text-sm font-semibold hover:bg-travefy-gray-50 transition-colors">Or</button>
-              </div>
+        <Field label="Recipients (Select Labels to include)">
+          <div className="border border-travefy-gray-200 rounded-lg overflow-hidden">
+            <div className="relative px-3 py-2 border-b border-travefy-gray-100 bg-travefy-gray-50">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-travefy-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search labels"
+                className="w-full pl-7 pr-7 py-1 bg-transparent text-sm focus:outline-none placeholder:text-travefy-gray-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-travefy-gray-400 hover:text-travefy-gray-600"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
-          )}
-        </div>
-
-        <p className="text-xs italic text-travefy-gray-500">
-          Note: Email marketing allows for a maximum of 300 emails per campaign.{' '}
-          <a href="#" className="text-travefy-blue underline not-italic">Learn more</a> about limits and best practices.
-        </p>
+            <div className="max-h-56 overflow-y-auto py-1">
+              {filtered.length === 0 && (
+                <p className="px-4 py-3 text-sm text-travefy-gray-500">No labels match "{search}".</p>
+              )}
+              {filtered.map((l) => {
+                const checked = selectedLabels.includes(l.name)
+                return (
+                  <label
+                    key={l.name}
+                    className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-travefy-gray-50 select-none"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleLabel(l.name)}
+                      className="rounded border-travefy-gray-300 text-travefy-blue"
+                    />
+                    <span className="text-sm text-travefy-navy">
+                      <HighlightedLabel name={l.name} query={search} />
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        </Field>
       </div>
     </ModalShell>
   )
@@ -628,7 +611,7 @@ export function CampaignWizard({
 }) {
   const [step, setStep] = useState<Step>('audience')
   const [name, setName] = useState('')
-  const [conditions, setConditions] = useState<Condition[]>([])
+  const [selectedLabels, setSelectedLabels] = useState<string[]>(['Holiday'])
   const [scheduled, setScheduled] = useState(false)
   const [scheduledFor, setScheduledFor] = useState<string | undefined>(undefined)
 
@@ -637,7 +620,7 @@ export function CampaignWizard({
     if (open) {
       setStep('audience')
       setName('')
-      setConditions([])
+      setSelectedLabels(['Holiday'])
       setScheduled(false)
       setScheduledFor(undefined)
     }
@@ -645,7 +628,7 @@ export function CampaignWizard({
 
   if (!open) return null
 
-  const count = recipientCount(conditions)
+  const count = totalForLabels(selectedLabels)
 
   return (
     <>
@@ -653,8 +636,8 @@ export function CampaignWizard({
         <AudienceStep
           name={name}
           setName={setName}
-          conditions={conditions}
-          setConditions={setConditions}
+          selectedLabels={selectedLabels}
+          setSelectedLabels={setSelectedLabels}
           onCancel={onClose}
           onContinue={() => setStep('compose')}
         />
