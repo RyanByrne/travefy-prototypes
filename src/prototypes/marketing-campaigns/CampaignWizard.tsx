@@ -3,7 +3,6 @@ import {
   Bold,
   Braces,
   Calendar,
-  Clock,
   CornerDownLeft,
   Image,
   Info,
@@ -352,12 +351,12 @@ function ComposeStep({
         </p>
 
         <div className="flex items-baseline gap-3">
-          <span className="text-sm font-semibold text-travefy-navy w-12 shrink-0">From:</span>
+          <span className="text-sm font-semibold text-travefy-navy w-20 shrink-0">From:</span>
           <span className="text-sm text-travefy-gray-700">voyagecresttravel@gmail.com</span>
         </div>
 
         <div className="flex items-start gap-3">
-          <span className="text-sm font-semibold text-travefy-navy w-12 shrink-0 pt-1">Bcc:</span>
+          <span className="text-sm font-semibold text-travefy-navy w-20 shrink-0 pt-1">Recipients</span>
           <div className="flex flex-wrap gap-2">
             {SAMPLE_BCC.map((b) => (
               <span key={b} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-travefy-blue-light text-travefy-blue text-xs font-medium">
@@ -373,7 +372,7 @@ function ComposeStep({
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-travefy-navy w-12 shrink-0">Subject:</span>
+          <span className="text-sm font-semibold text-travefy-navy w-20 shrink-0">Subject:</span>
           <input
             type="text"
             placeholder="Email subject"
@@ -483,11 +482,10 @@ function SendingStep({
 }: {
   count: number
   onCancel: () => void
-  onSubmit: (scheduled: boolean, date: string, time: string) => void
+  onSubmit: (scheduled: boolean, dateAndTime: string) => void
 }) {
   const [schedule, setSchedule] = useState(false)
   const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
 
   return (
     <ModalShell
@@ -498,7 +496,7 @@ function SendingStep({
         <>
           <button onClick={onCancel} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
           <button
-            onClick={() => onSubmit(schedule, date, time)}
+            onClick={() => onSubmit(schedule, date)}
             className="px-5 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors"
           >
             {schedule ? 'Schedule Campaign' : 'Send Now'}
@@ -517,7 +515,7 @@ function SendingStep({
               Campaign will be sent to <span className="font-bold text-travefy-navy">{count.toLocaleString()}</span> selected contacts.
             </p>
             <p className="text-xs italic text-travefy-gray-500">
-              Note: Emails will be sent .{' '}
+              Note: Emails will be sent gradually over a few hours to maximise deliverability.{' '}
               <a href="#" className="text-travefy-blue underline not-italic">Learn more</a> about limits and best practices.
             </p>
           </>
@@ -526,32 +524,18 @@ function SendingStep({
         <Toggle label="Schedule Campaign" checked={schedule} onChange={(e) => setSchedule(e.target.checked)} />
 
         {schedule && (
-          <div className="space-y-4">
-            <Field label="Select Date">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  placeholder="Select a date"
-                  className="w-full px-3 py-2.5 pr-10 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-                />
-                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-travefy-blue" />
-              </div>
-            </Field>
-            <Field label="Select Time">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  placeholder="Select time"
-                  className="w-full px-3 py-2.5 pr-10 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-                />
-                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-travefy-blue" />
-              </div>
-            </Field>
-          </div>
+          <Field label="Select Date and Time">
+            <div className="relative">
+              <input
+                type="text"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                placeholder="Select a date and time"
+                className="w-full px-3 py-2.5 pr-10 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+              />
+              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-travefy-blue" />
+            </div>
+          </Field>
         )}
       </div>
     </ModalShell>
