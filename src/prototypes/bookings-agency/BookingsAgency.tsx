@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AccountIcon, AppNav, Badge, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { bookings as initialBookings, locations, totals, type Booking, type ReconStatus } from './data'
@@ -252,6 +253,7 @@ const fmtSplit = (n: number) => `${n.toFixed(2)}%`
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function BookingsAgency() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('Bookings')
   const [search, setSearch] = useState('')
   const [showFilters, setShowFilters] = useState(true)
@@ -290,13 +292,18 @@ export function BookingsAgency() {
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
-  // Top-nav clicks: "Bookings" jumps to the Bookings tab, everything else is a demo toast.
+  // Top-nav clicks: "Bookings" jumps to the Bookings tab; the Agency → Commission
+  // Splits / Team items cross-link to the commission-splits prototype (which links
+  // back here), so the whole demo is reachable from one link. Everything else is a
+  // demo toast.
   const handleNavSelect = (label: string) => {
     if (label === 'Bookings') {
       setTab('Bookings')
       showToast('Bookings')
       return
     }
+    if (label === 'Commission Splits') { navigate('/commission-splits'); return }
+    if (label === 'Team') { navigate('/commission-splits?view=team'); return }
     showToast(label)
   }
 

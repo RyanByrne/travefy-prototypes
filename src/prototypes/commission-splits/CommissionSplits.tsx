@@ -1,7 +1,7 @@
 import { clsx } from 'clsx'
 import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { SplitDrawer, TeamMemberDrawer } from './Drawers'
@@ -338,7 +338,9 @@ type View = 'splits' | 'team'
 
 export function CommissionSplits() {
   const navigate = useNavigate()
-  const [view, setView] = useState<View>('splits')
+  const [searchParams] = useSearchParams()
+  // Arrive on the Team view when linked from the bookings-agency nav (?view=team).
+  const [view, setView] = useState<View>(searchParams.get('view') === 'team' ? 'team' : 'splits')
   const [splits, setSplits] = useState<CommissionSplit[]>(initialSplits)
   const [team, setTeam] = useState<TeamMember[]>(initialTeam)
   const [splitSearch, setSplitSearch] = useState('')
