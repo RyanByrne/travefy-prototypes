@@ -17,10 +17,34 @@ export interface PayoutBooking {
   added: boolean
 }
 
+/** A per-advisor payout adjustment — a bonus (adds) or deduction (subtracts). */
+export type PayoutAdjustmentType = 'bonus' | 'deduction'
+
+export interface PayoutAdjustment {
+  id: string
+  type: PayoutAdjustmentType
+  reason: string
+  /** Positive magnitude; sign is derived from `type`. */
+  amount: number
+  date: string
+}
+
+export const PAYOUT_ADJUSTMENT_TYPES: { value: PayoutAdjustmentType; label: string }[] = [
+  { value: 'bonus', label: 'Bonus' },
+  { value: 'deduction', label: 'Deduction' },
+]
+
+export const adjustmentSigned = (a: PayoutAdjustment) =>
+  a.type === 'deduction' ? -Math.abs(a.amount) : Math.abs(a.amount)
+
+export const fmtSignedUsd = (n: number) => `${n < 0 ? '-' : '+'}$${Math.abs(n).toLocaleString('en-US')}`
+
 export interface PayoutAgent {
   id: string
   name: string
   bookings: PayoutBooking[]
+  /** Deductions / bonuses applied to this advisor's payout. */
+  adjustments?: PayoutAdjustment[]
   /** Advisor has been paid + their bookings marked disbursed. */
   disbursed: boolean
 }
@@ -41,8 +65,16 @@ export const addedBookings = (a: PayoutAgent) => a.bookings.filter((b) => b.adde
 export function agentTotals(a: PayoutAgent) {
   const bs = addedBookings(a)
   const total = sum(bs.map((b) => b.received))
-  const agentTotal = sum(bs.map((b) => b.agentAmount))
-  return { count: bs.length, total, agentTotal, agencyTotal: total - agentTotal }
+  const bookingsAgent = sum(bs.map((b) => b.agentAmount))
+  const adjustments = sum((a.adjustments ?? []).map(adjustmentSigned))
+  // The advisor payout includes bonuses / deductions; the agency cut is unaffected.
+  return {
+    count: bs.length,
+    total,
+    agentTotal: bookingsAgent + adjustments,
+    agencyTotal: total - bookingsAgent,
+    adjustments,
+  }
 }
 
 export function payoutTotals(p: Payout) {
@@ -135,6 +167,9 @@ export function newPayoutDraft(id: string): Payout {
         id: `${id}-a1`,
         name: 'Alison Doe',
         disbursed: false,
+        adjustments: [
+          { id: `${id}-adj1`, type: 'bonus', reason: 'Top performer bonus', amount: 100, date: '02/28/2026' },
+        ],
         bookings: [
           booking(`${id}-b1`, 'R34D-4T488', 'Beach Bliss', 'Mar 15, 2025', 275, 275, 200, true),
           booking(`${id}-b2`, 'R34D-4T490', 'Beach Bliss', 'Apr 10, 2025', 75, 75, 60, true),

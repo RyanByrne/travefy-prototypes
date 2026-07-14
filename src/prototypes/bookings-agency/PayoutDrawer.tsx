@@ -1,12 +1,17 @@
-import { Check, Info, MinusCircle, Pencil, Plus, Search, X } from 'lucide-react'
+import { Check, Info, MinusCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Badge } from '../../shared/components'
+import { Badge, Button, Input, Select } from '../../shared/components'
 import {
+  PAYOUT_ADJUSTMENT_TYPES,
+  adjustmentSigned,
   agentTotals,
+  fmtSignedUsd,
   fmtUsd,
   fmtUsdCents,
   payoutTotals,
   type Payout,
+  type PayoutAdjustment,
+  type PayoutAdjustmentType,
   type PayoutAgent,
 } from './payoutsData'
 
@@ -54,6 +59,10 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
     }))
   const addAll = (agentId: string) =>
     patchAgent(agentId, (a) => ({ ...a, bookings: a.bookings.map((b) => ({ ...b, added: true })) }))
+  const addAdjustment = (agentId: string, adj: PayoutAdjustment) =>
+    patchAgent(agentId, (a) => ({ ...a, adjustments: [...(a.adjustments ?? []), adj] }))
+  const removeAdjustment = (agentId: string, adjId: string) =>
+    patchAgent(agentId, (a) => ({ ...a, adjustments: (a.adjustments ?? []).filter((x) => x.id !== adjId) }))
 
   const totals = payoutTotals(payout)
   const activeAgent = view.type === 'agent' ? payout.agents.find((a) => a.id === view.agentId) ?? null : null
@@ -78,6 +87,8 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
             payoutName={payout.name}
             onToggleBooking={(bid) => toggleBooking(activeAgent.id, bid)}
             onAddAll={() => addAll(activeAgent.id)}
+            onAddAdjustment={(adj) => addAdjustment(activeAgent.id, adj)}
+            onRemoveAdjustment={(id) => removeAdjustment(activeAgent.id, id)}
             onBack={() => setView({ type: 'agents' })}
             onToast={onToast}
           />
@@ -134,7 +145,12 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
                           <td className="px-4 py-3 text-travefy-gray-700">{t.count}</td>
                           <td className="px-4 py-3 text-travefy-gray-700">{fmtUsd(t.total)}</td>
                           <td className="px-4 py-3 text-travefy-gray-700">{fmtUsd(t.agencyTotal)}</td>
-                          <td className="px-4 py-3 text-travefy-gray-700">{fmtUsd(t.agentTotal)}</td>
+                          <td className="px-4 py-3 text-travefy-gray-700">
+                            {fmtUsd(t.agentTotal)}
+                            {t.adjustments !== 0 && (
+                              <span className="block text-xs text-travefy-gray-400">incl. {fmtSignedUsd(t.adjustments)} adj</span>
+                            )}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-2">
                               <button
@@ -196,6 +212,8 @@ function AgentView({
   payoutName,
   onToggleBooking,
   onAddAll,
+  onAddAdjustment,
+  onRemoveAdjustment,
   onBack,
   onToast,
 }: {
@@ -203,10 +221,25 @@ function AgentView({
   payoutName: string
   onToggleBooking: (bookingId: string) => void
   onAddAll: () => void
+  onAddAdjustment: (adj: PayoutAdjustment) => void
+  onRemoveAdjustment: (id: string) => void
   onBack: () => void
   onToast: (text: string) => void
 }) {
   const t = agentTotals(agent)
+  const adjustments = agent.adjustments ?? []
+
+  const [adjType, setAdjType] = useState<PayoutAdjustmentType>('bonus')
+  const [adjReason, setAdjReason] = useState('')
+  const [adjAmount, setAdjAmount] = useState('')
+  const addAdj = () => {
+    const amt = Number(adjAmount) || 0
+    if (!amt || !adjReason.trim()) return
+    onAddAdjustment({ id: `adj-${String(Date.now()).slice(-6)}`, type: adjType, reason: adjReason.trim(), amount: amt, date: 'Today' })
+    setAdjType('bonus')
+    setAdjReason('')
+    setAdjAmount('')
+  }
   return (
     <>
       <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -294,6 +327,58 @@ function AgentView({
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Adjustments — deductions / bonuses on this advisor's payout */}
+        <div className="mt-6">
+          <div className="mb-2 flex items-center justify-between border-b border-travefy-gray-200 pb-2">
+            <h4 className="text-sm font-semibold text-travefy-navy">Adjustments</h4>
+            {t.adjustments !== 0 && (
+              <span className="text-xs text-travefy-gray-500">Net {fmtSignedUsd(t.adjustments)} to advisor payout</span>
+            )}
+          </div>
+
+          {adjustments.length === 0 ? (
+            <p className="text-sm text-travefy-gray-500">No adjustments. Add a bonus or deduction to this advisor's payout.</p>
+          ) : (
+            <div className="divide-y divide-travefy-gray-100">
+              {adjustments.map((a) => (
+                <div key={a.id} className="flex items-center gap-4 py-2.5 text-sm">
+                  <span className="w-20 shrink-0 text-travefy-gray-500">{a.date}</span>
+                  <Badge variant={a.type === 'bonus' ? 'success' : 'danger'} size="sm">
+                    {a.type === 'bonus' ? 'Bonus' : 'Deduction'}
+                  </Badge>
+                  <span className="flex-1 text-travefy-gray-700">{a.reason}</span>
+                  <span className={`w-24 shrink-0 text-right font-semibold ${adjustmentSigned(a) < 0 ? 'text-travefy-danger' : 'text-travefy-success'}`}>
+                    {fmtSignedUsd(adjustmentSigned(a))}
+                  </span>
+                  <button onClick={() => onRemoveAdjustment(a.id)} className="shrink-0 rounded border border-travefy-gray-200 p-1 text-travefy-gray-400 hover:text-travefy-danger" aria-label="Remove adjustment">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add adjustment */}
+          <div className="mt-3 flex items-end gap-3">
+            <div className="w-40">
+              <Select label="Type" value={adjType} onChange={(e) => setAdjType(e.target.value as PayoutAdjustmentType)}>
+                {PAYOUT_ADJUSTMENT_TYPES.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex-1">
+              <Input label="Reason / Description" value={adjReason} onChange={(e) => setAdjReason(e.target.value)} placeholder="e.g. Travel show incentive" />
+            </div>
+            <div className="w-32">
+              <Input label="Amount" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
+            </div>
+            <Button variant="secondary" onClick={addAdj} disabled={!adjReason.trim() || !Number(adjAmount)}>
+              Add
+            </Button>
+          </div>
         </div>
       </div>
 
