@@ -32,6 +32,9 @@ import { CommissionsTab } from './CommissionsTab'
 import { initialCommissions, isAdjustment, type CommissionKind, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { NewCommissionModal } from './NewCommissionModal'
 import { CommissionDrawer } from './CommissionDrawer'
+import { PayoutsTab } from './PayoutsTab'
+import { PayoutDrawer } from './PayoutDrawer'
+import { initialPayouts, newPayoutDraft, type Payout } from './payoutsData'
 import { SearchForBookingFlyout } from './SearchForBookingFlyout'
 import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
 import { ExportCommissionsModal, RemoveCommissionModal } from './ConfirmDialogs'
@@ -281,6 +284,9 @@ export function BookingsAgency() {
   const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
   const [newCommission, setNewCommission] = useState<{ open: boolean; presetKind?: CommissionKind; presetBookingRef?: string | null }>({ open: false })
   const [drawerCommission, setDrawerCommission] = useState<CommissionLine | null>(null)
+  const [payouts, setPayouts] = useState<Payout[]>(initialPayouts)
+  const [openPayoutId, setOpenPayoutId] = useState<string | null>(null)
+  const [payoutIsNew, setPayoutIsNew] = useState(false)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
@@ -499,6 +505,26 @@ export function BookingsAgency() {
   const openAddAdjustment = (c: CommissionLine) =>
     setNewCommission({ open: true, presetKind: 'adjustment', presetBookingRef: c.matchingBookingRef })
 
+  // ── Payout handlers ──────────────────────────────────────────────────────────
+  const openPayout = payouts.find((p) => p.id === openPayoutId) ?? null
+  const handleNewPayout = () => {
+    const draft = newPayoutDraft(`po-${String(Date.now()).slice(-5)}`)
+    setPayouts((ps) => [draft, ...ps])
+    setOpenPayoutId(draft.id)
+    setPayoutIsNew(true)
+  }
+  const handleOpenPayout = (p: Payout) => { setOpenPayoutId(p.id); setPayoutIsNew(false) }
+  const changePayout = (updated: Payout) =>
+    setPayouts((ps) => ps.map((p) => (p.id === updated.id ? updated : p)))
+  const archivePayout = (id: string) => {
+    setPayouts((ps) => ps.map((p) => (p.id === id ? { ...p, archived: !p.archived } : p)))
+    showToast('Payout archived')
+  }
+  const removePayout = (id: string) => {
+    setPayouts((ps) => ps.filter((p) => p.id !== id))
+    showToast('Payout removed')
+  }
+
   // ── Unclaimed → match handlers ───────────────────────────────────────────────
   const openUnclaimedSearch = (item: UnclaimedItem) =>
     setSearchTarget({ source: 'unclaimed', id: item.id, ref: item.bookingRef })
@@ -671,6 +697,15 @@ export function BookingsAgency() {
                 onAddNew={() => { setDrawerOrigin('new-payment'); setPaymentDrawerOpen(true) }}
                 onViewPayment={() => { setDrawerOrigin('existing'); setPaymentDrawerOpen(true) }}
                 onRemovePayment={removeIncomingPayment}
+                onToast={showToast}
+              />
+            ) : tab === 'Payouts' ? (
+              <PayoutsTab
+                payouts={payouts}
+                onNewPayout={handleNewPayout}
+                onOpenPayout={handleOpenPayout}
+                onArchivePayout={archivePayout}
+                onRemovePayout={removePayout}
                 onToast={showToast}
               />
             ) : (
@@ -910,6 +945,15 @@ export function BookingsAgency() {
         onClose={() => setDrawerCommission(null)}
         onAddAdjustment={() => drawerCommission && openAddAdjustment(drawerCommission)}
         onRemoveAdjustment={removeCommissionLine}
+      />
+
+      <PayoutDrawer
+        open={openPayout !== null}
+        payout={openPayout}
+        isNew={payoutIsNew}
+        onChange={changePayout}
+        onClose={() => setOpenPayoutId(null)}
+        onToast={showToast}
       />
 
       <NewCommissionModal
