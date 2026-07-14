@@ -324,6 +324,11 @@ export function BookingsAgency() {
   }
 
   const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
+
+  // Searchable booking options for the adjustment↔booking association picker.
+  const bookingSearchOptions = bookings
+    .filter((b) => b.bookingRef)
+    .map((b) => ({ ref: b.bookingRef as string, supplier: b.supplier, advisor: b.advisor, traveler: b.traveler }))
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
   const visibleTabs = role === 'advisor' ? (['Bookings', 'Unclaimed'] as const) : TABS
@@ -909,7 +914,7 @@ export function BookingsAgency() {
 
       <NewCommissionModal
         open={newCommission.open}
-        commissions={commissions}
+        bookings={bookingSearchOptions}
         presetKind={newCommission.presetKind}
         presetBookingRef={newCommission.presetBookingRef}
         onClose={() => setNewCommission({ open: false })}

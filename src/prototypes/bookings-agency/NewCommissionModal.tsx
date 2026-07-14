@@ -1,12 +1,12 @@
 import { clsx } from 'clsx'
 import { useEffect, useState } from 'react'
 import { Button, Input, Modal, Select } from '../../shared/components'
+import { BookingSearchSelect, type BookingOption } from './BookingSearchSelect'
 import {
   ADJUSTMENT_METHODS,
   ADJUSTMENT_TYPES,
   advisorCommission,
   agencyCommission,
-  isAdjustment,
   type AdjustmentType,
   type CommissionKind,
   type CommissionLine,
@@ -14,7 +14,8 @@ import {
 
 interface Props {
   open: boolean
-  commissions: CommissionLine[]
+  /** All system bookings, for the searchable association picker. */
+  bookings: BookingOption[]
   presetKind?: CommissionKind
   presetBookingRef?: string | null
   onClose: () => void
@@ -29,7 +30,7 @@ const genRef = (prefix: string) => `${prefix}-${String(Date.now()).slice(-4)}`
  * and adjustments — and reconciles through the same match→reconcile flow as a
  * normal commission (so a late clawback never mutates an already-paid line).
  */
-export function NewCommissionModal({ open, commissions, presetKind, presetBookingRef, onClose, onCreate }: Props) {
+export function NewCommissionModal({ open, bookings, presetKind, presetBookingRef, onClose, onCreate }: Props) {
   const [kind, setKind] = useState<CommissionKind>('commission')
 
   // Commission fields
@@ -45,15 +46,6 @@ export function NewCommissionModal({ open, commissions, presetKind, presetBookin
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
   const [bookingSel, setBookingSel] = useState('')
-
-  // Bookings that already have commissions — the booking is the grouping entity.
-  const bookingOptions = Array.from(
-    new Map(
-      commissions
-        .filter((c) => !isAdjustment(c) && c.matchingBookingRef)
-        .map((c) => [c.matchingBookingRef as string, { ref: c.matchingBookingRef as string, supplier: c.supplier, advisor: c.advisor }]),
-    ).values(),
-  )
 
   // Reset from presets each open.
   useEffect(() => {
@@ -71,7 +63,7 @@ export function NewCommissionModal({ open, commissions, presetKind, presetBookin
     setBookingSel(presetBookingRef ?? '')
   }, [open, presetKind, presetBookingRef])
 
-  const relatedBooking = bookingOptions.find((b) => b.ref === bookingSel) ?? null
+  const relatedBooking = bookings.find((b) => b.ref === bookingSel) ?? null
 
   const receivedNum = Number(totalReceived) || 0
   const splitNum = Number(split) || 0
@@ -187,14 +179,7 @@ export function NewCommissionModal({ open, commissions, presetKind, presetBookin
           </Select>
           <Input label="Date" value={date} onChange={(e) => setDate(e.target.value)} placeholder="MM/DD/YYYY" />
           <div className="col-span-2">
-            <Select label="Booking" value={bookingSel} onChange={(e) => setBookingSel(e.target.value)}>
-              <option value="">None — reconcile to a booking later</option>
-              {bookingOptions.map((b) => (
-                <option key={b.ref} value={b.ref}>
-                  {b.ref} · {b.supplier}{b.advisor ? ` · ${b.advisor}` : ''}
-                </option>
-              ))}
-            </Select>
+            <BookingSearchSelect label="Booking" value={bookingSel} options={bookings} onChange={(ref) => setBookingSel(ref)} />
           </div>
           <p className="col-span-2 text-xs text-travefy-gray-500">
             {adjustmentType === 'recall'
