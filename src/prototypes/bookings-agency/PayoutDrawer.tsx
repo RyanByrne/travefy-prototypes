@@ -1,6 +1,6 @@
 import { Check, Info, MinusCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Badge, Button, Input, Select } from '../../shared/components'
+import { Badge, Button, Input, Modal, Select } from '../../shared/components'
 import {
   PAYOUT_ADJUSTMENT_TYPES,
   adjustmentSigned,
@@ -34,6 +34,7 @@ type View = { type: 'agents' } | { type: 'agent'; agentId: string }
  */
 export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }: Props) {
   const [view, setView] = useState<View>({ type: 'agents' })
+  const [adjustAgentId, setAdjustAgentId] = useState<string | null>(null)
 
   useEffect(() => {
     if (open) setView({ type: 'agents' })
@@ -154,6 +155,13 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-2">
                               <button
+                                onClick={() => setAdjustAgentId(a.id)}
+                                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-travefy-gray-200 px-3 py-1.5 text-xs font-semibold text-travefy-blue hover:bg-travefy-gray-50"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Adjustment
+                              </button>
+                              <button
                                 onClick={() => setView({ type: 'agent', agentId: a.id })}
                                 className="whitespace-nowrap rounded border border-travefy-gray-200 px-3 py-1.5 text-xs font-semibold text-travefy-blue hover:bg-travefy-gray-50"
                               >
@@ -201,7 +209,74 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
           </>
         )}
       </div>
+
+      <AddAdjustmentModal
+        open={adjustAgentId !== null}
+        agentName={payout.agents.find((a) => a.id === adjustAgentId)?.name ?? ''}
+        onClose={() => setAdjustAgentId(null)}
+        onAdd={(adj) => {
+          if (adjustAgentId) addAdjustment(adjustAgentId, adj)
+          setAdjustAgentId(null)
+          onToast('Adjustment added')
+        }}
+      />
     </div>
+  )
+}
+
+// ── Add Adjustment modal (from the agent list) ────────────────────────────────
+
+function AddAdjustmentModal({
+  open,
+  agentName,
+  onClose,
+  onAdd,
+}: {
+  open: boolean
+  agentName: string
+  onClose: () => void
+  onAdd: (adj: PayoutAdjustment) => void
+}) {
+  const [type, setType] = useState<PayoutAdjustmentType>('bonus')
+  const [reason, setReason] = useState('')
+  const [amount, setAmount] = useState('')
+
+  useEffect(() => {
+    if (open) { setType('bonus'); setReason(''); setAmount('') }
+  }, [open])
+
+  const canAdd = reason.trim() !== '' && Number(amount) > 0
+  const add = () => {
+    if (!canAdd) return
+    onAdd({ id: `adj-${String(Date.now()).slice(-6)}`, type, reason: reason.trim(), amount: Number(amount), date: 'Today' })
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={agentName ? `Add Adjustment · ${agentName}` : 'Add Adjustment'}
+      size="md"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button disabled={!canAdd} onClick={add}>Add Adjustment</Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Select label="Type" value={type} onChange={(e) => setType(e.target.value as PayoutAdjustmentType)}>
+          {PAYOUT_ADJUSTMENT_TYPES.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </Select>
+        <Input label="Reason / Description" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Travel show incentive" />
+        <Input label="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
+        <p className="text-xs text-travefy-gray-500">
+          {type === 'bonus' ? 'Added to' : 'Deducted from'} this advisor's payout total.
+        </p>
+      </div>
+    </Modal>
   )
 }
 
