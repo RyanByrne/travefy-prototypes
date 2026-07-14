@@ -8,8 +8,8 @@ interface Props {
   /** Statement date shown in the header. */
   date?: string
   onClose: () => void
-  /** Proceed — opens the Confirm Match step. */
-  onMatch: () => void
+  /** Confirm reconciliation — files the line under Commissions as reconciled. */
+  onReconcile: () => void
   /** Reject the suggested match — reverts the line to No Match. */
   onReject: () => void
 }
@@ -17,11 +17,12 @@ interface Props {
 const fmtMoney = (n: number) => `$${n.toLocaleString('en-US')}`
 
 /**
- * "Match Unclaimed Booking" — shown from the Unclaimed tab's Review Match action.
+ * "Reconcile Booking" — shown from the Unclaimed tab's Reconcile action.
  * Compares the received booking on the statement against the system's suggested
- * match. "Match Booking" advances to the Confirm Match step.
+ * match and confirms reconciliation: reconciling files the line under
+ * Commissions and removes it from Unclaimed.
  */
-export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', onClose, onMatch, onReject }: Props) {
+export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', onClose, onReconcile, onReject }: Props) {
   if (!open || !item) return null
   const match = item.suggestedMatch
 
@@ -29,7 +30,7 @@ export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', o
     <Modal
       open={open}
       onClose={onClose}
-      title="Match Unclaimed Booking"
+      title="Reconcile Booking"
       size="lg"
       footer={
         <>
@@ -40,8 +41,8 @@ export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', o
             <Button variant="secondary" onClick={onReject} disabled={!match}>
               Reject Match
             </Button>
-            <Button onClick={onMatch} disabled={!match}>
-              Match Booking
+            <Button onClick={onReconcile} disabled={!match}>
+              Reconcile Booking
             </Button>
           </div>
         </>
@@ -99,6 +100,11 @@ export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', o
           </div>
         </div>
       </div>
+
+      <p className="mt-6 border-t border-travefy-gray-100 pt-4 text-xs text-travefy-gray-500">
+        Reconciling files this received commission under your Commissions as reconciled and removes it from
+        Unclaimed. You won't be able to edit it from Unclaimed after this.
+      </p>
     </Modal>
   )
 }

@@ -292,7 +292,7 @@ export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, o
                             onClick={() => onReviewMatch?.(x)}
                             className="px-3 py-1.5 rounded bg-travefy-navy text-white text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-800 transition-colors"
                           >
-                            Review Match
+                            Reconcile
                           </button>
                         )}
                         <button

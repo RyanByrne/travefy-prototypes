@@ -32,7 +32,7 @@ import { CommissionsTab } from './CommissionsTab'
 import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { SearchForBookingFlyout } from './SearchForBookingFlyout'
 import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
-import { ExportCommissionsModal, RemoveCommissionModal, ConfirmMatchModal } from './ConfirmDialogs'
+import { ExportCommissionsModal, RemoveCommissionModal } from './ConfirmDialogs'
 
 // ── Top nav (new Compass IA) ────────────────────────────────────────────────────
 
@@ -277,7 +277,6 @@ export function BookingsAgency() {
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
-  const [confirmMatchItem, setConfirmMatchItem] = useState<UnclaimedItem | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
@@ -508,14 +507,10 @@ export function BookingsAgency() {
     setSearchTarget(null)
   }
 
-  // Review Match → Match Booking → Confirm Match → the line moves to Commissions.
-  const handleMatchBooking = () => {
-    if (!reviewItem) return
-    setConfirmMatchItem(reviewItem)
-    setReviewItem(null)
-  }
-  const handleConfirmMatch = () => {
-    const item = confirmMatchItem
+  // Reconcile from Unclaimed → the modal confirms, then the line is filed under
+  // Commissions as reconciled and removed from Unclaimed.
+  const handleReconcileUnclaimed = () => {
+    const item = reviewItem
     if (!item) return
     const m = item.suggestedMatch
     setUnclaimedItems((u) => u.filter((x) => x.id !== item.id))
@@ -527,16 +522,16 @@ export function BookingsAgency() {
         supplier: item.supplier,
         received: item.received,
         split: m?.split ?? 80,
-        status: 'match-found' as const,
+        status: 'reconciled' as const,
         matchingBookingRef: m?.bookingRef ?? item.bookingRef,
         advisor: m?.advisor ?? null,
         expected: m?.expected ?? item.received,
       },
       ...cs,
     ])
-    setConfirmMatchItem(null)
+    setReviewItem(null)
     setTab('Commissions')
-    showToast('Matched — now reconcilable in Commissions')
+    showToast('Booking reconciled')
   }
   const rejectUnclaimedMatch = (item: UnclaimedItem) => {
     setUnclaimedItems((u) =>
@@ -868,14 +863,8 @@ export function BookingsAgency() {
         open={reviewItem !== null}
         item={reviewItem}
         onClose={() => setReviewItem(null)}
-        onMatch={handleMatchBooking}
+        onReconcile={handleReconcileUnclaimed}
         onReject={() => reviewItem && rejectUnclaimedMatch(reviewItem)}
-      />
-
-      <ConfirmMatchModal
-        open={confirmMatchItem !== null}
-        onClose={() => setConfirmMatchItem(null)}
-        onConfirm={handleConfirmMatch}
       />
 
       <RemoveCommissionModal
