@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { commissionTotals, type CommissionLine, type CommissionStatus } from './commissionsData'
+import { commissionTotals, formatSigned, isAdjustment, type CommissionLine, type CommissionStatus } from './commissionsData'
 
 // ── Props ───────────────────────────────────────────────────────────────────
 // Presentational: the parent owns the commissions array so actions like
@@ -30,6 +30,10 @@ interface CommissionsTabProps {
   onRemove: (id: string) => void
   onExport: () => void
   onNewCommission: () => void
+  /** Open the commission detail drawer (shows linked adjustments). */
+  onOpenDrawer: (c: CommissionLine) => void
+  /** Open New Commission modal preset to Adjustment, linked to this commission. */
+  onAddAdjustment: (c: CommissionLine) => void
   onToast?: (text: string) => void
 }
 
@@ -160,40 +164,61 @@ function FilterChip({
 
 // ── Row context menu ─────────────────────────────────────────────────────────
 
-function RowMenu({ onRemove, onToast }: { onRemove: () => void; onToast?: (t: string) => void }) {
+interface MenuItem {
+  label: string
+  icon: React.ReactNode
+  onClick: () => void
+  danger?: boolean
+}
+
+function RowMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
         className="p-1.5 rounded border border-travefy-gray-200 hover:bg-travefy-gray-50 text-travefy-gray-500"
-        aria-label="Commission actions"
+        aria-label="Row actions"
       >
         <span className="block leading-none tracking-widest text-sm">···</span>
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-9 z-20 w-44 rounded-lg border border-travefy-gray-200 bg-white py-1 text-sm shadow-lg">
-            <button
-              onClick={() => { onToast?.('Commission details are mocked for this prototype'); setOpen(false) }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-travefy-gray-700 hover:bg-travefy-gray-50"
-            >
-              <Pencil className="w-4 h-4 text-travefy-gray-500" />
-              View / Edit
-            </button>
-            <button
-              onClick={() => { onRemove(); setOpen(false) }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-travefy-danger hover:bg-travefy-gray-50"
-            >
-              <Trash2 className="w-4 h-4" />
-              Remove
-            </button>
+          <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setOpen(false) }} />
+          <div className="absolute right-0 top-9 z-20 w-48 rounded-lg border border-travefy-gray-200 bg-white py-1 text-sm shadow-lg">
+            {items.map((it, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); it.onClick(); setOpen(false) }}
+                className={clsx('flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-travefy-gray-50', it.danger ? 'text-travefy-danger' : 'text-travefy-gray-700')}
+              >
+                {it.icon}
+                {it.label}
+              </button>
+            ))}
           </div>
         </>
       )}
     </div>
+  )
+}
+
+// ── Adjustment badge ─────────────────────────────────────────────────────────
+
+function AdjustmentBadge({ type }: { type?: string }) {
+  const recall = type === 'recall'
+  return (
+    <span
+      className={clsx(
+        'inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+        recall
+          ? 'border-travefy-danger-border bg-travefy-danger-bg text-travefy-danger-dark'
+          : 'border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark',
+      )}
+    >
+      {recall ? 'Recall' : 'Additional'}
+    </span>
   )
 }
 
@@ -208,6 +233,8 @@ export function CommissionsTab({
   onRemove,
   onExport,
   onNewCommission,
+  onOpenDrawer,
+  onAddAdjustment,
   onToast,
 }: CommissionsTabProps) {
   const [search, setSearch] = useState('')
@@ -262,8 +289,8 @@ export function CommissionsTab({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard icon={<LineChart className="w-4 h-4" />} value={commissionTotals.total} label="Total" />
         <StatCard icon={<Percent className="w-4 h-4" />} value={commissionTotals.expected} label="Expected" />
-        <StatCard icon={<Clock className="w-4 h-4" />} value={commissionTotals.overdue} label="Overdue" />
         <StatCard icon={<DollarSign className="w-4 h-4" />} value={commissionTotals.paid} label="Paid" />
+        <StatCard icon={<Clock className="w-4 h-4" />} value={commissionTotals.overdue} label="Overdue" />
       </div>
 
       {/* Toolbar */}
@@ -363,121 +390,163 @@ export function CommissionsTab({
               </tr>
             </thead>
             <tbody>
-              {sorted.map((c) => (
-                <tr key={c.id} className="group border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-travefy-navy">{c.reference}</td>
-                  <td className="px-4 py-3 text-travefy-gray-700">{c.statementRef}</td>
-                  <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
-                  <td className="px-4 py-3">
-                    {c.received !== null ? (
-                      <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}>
-                        {fmtMoney(c.received)}
-                      </MismatchCell>
-                    ) : (
-                      <span className="text-travefy-gray-400">--</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {c.split !== null ? (
-                        <MismatchCell tip="Split does not match the advisor's expected amount." flagged={c.splitMismatch}>
-                          {c.split}%
+              {sorted.map((c) =>
+                isAdjustment(c) ? (
+                  <tr key={c.id} className="border-b border-travefy-gray-100 bg-travefy-gray-50/40 hover:bg-travefy-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-travefy-navy">{c.reference}</div>
+                      <div className="text-xs text-travefy-gray-500">{c.reason}</div>
+                    </td>
+                    <td className="px-4 py-3 text-travefy-gray-400">--</td>
+                    <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
+                    <td className="px-4 py-3">
+                      <span className={clsx('font-semibold', (c.amount ?? 0) < 0 ? 'text-travefy-danger' : 'text-travefy-success')}>
+                        {formatSigned(c.amount ?? 0)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-travefy-gray-400">--</td>
+                    <td className="px-4 py-3"><AdjustmentBadge type={c.adjustmentType} /></td>
+                    <td className="px-4 py-3">
+                      {c.relatesToRef ? (
+                        <span className="text-sm text-travefy-gray-600">
+                          Relates to{' '}
+                          <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={() => onToast?.(`Adjustment relates to ${c.relatesToRef}`)}>
+                            {c.relatesToRef}
+                          </a>
+                        </span>
+                      ) : (
+                        <span className="text-travefy-gray-400">Standalone</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-travefy-gray-700">{c.advisor ?? <span className="text-travefy-gray-400">--</span>}</td>
+                    <td className="px-4 py-3 text-travefy-gray-500 text-xs">{c.method}</td>
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3">
+                      <RowMenu items={[{ label: 'Remove', icon: <Trash2 className="w-4 h-4" />, onClick: () => onRemove(c.id), danger: true }]} />
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={c.id} onClick={() => onOpenDrawer(c)} className="group cursor-pointer border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-travefy-navy">{c.reference}</td>
+                    <td className="px-4 py-3 text-travefy-gray-700">{c.statementRef}</td>
+                    <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
+                    <td className="px-4 py-3">
+                      {c.received !== null ? (
+                        <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}>
+                          {fmtMoney(c.received)}
                         </MismatchCell>
                       ) : (
                         <span className="text-travefy-gray-400">--</span>
                       )}
-                      {/* Received-commission side — editable on hover of any row */}
-                      <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          onClick={() => onToast?.('Editing the received commission is mocked for this prototype')}
-                          className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
-                          aria-label="Edit received commission"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => onRemove(c.id)}
-                          className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
-                          aria-label="Delete commission"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.status === 'no-match' ? (
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => onSearchBooking(c.id)}
-                          className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"
-                        >
-                          <Search className="w-3.5 h-3.5 shrink-0" />
-                          Search for booking
-                        </button>
-                        <button
-                          onClick={() => onToast?.('Add booking manually is mocked for this prototype')}
-                          className="p-1.5 rounded border border-travefy-gray-200 text-travefy-blue hover:bg-travefy-gray-50"
-                          aria-label="Add booking"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={() => onToast?.('Booking detail is mocked for this prototype')}>
-                          {c.matchingBookingRef}
-                        </a>
-                        {/* Matched-booking side — editable on hover of any matched row */}
+                        {c.split !== null ? (
+                          <MismatchCell tip="Split does not match the advisor's expected amount." flagged={c.splitMismatch}>
+                            {c.split}%
+                          </MismatchCell>
+                        ) : (
+                          <span className="text-travefy-gray-400">--</span>
+                        )}
+                        {/* Received-commission side — editable on hover of any row */}
                         <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                           <button
-                            onClick={() => onToast?.('Editing the matched booking is mocked for this prototype')}
+                            onClick={(e) => { e.stopPropagation(); onToast?.('Editing the received commission is mocked for this prototype') }}
                             className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
-                            aria-label="Edit matched booking"
+                            aria-label="Edit received commission"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => onUnlink(c.id)}
+                            onClick={(e) => { e.stopPropagation(); onRemove(c.id) }}
                             className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
-                            aria-label="Unlink booking"
+                            aria-label="Delete commission"
                           >
-                            <Link2Off className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </span>
                       </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-travefy-gray-700">{c.advisor ?? <span className="text-travefy-gray-400">--</span>}</td>
-                  <td className="px-4 py-3 text-travefy-gray-700">
-                    {c.expected !== null ? fmtMoney(c.expected) : <span className="text-travefy-gray-400">--</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.status === 'no-match' && (
-                      <button
-                        onClick={() => onMarkUnclaimed(c.id)}
-                        className="px-3 py-1.5 rounded border border-travefy-danger text-travefy-danger text-xs font-semibold whitespace-nowrap hover:bg-travefy-danger-bg"
-                      >
-                        Mark Unclaimed
-                      </button>
-                    )}
-                    {c.status === 'match-found' && (
-                      <button
-                        onClick={() => onReconcile(c.id)}
-                        className="px-3 py-1.5 rounded border border-travefy-gray-200 text-travefy-gray-700 text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-50"
-                      >
-                        Reconcile
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <RowMenu onRemove={() => onRemove(c.id)} onToast={onToast} />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={c.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {c.status === 'no-match' ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onSearchBooking(c.id) }}
+                            className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"
+                          >
+                            <Search className="w-3.5 h-3.5 shrink-0" />
+                            Search for booking
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onToast?.('Add booking manually is mocked for this prototype') }}
+                            className="p-1.5 rounded border border-travefy-gray-200 text-travefy-blue hover:bg-travefy-gray-50"
+                            aria-label="Add booking"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={(e) => { e.stopPropagation(); onToast?.('Booking detail is mocked for this prototype') }}>
+                            {c.matchingBookingRef}
+                          </a>
+                          {/* Matched-booking side — editable on hover of any matched row */}
+                          <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onToast?.('Editing the matched booking is mocked for this prototype') }}
+                              className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
+                              aria-label="Edit matched booking"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onUnlink(c.id) }}
+                              className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
+                              aria-label="Unlink booking"
+                            >
+                              <Link2Off className="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-travefy-gray-700">{c.advisor ?? <span className="text-travefy-gray-400">--</span>}</td>
+                    <td className="px-4 py-3 text-travefy-gray-700">
+                      {c.expected !== null ? fmtMoney(c.expected) : <span className="text-travefy-gray-400">--</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {c.status === 'no-match' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onMarkUnclaimed(c.id) }}
+                          className="px-3 py-1.5 rounded border border-travefy-danger text-travefy-danger text-xs font-semibold whitespace-nowrap hover:bg-travefy-danger-bg"
+                        >
+                          Mark Unclaimed
+                        </button>
+                      )}
+                      {c.status === 'match-found' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onReconcile(c.id) }}
+                          className="px-3 py-1.5 rounded border border-travefy-gray-200 text-travefy-gray-700 text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-50"
+                        >
+                          Reconcile
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <RowMenu
+                        items={[
+                          { label: 'View / Edit', icon: <Pencil className="w-4 h-4 text-travefy-gray-500" />, onClick: () => onOpenDrawer(c) },
+                          { label: 'Add Adjustment', icon: <Plus className="w-4 h-4 text-travefy-gray-500" />, onClick: () => onAddAdjustment(c) },
+                          { label: 'Remove', icon: <Trash2 className="w-4 h-4" />, onClick: () => onRemove(c.id), danger: true },
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                ),
+              )}
               {sorted.length === 0 && (
                 <tr>
                   <td colSpan={11} className="px-4 py-12 text-center text-travefy-gray-500 text-sm">

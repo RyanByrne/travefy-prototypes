@@ -5,9 +5,22 @@
 
 export type CommissionStatus = 'no-match' | 'match-found' | 'reconciled'
 
+/**
+ * A line in the Commissions table is either a received `commission` (matched &
+ * reconciled against a supplier statement) or an `adjustment` — a clawback
+ * (recall) or extra payment that happens later, on its own reconcile→payout
+ * lifecycle. Adjustments reference the commission they relate to for provenance
+ * but are independent lines, so a late clawback never mutates an already-paid
+ * commission or its payout.
+ */
+export type CommissionKind = 'commission' | 'adjustment'
+export type AdjustmentType = 'recall' | 'additional'
+
 export interface CommissionLine {
   id: string
-  /** Received booking reference on the statement. */
+  /** Defaults to 'commission' when absent. */
+  kind?: CommissionKind
+  /** Received booking reference on the statement (or the adjustment's own ref). */
   reference: string
   statementRef: string
   supplier: string
@@ -24,7 +37,39 @@ export interface CommissionLine {
   receivedMismatch?: boolean
   /** Split doesn't match the advisor's expected split. */
   splitMismatch?: boolean
+
+  // ── Adjustment-only fields (kind === 'adjustment') ──
+  adjustmentType?: AdjustmentType
+  /** Reason / description of the adjustment. */
+  reason?: string
+  /** Payment method / currency, e.g. 'USD'. */
+  method?: string
+  /** Signed amount — recall is negative, additional is positive. */
+  amount?: number
+  /** Date the adjustment was recorded. */
+  date?: string
+  /** Reference of the commission/booking this adjustment relates to (provenance). */
+  relatesToRef?: string | null
 }
+
+export const isAdjustment = (c: CommissionLine) => c.kind === 'adjustment'
+
+/** Advisor / agency split of a received commission. */
+export const advisorCommission = (received: number, split: number) =>
+  Math.round(received * (split / 100) * 100) / 100
+export const agencyCommission = (received: number, split: number) =>
+  Math.round((received - advisorCommission(received, split)) * 100) / 100
+
+/** "+$150" / "-$200" for adjustment amounts. */
+export const formatSigned = (n: number) =>
+  `${n < 0 ? '-' : '+'}$${Math.abs(n).toLocaleString('en-US')}`
+
+export const ADJUSTMENT_TYPES: { value: AdjustmentType; label: string }[] = [
+  { value: 'recall', label: 'Recall (clawback)' },
+  { value: 'additional', label: 'Additional payment' },
+]
+
+export const ADJUSTMENT_METHODS = ['USD', 'CAD', 'GBP', 'EUR'] as const
 
 export const initialCommissions: CommissionLine[] = [
   {
@@ -161,6 +206,44 @@ export const initialCommissions: CommissionLine[] = [
     matchingBookingRef: 'GAdv-882',
     advisor: 'Kim Anderson',
     expected: 248,
+  },
+  {
+    id: 'adj1',
+    kind: 'adjustment',
+    reference: 'ADJ-4821',
+    statementRef: '--',
+    supplier: 'Supplier Y',
+    received: null,
+    split: null,
+    status: 'reconciled',
+    matchingBookingRef: null,
+    advisor: 'Michael Smith',
+    expected: null,
+    adjustmentType: 'recall',
+    reason: 'Supplier recall — incorrect payment',
+    method: 'USD',
+    amount: -200,
+    date: '02/08/2026',
+    relatesToRef: 'A2736555',
+  },
+  {
+    id: 'adj2',
+    kind: 'adjustment',
+    reference: 'ADJ-5107',
+    statementRef: '--',
+    supplier: 'Norwegian Cruise Line',
+    received: null,
+    split: null,
+    status: 'reconciled',
+    matchingBookingRef: null,
+    advisor: 'Suzy Smith',
+    expected: null,
+    adjustmentType: 'additional',
+    reason: 'Loyalty bonus — repeat booking',
+    method: 'USD',
+    amount: 150,
+    date: '02/20/2026',
+    relatesToRef: 'NCL-882341',
   },
 ]
 

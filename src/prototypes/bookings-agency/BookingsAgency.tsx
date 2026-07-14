@@ -29,7 +29,9 @@ import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow }
 import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
-import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
+import { initialCommissions, isAdjustment, type CommissionKind, type CommissionLine, type SearchBookingCard } from './commissionsData'
+import { NewCommissionModal } from './NewCommissionModal'
+import { CommissionDrawer } from './CommissionDrawer'
 import { SearchForBookingFlyout } from './SearchForBookingFlyout'
 import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
 import { ExportCommissionsModal, RemoveCommissionModal } from './ConfirmDialogs'
@@ -277,6 +279,8 @@ export function BookingsAgency() {
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
+  const [newCommission, setNewCommission] = useState<{ open: boolean; presetKind?: CommissionKind; presetRelatesToRef?: string | null }>({ open: false })
+  const [drawerCommission, setDrawerCommission] = useState<CommissionLine | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
@@ -478,6 +482,17 @@ export function BookingsAgency() {
     setRemoveCommissionId(null)
     showToast('Commission removed')
   }
+  const removeCommissionLine = (id: string) => {
+    setCommissions((cs) => cs.filter((c) => c.id !== id))
+    showToast('Removed')
+  }
+  const createCommissionLine = (line: CommissionLine) => {
+    setCommissions((cs) => [line, ...cs])
+    setNewCommission({ open: false })
+    showToast(isAdjustment(line) ? 'Adjustment added' : 'Commission created')
+  }
+  const openAddAdjustment = (c: CommissionLine) =>
+    setNewCommission({ open: true, presetKind: 'adjustment', presetRelatesToRef: c.reference })
 
   // ── Unclaimed → match handlers ───────────────────────────────────────────────
   const openUnclaimedSearch = (item: UnclaimedItem) =>
@@ -640,7 +655,9 @@ export function BookingsAgency() {
                 onUnlink={unlinkCommission}
                 onRemove={setRemoveCommissionId}
                 onExport={() => setExportOpen(true)}
-                onNewCommission={() => showToast('New commission flow not in this prototype')}
+                onNewCommission={() => setNewCommission({ open: true })}
+                onOpenDrawer={setDrawerCommission}
+                onAddAdjustment={openAddAdjustment}
                 onToast={showToast}
               />
             ) : tab === 'Payments' ? (
@@ -877,6 +894,26 @@ export function BookingsAgency() {
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         onConfirm={() => { setExportOpen(false); showToast('Commissions exported') }}
+      />
+
+      <CommissionDrawer
+        open={drawerCommission !== null}
+        commission={drawerCommission}
+        adjustments={commissions.filter(
+          (c) => isAdjustment(c) && drawerCommission != null && c.relatesToRef === drawerCommission.reference,
+        )}
+        onClose={() => setDrawerCommission(null)}
+        onAddAdjustment={() => drawerCommission && openAddAdjustment(drawerCommission)}
+        onRemoveAdjustment={removeCommissionLine}
+      />
+
+      <NewCommissionModal
+        open={newCommission.open}
+        commissions={commissions}
+        presetKind={newCommission.presetKind}
+        presetRelatesToRef={newCommission.presetRelatesToRef}
+        onClose={() => setNewCommission({ open: false })}
+        onCreate={createCommissionLine}
       />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
