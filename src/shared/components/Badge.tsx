@@ -8,7 +8,7 @@ type BadgeShape = 'pill' | 'rounded'
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant
   size?: BadgeSize
-  /** pill = fully rounded (default); rounded = 4px corner radius */
+  /** pill = fully rounded (default); rounded = 2px corner radius */
   shape?: BadgeShape
 }
 
@@ -23,8 +23,8 @@ export function Badge({
     <span
       className={clsx(
         'inline-flex items-center font-semibold border',
-        // Shape — FannyPack "Rounded" (pill) vs "Rounded rectangle" (4px)
-        shape === 'pill' ? 'rounded-full' : 'rounded',
+        // Shape — FannyPack "Rounded" (pill) vs "Rounded rectangle" (2px)
+        shape === 'pill' ? 'rounded-full' : 'rounded-sm',
         // Variant colors + borders — sourced from low-fi Figma designs
         variant === 'primary' && 'bg-travefy-blue-light border-travefy-primary-border text-travefy-primary-text',
         variant === 'gray'    && 'bg-travefy-gray-50 border-travefy-gray-200 text-travefy-gray-700',
