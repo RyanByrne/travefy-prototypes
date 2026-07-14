@@ -164,8 +164,8 @@ export function PayoutsTab({ payouts, onNewPayout, onOpenPayout, onArchivePayout
         </div>
       )}
 
-      {/* Table / empty state */}
-      <div className="overflow-hidden rounded-lg border border-travefy-gray-200 bg-white">
+      {/* Table / empty state (overflow-visible so the row ··· menu isn't clipped) */}
+      <div className="overflow-visible rounded-lg border border-travefy-gray-200 bg-white">
         {sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
             <Banknote className="mb-3 h-12 w-12 text-travefy-blue" />
