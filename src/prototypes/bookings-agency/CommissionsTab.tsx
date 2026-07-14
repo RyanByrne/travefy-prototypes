@@ -364,7 +364,7 @@ export function CommissionsTab({
             </thead>
             <tbody>
               {sorted.map((c) => (
-                <tr key={c.id} className="border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
+                <tr key={c.id} className="group border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-travefy-navy">{c.reference}</td>
                   <td className="px-4 py-3 text-travefy-gray-700">{c.statementRef}</td>
                   <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
@@ -386,24 +386,23 @@ export function CommissionsTab({
                       ) : (
                         <span className="text-travefy-gray-400">--</span>
                       )}
-                      {c.status === 'no-match' && (
-                        <span className="flex items-center gap-1">
-                          <button
-                            onClick={() => onToast?.('Inline edit is mocked for this prototype')}
-                            className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
-                            aria-label="Edit"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => onRemove(c.id)}
-                            className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </span>
-                      )}
+                      {/* Received-commission side — editable on hover of any row */}
+                      <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          onClick={() => onToast?.('Editing the received commission is mocked for this prototype')}
+                          className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
+                          aria-label="Edit received commission"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onRemove(c.id)}
+                          className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
+                          aria-label="Delete commission"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -414,9 +413,9 @@ export function CommissionsTab({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onSearchBooking(c.id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"
+                          className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"
                         >
-                          <Search className="w-3.5 h-3.5" />
+                          <Search className="w-3.5 h-3.5 shrink-0" />
                           Search for booking
                         </button>
                         <button
@@ -432,24 +431,23 @@ export function CommissionsTab({
                         <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={() => onToast?.('Booking detail is mocked for this prototype')}>
                           {c.matchingBookingRef}
                         </a>
-                        {c.status === 'match-found' && (
-                          <>
-                            <button
-                              onClick={() => onToast?.('Edit match is mocked for this prototype')}
-                              className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
-                              aria-label="Edit match"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => onUnlink(c.id)}
-                              className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
-                              aria-label="Unlink"
-                            >
-                              <Link2Off className="w-3.5 h-3.5" />
-                            </button>
-                          </>
-                        )}
+                        {/* Matched-booking side — editable on hover of any matched row */}
+                        <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                          <button
+                            onClick={() => onToast?.('Editing the matched booking is mocked for this prototype')}
+                            className="p-1 rounded border border-travefy-gray-200 text-travefy-gray-500 hover:bg-travefy-gray-50"
+                            aria-label="Edit matched booking"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => onUnlink(c.id)}
+                            className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
+                            aria-label="Unlink booking"
+                          >
+                            <Link2Off className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
                       </div>
                     )}
                   </td>

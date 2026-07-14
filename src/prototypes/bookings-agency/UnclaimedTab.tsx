@@ -71,7 +71,7 @@ function FilterChip({ label, options, selected, onSelect, onToast }: { label: st
 
 // ── Row context menu ──────────────────────────────────────────────────────────
 
-function RowMenu({ onViewStatement, onRemove }: { onViewStatement: () => void; onRemove: () => void }) {
+function RowMenu({ onViewStatement, onReject, onRemove }: { onViewStatement: () => void; onReject?: () => void; onRemove: () => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   return (
@@ -90,6 +90,11 @@ function RowMenu({ onViewStatement, onRemove }: { onViewStatement: () => void; o
             <button onClick={() => { onViewStatement(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">
               View on Statement
             </button>
+            {onReject && (
+              <button onClick={() => { onReject(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">
+                Reject Match
+              </button>
+            )}
             <button onClick={() => { onRemove(); setOpen(false) }} className="w-full px-3 py-2 text-left hover:bg-travefy-gray-50 text-travefy-gray-700">
               Remove
             </button>
@@ -124,13 +129,15 @@ interface UnclaimedTabProps {
   onReviewMatch?: (item: UnclaimedItem) => void
   /** Opens the Search for booking flyout to match against a system booking. */
   onSearchMatch?: (item: UnclaimedItem) => void
+  /** Reject a suggested match — reverts the row to No Match. */
+  onRejectMatch?: (item: UnclaimedItem) => void
   onRemove: (id: string) => void
   onToast?: (text: string) => void
   /** When 'advisor', renders the slimmer columns with a Claim action button. */
   variant?: 'agency' | 'advisor'
 }
 
-export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, onSearchMatch, onRemove, onToast, variant = 'agency' }: UnclaimedTabProps) {
+export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, onSearchMatch, onRejectMatch, onRemove, onToast, variant = 'agency' }: UnclaimedTabProps) {
   const [search, setSearch] = useState('')
   const [showFilters, setShowFilters] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('timeUnclaimed')
@@ -299,7 +306,11 @@ export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, o
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <RowMenu onViewStatement={() => onViewStatement(x)} onRemove={() => onRemove(x.id)} />
+                    <RowMenu
+                      onViewStatement={() => onViewStatement(x)}
+                      onReject={x.match === 'match-found' ? () => onRejectMatch?.(x) : undefined}
+                      onRemove={() => onRemove(x.id)}
+                    />
                   </td>
                 </tr>
               ))}

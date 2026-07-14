@@ -538,6 +538,13 @@ export function BookingsAgency() {
     setTab('Commissions')
     showToast('Matched — now reconcilable in Commissions')
   }
+  const rejectUnclaimedMatch = (item: UnclaimedItem) => {
+    setUnclaimedItems((u) =>
+      u.map((it): UnclaimedItem => (it.id === item.id ? { ...it, match: 'no-match', suggestedMatch: undefined } : it)),
+    )
+    setReviewItem(null)
+    showToast('Match rejected')
+  }
 
   const filtered = bookings.filter((b) => {
     // Tab filter — Unclaimed/Commissions/Payments have their own views; Bookings/Payouts share the bookings table.
@@ -625,6 +632,7 @@ export function BookingsAgency() {
                 onClaim={handleUnclaimedClaim}
                 onReviewMatch={setReviewItem}
                 onSearchMatch={openUnclaimedSearch}
+                onRejectMatch={rejectUnclaimedMatch}
                 onRemove={handleUnclaimedRemove}
                 onToast={showToast}
               />
@@ -861,6 +869,7 @@ export function BookingsAgency() {
         item={reviewItem}
         onClose={() => setReviewItem(null)}
         onMatch={handleMatchBooking}
+        onReject={() => reviewItem && rejectUnclaimedMatch(reviewItem)}
       />
 
       <ConfirmMatchModal

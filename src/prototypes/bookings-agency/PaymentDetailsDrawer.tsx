@@ -171,9 +171,9 @@ function MatchRow({ row, onSearch, onMarkUnclaimed, onUnmarkUnclaimed, onReconci
           <>
             <button
               onClick={() => onSearch(row.id)}
-              className="col-span-1 flex items-center gap-1.5 px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors justify-center"
+              className="col-span-1 flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark transition-colors justify-center"
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-3.5 h-3.5 shrink-0" />
               Search for booking
             </button>
             <span className="text-travefy-gray-400 text-sm">--</span>

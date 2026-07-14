@@ -10,6 +10,8 @@ interface Props {
   onClose: () => void
   /** Proceed — opens the Confirm Match step. */
   onMatch: () => void
+  /** Reject the suggested match — reverts the line to No Match. */
+  onReject: () => void
 }
 
 const fmtMoney = (n: number) => `$${n.toLocaleString('en-US')}`
@@ -19,7 +21,7 @@ const fmtMoney = (n: number) => `$${n.toLocaleString('en-US')}`
  * Compares the received booking on the statement against the system's suggested
  * match. "Match Booking" advances to the Confirm Match step.
  */
-export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', onClose, onMatch }: Props) {
+export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', onClose, onMatch, onReject }: Props) {
   if (!open || !item) return null
   const match = item.suggestedMatch
 
@@ -34,9 +36,14 @@ export function MatchUnclaimedBookingModal({ open, item, date = 'Oct 9, 2025', o
           <Button variant="link" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onMatch} disabled={!match}>
-            Match Booking
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={onReject} disabled={!match}>
+              Reject Match
+            </Button>
+            <Button onClick={onMatch} disabled={!match}>
+              Match Booking
+            </Button>
+          </div>
         </>
       }
     >
