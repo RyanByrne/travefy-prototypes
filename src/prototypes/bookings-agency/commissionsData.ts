@@ -48,9 +48,11 @@ export interface CommissionLine {
   amount?: number
   /** Date the adjustment was recorded. */
   date?: string
-  /** Reference of the commission/booking this adjustment relates to (provenance). */
-  relatesToRef?: string | null
 }
+// NOTE: adjustments associate with a BOOKING via `matchingBookingRef` — the same
+// field commissions use. The booking is the grouping entity for commissions and
+// adjustments alike, and adjustments reconcile through the same match→reconcile
+// flow (status: no-match → match-found → reconciled).
 
 export const isAdjustment = (c: CommissionLine) => c.kind === 'adjustment'
 
@@ -211,12 +213,12 @@ export const initialCommissions: CommissionLine[] = [
     id: 'adj1',
     kind: 'adjustment',
     reference: 'ADJ-4821',
-    statementRef: '--',
+    statementRef: 'FFFK232',
     supplier: 'Supplier Y',
     received: null,
     split: null,
-    status: 'reconciled',
-    matchingBookingRef: null,
+    status: 'match-found',
+    matchingBookingRef: 'A2736555',
     advisor: 'Michael Smith',
     expected: null,
     adjustmentType: 'recall',
@@ -224,18 +226,17 @@ export const initialCommissions: CommissionLine[] = [
     method: 'USD',
     amount: -200,
     date: '02/08/2026',
-    relatesToRef: 'A2736555',
   },
   {
     id: 'adj2',
     kind: 'adjustment',
     reference: 'ADJ-5107',
-    statementRef: '--',
+    statementRef: 'NCL4410',
     supplier: 'Norwegian Cruise Line',
     received: null,
     split: null,
     status: 'reconciled',
-    matchingBookingRef: null,
+    matchingBookingRef: 'NCL-882341',
     advisor: 'Suzy Smith',
     expected: null,
     adjustmentType: 'additional',
@@ -243,7 +244,6 @@ export const initialCommissions: CommissionLine[] = [
     method: 'USD',
     amount: 150,
     date: '02/20/2026',
-    relatesToRef: 'NCL-882341',
   },
 ]
 

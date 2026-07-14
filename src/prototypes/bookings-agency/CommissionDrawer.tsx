@@ -78,15 +78,19 @@ export function CommissionDrawer({ open, commission, adjustments, onClose, onAdd
             number will not change the value on the booking.
           </p>
 
-          {/* Adjustments */}
-          <div className="mt-8 flex items-center justify-between border-b border-travefy-gray-200 pb-2">
+          {/* Adjustments — grouped by the booking this commission is matched to */}
+          <div className="mt-8 flex items-baseline justify-between border-b border-travefy-gray-200 pb-2">
             <h3 className="text-base font-semibold text-travefy-navy">Adjustments</h3>
+            {commission.matchingBookingRef && (
+              <span className="text-xs text-travefy-gray-500">on booking {commission.matchingBookingRef}</span>
+            )}
           </div>
 
           {adjustments.length === 0 ? (
             <p className="mt-3 text-sm text-travefy-gray-500">
-              No adjustments on this commission. Clawbacks and extra payments are added as their own lines and
-              settle on their own payout.
+              {commission.matchingBookingRef
+                ? 'No adjustments on this booking. Clawbacks and extra payments are added as their own lines and reconciled the same way — grouped under this booking.'
+                : 'Match this commission to a booking to group adjustments (clawbacks, extra payments) under it.'}
             </p>
           ) : (
             <div className="mt-3 divide-y divide-travefy-gray-100">

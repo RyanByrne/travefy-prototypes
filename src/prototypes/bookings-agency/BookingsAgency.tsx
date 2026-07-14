@@ -279,7 +279,7 @@ export function BookingsAgency() {
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
-  const [newCommission, setNewCommission] = useState<{ open: boolean; presetKind?: CommissionKind; presetRelatesToRef?: string | null }>({ open: false })
+  const [newCommission, setNewCommission] = useState<{ open: boolean; presetKind?: CommissionKind; presetBookingRef?: string | null }>({ open: false })
   const [drawerCommission, setDrawerCommission] = useState<CommissionLine | null>(null)
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
@@ -492,7 +492,7 @@ export function BookingsAgency() {
     showToast(isAdjustment(line) ? 'Adjustment added' : 'Commission created')
   }
   const openAddAdjustment = (c: CommissionLine) =>
-    setNewCommission({ open: true, presetKind: 'adjustment', presetRelatesToRef: c.reference })
+    setNewCommission({ open: true, presetKind: 'adjustment', presetBookingRef: c.matchingBookingRef })
 
   // ── Unclaimed → match handlers ───────────────────────────────────────────────
   const openUnclaimedSearch = (item: UnclaimedItem) =>
@@ -900,7 +900,7 @@ export function BookingsAgency() {
         open={drawerCommission !== null}
         commission={drawerCommission}
         adjustments={commissions.filter(
-          (c) => isAdjustment(c) && drawerCommission != null && c.relatesToRef === drawerCommission.reference,
+          (c) => isAdjustment(c) && drawerCommission?.matchingBookingRef != null && c.matchingBookingRef === drawerCommission.matchingBookingRef,
         )}
         onClose={() => setDrawerCommission(null)}
         onAddAdjustment={() => drawerCommission && openAddAdjustment(drawerCommission)}
@@ -911,7 +911,7 @@ export function BookingsAgency() {
         open={newCommission.open}
         commissions={commissions}
         presetKind={newCommission.presetKind}
-        presetRelatesToRef={newCommission.presetRelatesToRef}
+        presetBookingRef={newCommission.presetBookingRef}
         onClose={() => setNewCommission({ open: false })}
         onCreate={createCommissionLine}
       />

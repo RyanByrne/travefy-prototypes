@@ -16,7 +16,7 @@ interface Props {
   open: boolean
   commissions: CommissionLine[]
   presetKind?: CommissionKind
-  presetRelatesToRef?: string | null
+  presetBookingRef?: string | null
   onClose: () => void
   onCreate: (line: CommissionLine) => void
 }
@@ -24,12 +24,12 @@ interface Props {
 const genRef = (prefix: string) => `${prefix}-${String(Date.now()).slice(-4)}`
 
 /**
- * Create a Commission or an Adjustment. Per the payout-lifecycle decision, an
- * adjustment (recall / additional payment) is its own line — it references the
- * commission it relates to but never mutates it, so late clawbacks flow through
- * their own reconcile → payout cycle.
+ * Create a Commission or an Adjustment. An adjustment (recall / additional
+ * payment) associates with a BOOKING — the booking is what groups commissions
+ * and adjustments — and reconciles through the same match→reconcile flow as a
+ * normal commission (so a late clawback never mutates an already-paid line).
  */
-export function NewCommissionModal({ open, commissions, presetKind, presetRelatesToRef, onClose, onCreate }: Props) {
+export function NewCommissionModal({ open, commissions, presetKind, presetBookingRef, onClose, onCreate }: Props) {
   const [kind, setKind] = useState<CommissionKind>('commission')
 
   // Commission fields
@@ -44,9 +44,16 @@ export function NewCommissionModal({ open, commissions, presetKind, presetRelate
   const [method, setMethod] = useState('USD')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
-  const [relatesToRef, setRelatesToRef] = useState<string>('')
+  const [bookingSel, setBookingSel] = useState('')
 
-  const commissionOptions = commissions.filter((c) => !isAdjustment(c))
+  // Bookings that already have commissions — the booking is the grouping entity.
+  const bookingOptions = Array.from(
+    new Map(
+      commissions
+        .filter((c) => !isAdjustment(c) && c.matchingBookingRef)
+        .map((c) => [c.matchingBookingRef as string, { ref: c.matchingBookingRef as string, supplier: c.supplier, advisor: c.advisor }]),
+    ).values(),
+  )
 
   // Reset from presets each open.
   useEffect(() => {
@@ -61,11 +68,10 @@ export function NewCommissionModal({ open, commissions, presetKind, presetRelate
     setMethod('USD')
     setAmount('')
     setDate('')
-    setRelatesToRef(presetRelatesToRef ?? '')
-  }, [open, presetKind, presetRelatesToRef])
+    setBookingSel(presetBookingRef ?? '')
+  }, [open, presetKind, presetBookingRef])
 
-  // When an adjustment relates to a commission, inherit its supplier + advisor.
-  const related = commissionOptions.find((c) => c.reference === relatesToRef) ?? null
+  const relatedBooking = bookingOptions.find((b) => b.ref === bookingSel) ?? null
 
   const receivedNum = Number(totalReceived) || 0
   const splitNum = Number(split) || 0
@@ -93,19 +99,19 @@ export function NewCommissionModal({ open, commissions, presetKind, presetRelate
         kind: 'adjustment',
         reference: genRef('ADJ'),
         statementRef: '--',
-        supplier: related?.supplier ?? (supplier.trim() || 'Manual entry'),
+        supplier: relatedBooking?.supplier ?? (supplier.trim() || 'Manual entry'),
         received: null,
         split: null,
-        status: 'reconciled',
-        matchingBookingRef: null,
-        advisor: related?.advisor ?? null,
+        // Associating a booking = matched (awaiting reconcile); otherwise unmatched.
+        status: bookingSel ? 'match-found' : 'no-match',
+        matchingBookingRef: bookingSel || null,
+        advisor: relatedBooking?.advisor ?? null,
         expected: null,
         adjustmentType,
         reason: reason.trim(),
         method,
         amount: signed,
         date: date.trim() || 'Today',
-        relatesToRef: relatesToRef || null,
       })
     }
   }
@@ -181,20 +187,23 @@ export function NewCommissionModal({ open, commissions, presetKind, presetRelate
           </Select>
           <Input label="Date" value={date} onChange={(e) => setDate(e.target.value)} placeholder="MM/DD/YYYY" />
           <div className="col-span-2">
-            <Select label="Relates to commission" value={relatesToRef} onChange={(e) => setRelatesToRef(e.target.value)}>
-              <option value="">None (standalone)</option>
-              {commissionOptions.map((c) => (
-                <option key={c.id} value={c.reference}>
-                  {c.reference} · {c.supplier}{c.advisor ? ` · ${c.advisor}` : ''}
+            <Select label="Booking" value={bookingSel} onChange={(e) => setBookingSel(e.target.value)}>
+              <option value="">None — reconcile to a booking later</option>
+              {bookingOptions.map((b) => (
+                <option key={b.ref} value={b.ref}>
+                  {b.ref} · {b.supplier}{b.advisor ? ` · ${b.advisor}` : ''}
                 </option>
               ))}
             </Select>
           </div>
           <p className="col-span-2 text-xs text-travefy-gray-500">
             {adjustmentType === 'recall'
-              ? 'A recall is deducted (negative) and settled on its own payout — it never changes the original commission or a payout that already happened.'
+              ? 'A recall is deducted (negative) and settles on its own payout — it never changes an already-paid commission.'
               : 'An additional payment is paid out (positive) on its own payout cycle.'}
-            {related ? ` Inherits supplier & advisor from ${related.reference}.` : ''}
+            {' '}
+            {relatedBooking
+              ? `Associated with booking ${relatedBooking.ref}; reconcile it like any commission.`
+              : 'Leave the booking blank to match it later from the Commissions table.'}
           </p>
         </div>
       )}

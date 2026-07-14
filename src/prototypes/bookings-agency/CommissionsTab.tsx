@@ -392,12 +392,15 @@ export function CommissionsTab({
             <tbody>
               {sorted.map((c) =>
                 isAdjustment(c) ? (
-                  <tr key={c.id} className="border-b border-travefy-gray-100 bg-travefy-gray-50/40 hover:bg-travefy-gray-50 transition-colors">
+                  <tr key={c.id} className="group border-b border-travefy-gray-100 bg-travefy-gray-50/40 hover:bg-travefy-gray-50 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-travefy-navy">{c.reference}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-travefy-navy">{c.reference}</span>
+                        <AdjustmentBadge type={c.adjustmentType} />
+                      </div>
                       <div className="text-xs text-travefy-gray-500">{c.reason}</div>
                     </td>
-                    <td className="px-4 py-3 text-travefy-gray-400">--</td>
+                    <td className="px-4 py-3 text-travefy-gray-700">{c.statementRef}</td>
                     <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
                     <td className="px-4 py-3">
                       <span className={clsx('font-semibold', (c.amount ?? 0) < 0 ? 'text-travefy-danger' : 'text-travefy-success')}>
@@ -405,22 +408,53 @@ export function CommissionsTab({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-travefy-gray-400">--</td>
-                    <td className="px-4 py-3"><AdjustmentBadge type={c.adjustmentType} /></td>
+                    <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                     <td className="px-4 py-3">
-                      {c.relatesToRef ? (
-                        <span className="text-sm text-travefy-gray-600">
-                          Relates to{' '}
-                          <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={() => onToast?.(`Adjustment relates to ${c.relatesToRef}`)}>
-                            {c.relatesToRef}
-                          </a>
-                        </span>
+                      {c.status === 'no-match' ? (
+                        <button
+                          onClick={() => onSearchBooking(c.id)}
+                          className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"
+                        >
+                          <Search className="w-3.5 h-3.5 shrink-0" />
+                          Search for booking
+                        </button>
                       ) : (
-                        <span className="text-travefy-gray-400">Standalone</span>
+                        <div className="flex items-center gap-2">
+                          <a className="text-travefy-blue underline underline-offset-2 cursor-pointer" onClick={() => onToast?.('Booking detail is mocked for this prototype')}>
+                            {c.matchingBookingRef}
+                          </a>
+                          <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                              onClick={() => onUnlink(c.id)}
+                              className="p-1 rounded border border-travefy-gray-200 text-travefy-danger hover:bg-travefy-danger-bg"
+                              aria-label="Unlink booking"
+                            >
+                              <Link2Off className="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-3 text-travefy-gray-700">{c.advisor ?? <span className="text-travefy-gray-400">--</span>}</td>
-                    <td className="px-4 py-3 text-travefy-gray-500 text-xs">{c.method}</td>
-                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3 text-travefy-gray-400">--</td>
+                    <td className="px-4 py-3">
+                      {c.status === 'no-match' && (
+                        <button
+                          onClick={() => onMarkUnclaimed(c.id)}
+                          className="px-3 py-1.5 rounded border border-travefy-danger text-travefy-danger text-xs font-semibold whitespace-nowrap hover:bg-travefy-danger-bg"
+                        >
+                          Mark Unclaimed
+                        </button>
+                      )}
+                      {c.status === 'match-found' && (
+                        <button
+                          onClick={() => onReconcile(c.id)}
+                          className="px-3 py-1.5 rounded border border-travefy-gray-200 text-travefy-gray-700 text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-50"
+                        >
+                          Reconcile
+                        </button>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <RowMenu items={[{ label: 'Remove', icon: <Trash2 className="w-4 h-4" />, onClick: () => onRemove(c.id), danger: true }]} />
                     </td>
