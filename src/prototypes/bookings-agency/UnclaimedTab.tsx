@@ -42,7 +42,7 @@ function FilterChip({ label, options, selected, onSelect, onToast }: { label: st
       <button
         onClick={() => (isStatic ? onToast?.(`${label} filter is mocked for this prototype`) : setOpen((v) => !v))}
         className={clsx(
-          'flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-semibold transition-colors',
+          'flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-semibold whitespace-nowrap transition-colors',
           active ? 'border-travefy-blue text-travefy-blue bg-travefy-blue-light' : 'border-travefy-gray-200 text-travefy-blue bg-white hover:bg-travefy-gray-50',
         )}
       >
@@ -281,7 +281,7 @@ export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, o
                     {isAdvisor ? (
                       <button
                         onClick={() => onClaim?.(x)}
-                        className="px-3 py-1.5 rounded border border-travefy-blue text-travefy-blue text-xs font-semibold hover:bg-travefy-blue-light transition-colors"
+                        className="px-3 py-1.5 rounded border border-travefy-blue text-travefy-blue text-xs font-semibold whitespace-nowrap hover:bg-travefy-blue-light transition-colors"
                       >
                         Claim
                       </button>
@@ -290,7 +290,7 @@ export function UnclaimedTab({ items, onViewStatement, onClaim, onReviewMatch, o
                         {x.match === 'match-found' && (
                           <button
                             onClick={() => onReviewMatch?.(x)}
-                            className="px-3 py-1.5 rounded bg-travefy-navy text-white text-xs font-semibold hover:bg-travefy-gray-800 transition-colors"
+                            className="px-3 py-1.5 rounded bg-travefy-navy text-white text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-800 transition-colors"
                           >
                             Review Match
                           </button>

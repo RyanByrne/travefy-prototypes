@@ -54,7 +54,7 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string
 function StatusBadge({ status }: { status: CommissionStatus }) {
   if (status === 'match-found') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-0.5 text-xs font-semibold text-travefy-primary-text">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-0.5 text-xs font-semibold text-travefy-primary-text">
         <Star className="w-3 h-3 fill-current" />
         Match Found
       </span>
@@ -62,13 +62,13 @@ function StatusBadge({ status }: { status: CommissionStatus }) {
   }
   if (status === 'reconciled') {
     return (
-      <span className="inline-flex items-center rounded-full border border-travefy-success-border bg-travefy-success-bg px-2.5 py-0.5 text-xs font-semibold text-travefy-success-dark">
+      <span className="inline-flex items-center whitespace-nowrap rounded-full border border-travefy-success-border bg-travefy-success-bg px-2.5 py-0.5 text-xs font-semibold text-travefy-success-dark">
         Reconciled
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center rounded-full border border-travefy-success-border bg-white px-2.5 py-0.5 text-xs font-semibold text-travefy-success">
+    <span className="inline-flex items-center whitespace-nowrap rounded-full border border-travefy-success-border bg-white px-2.5 py-0.5 text-xs font-semibold text-travefy-success">
       No Match
     </span>
   )
@@ -122,7 +122,7 @@ function FilterChip({
       <button
         onClick={() => setOpen((v) => !v)}
         className={clsx(
-          'flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-semibold transition-colors',
+          'flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-semibold whitespace-nowrap transition-colors',
           active
             ? 'border-travefy-blue text-travefy-blue bg-travefy-blue-light'
             : 'border-travefy-gray-200 text-travefy-blue bg-white hover:bg-travefy-gray-50',
@@ -459,7 +459,7 @@ export function CommissionsTab({
                     {c.status === 'no-match' && (
                       <button
                         onClick={() => onMarkUnclaimed(c.id)}
-                        className="px-3 py-1.5 rounded border border-travefy-danger text-travefy-danger text-xs font-semibold hover:bg-travefy-danger-bg"
+                        className="px-3 py-1.5 rounded border border-travefy-danger text-travefy-danger text-xs font-semibold whitespace-nowrap hover:bg-travefy-danger-bg"
                       >
                         Mark Unclaimed
                       </button>
@@ -467,7 +467,7 @@ export function CommissionsTab({
                     {c.status === 'match-found' && (
                       <button
                         onClick={() => onReconcile(c.id)}
-                        className="px-3 py-1.5 rounded border border-travefy-gray-200 text-travefy-gray-700 text-xs font-semibold hover:bg-travefy-gray-50"
+                        className="px-3 py-1.5 rounded border border-travefy-gray-200 text-travefy-gray-700 text-xs font-semibold whitespace-nowrap hover:bg-travefy-gray-50"
                       >
                         Reconcile
                       </button>

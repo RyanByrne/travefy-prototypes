@@ -202,8 +202,8 @@ function FilterChip({ icon, label, dropdown, onClick, options, open, selected, o
         onClick={onClick}
         className={
           active
-            ? 'flex items-center gap-2 px-3 py-1.5 border border-travefy-blue rounded text-sm font-semibold text-travefy-blue bg-travefy-blue-light hover:bg-travefy-blue-light/80 transition-colors'
-            : 'flex items-center gap-2 px-3 py-1.5 border border-travefy-gray-200 rounded text-sm font-semibold text-travefy-blue bg-white hover:bg-travefy-gray-50 transition-colors'
+            ? 'flex items-center gap-2 px-3 py-1.5 border border-travefy-blue rounded text-sm font-semibold whitespace-nowrap text-travefy-blue bg-travefy-blue-light hover:bg-travefy-blue-light/80 transition-colors'
+            : 'flex items-center gap-2 px-3 py-1.5 border border-travefy-gray-200 rounded text-sm font-semibold whitespace-nowrap text-travefy-blue bg-white hover:bg-travefy-gray-50 transition-colors'
         }
       >
         {icon}
@@ -602,8 +602,8 @@ export function BookingsAgency() {
                     onClick={() => setTab(t)}
                     className={
                       tab === t
-                        ? 'px-5 py-2 text-sm font-semibold text-white bg-travefy-navy rounded'
-                        : 'px-5 py-2 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 rounded transition-colors'
+                        ? 'px-5 py-2 text-sm font-semibold whitespace-nowrap text-white bg-travefy-navy rounded'
+                        : 'px-5 py-2 text-sm font-semibold whitespace-nowrap text-travefy-gray-600 hover:text-travefy-gray-900 rounded transition-colors'
                     }
                   >
                     {t}
