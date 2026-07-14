@@ -31,9 +31,9 @@ const prototypes: Prototype[] = [
   {
     slug: 'bookings-agency',
     title: 'Bookings Agency',
-    description: 'Agency bookings dashboard with commission stat cards, sortable bookings table, payout/recon status, and row-level action menu.',
+    description: 'Agency dashboard: Bookings · Commissions · Unclaimed · Payments · Payouts. New Commissions reconciliation tab (match / reconcile / mark-unclaimed, mismatch tooltips, Export & Remove) and a redesigned Unclaimed tab with Review Match → Match/Confirm flow and card-based Search-for-booking matching.',
     status: 'draft',
-    date: '2026-04-24',
+    date: '2026-07-14',
   },
   {
     slug: 'trips',

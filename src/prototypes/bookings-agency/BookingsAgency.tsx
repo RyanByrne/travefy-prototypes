@@ -28,6 +28,11 @@ import { SearchBookingModal, type CandidateBooking } from './SearchBookingModal'
 import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow } from './statementData'
 import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
+import { CommissionsTab } from './CommissionsTab'
+import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
+import { SearchForBookingFlyout } from './SearchForBookingFlyout'
+import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
+import { ExportCommissionsModal, RemoveCommissionModal, ConfirmMatchModal } from './ConfirmDialogs'
 
 // ── Top nav (new Compass IA) ────────────────────────────────────────────────────
 
@@ -60,7 +65,7 @@ const USER_MENU: UserMenuItem[] = [
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ['Bookings', 'Unclaimed', 'Incoming', 'Outgoing'] as const
+const TABS = ['Bookings', 'Commissions', 'Unclaimed', 'Payments', 'Payouts'] as const
 type Tab = (typeof TABS)[number]
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -266,6 +271,14 @@ export function BookingsAgency() {
   const [incomingPayments, setIncomingPayments] = useState<IncomingPayment[]>(initialIncomingPayments)
   const [toast, setToast] = useState<ToastMessage | null>(null)
 
+  // Commissions tab + its match/reconcile flows
+  const [commissions, setCommissions] = useState<CommissionLine[]>(initialCommissions)
+  const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
+  const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
+  const [confirmMatchItem, setConfirmMatchItem] = useState<UnclaimedItem | null>(null)
+
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
   // Top-nav clicks: "Bookings" jumps to the Bookings tab, everything else is a demo toast.
@@ -422,9 +435,113 @@ export function BookingsAgency() {
     showToast('Booking removed')
   }
 
+  // ── Commissions handlers ─────────────────────────────────────────────────────
+  const reconcileCommission = (id: string) => {
+    setCommissions((cs) => cs.map((c): CommissionLine => (c.id === id ? { ...c, status: 'reconciled' } : c)))
+    showToast('Commission reconciled')
+  }
+  const markCommissionUnclaimed = (id: string) => {
+    const c = commissions.find((x) => x.id === id)
+    if (!c) return
+    setCommissions((cs) => cs.filter((x) => x.id !== id))
+    setUnclaimedItems((u) => [
+      {
+        id: `un-${c.id}`,
+        bookingRef: c.reference,
+        statementRef: c.statementRef,
+        supplier: c.supplier,
+        traveler: null,
+        timeUnclaimed: '0 days',
+        received: c.received,
+        match: 'no-match' as const,
+      },
+      ...u,
+    ])
+    showToast('Moved to Unclaimed')
+  }
+  const unlinkCommission = (id: string) => {
+    setCommissions((cs) =>
+      cs.map((c): CommissionLine =>
+        c.id === id
+          ? { ...c, status: 'no-match', matchingBookingRef: null, advisor: null, expected: null, split: null, receivedMismatch: false, splitMismatch: false }
+          : c,
+      ),
+    )
+    showToast('Booking unlinked')
+  }
+  const openCommissionSearch = (id: string) => {
+    const c = commissions.find((x) => x.id === id)
+    setSearchTarget({ source: 'commission', id, ref: c?.reference ?? '' })
+  }
+  const confirmRemoveCommission = () => {
+    if (!removeCommissionId) return
+    setCommissions((cs) => cs.filter((c) => c.id !== removeCommissionId))
+    setRemoveCommissionId(null)
+    showToast('Commission removed')
+  }
+
+  // ── Unclaimed → match handlers ───────────────────────────────────────────────
+  const openUnclaimedSearch = (item: UnclaimedItem) =>
+    setSearchTarget({ source: 'unclaimed', id: item.id, ref: item.bookingRef })
+
+  const handleSearchConfirm = (card: SearchBookingCard) => {
+    if (!searchTarget) return
+    if (searchTarget.source === 'commission') {
+      setCommissions((cs) =>
+        cs.map((c): CommissionLine =>
+          c.id === searchTarget.id
+            ? { ...c, status: 'match-found', matchingBookingRef: card.bookingRef, advisor: card.advisor, expected: c.received, split: c.split ?? 80 }
+            : c,
+        ),
+      )
+      showToast(`Linked ${card.bookingRef}`)
+    } else {
+      setUnclaimedItems((u) =>
+        u.map((it): UnclaimedItem =>
+          it.id === searchTarget.id
+            ? { ...it, match: 'match-found', suggestedMatch: { bookingRef: card.bookingRef, advisor: card.advisor, expected: it.received ?? 0, split: 80 } }
+            : it,
+        ),
+      )
+      showToast(`Matched ${card.bookingRef}`)
+    }
+    setSearchTarget(null)
+  }
+
+  // Review Match → Match Booking → Confirm Match → the line moves to Commissions.
+  const handleMatchBooking = () => {
+    if (!reviewItem) return
+    setConfirmMatchItem(reviewItem)
+    setReviewItem(null)
+  }
+  const handleConfirmMatch = () => {
+    const item = confirmMatchItem
+    if (!item) return
+    const m = item.suggestedMatch
+    setUnclaimedItems((u) => u.filter((x) => x.id !== item.id))
+    setCommissions((cs) => [
+      {
+        id: `cm-${item.id}`,
+        reference: item.bookingRef,
+        statementRef: item.statementRef,
+        supplier: item.supplier,
+        received: item.received,
+        split: m?.split ?? 80,
+        status: 'match-found' as const,
+        matchingBookingRef: m?.bookingRef ?? item.bookingRef,
+        advisor: m?.advisor ?? null,
+        expected: m?.expected ?? item.received,
+      },
+      ...cs,
+    ])
+    setConfirmMatchItem(null)
+    setTab('Commissions')
+    showToast('Matched — now reconcilable in Commissions')
+  }
+
   const filtered = bookings.filter((b) => {
-    // Tab filter — Unclaimed/Incoming have their own views; Bookings/Outgoing share the bookings table.
-    if (tab === 'Outgoing' && b.reconStatus !== 'disbursed') return false
+    // Tab filter — Unclaimed/Commissions/Payments have their own views; Bookings/Payouts share the bookings table.
+    if (tab === 'Payouts' && b.reconStatus !== 'disbursed') return false
     // Chip filters
     if (selectedLocation && b.location !== selectedLocation) return false
     if (selectedAdvisor && b.advisor !== selectedAdvisor) return false
@@ -490,8 +607,8 @@ export function BookingsAgency() {
                 onClick={() => {
                   const next = role === 'agency' ? 'advisor' : 'agency'
                   setRole(next)
-                  // If switching to advisor while on a hidden tab, fall back to Bookings
-                  if (next === 'advisor' && (tab === 'Incoming' || tab === 'Outgoing')) setTab('Bookings')
+                  // If switching to advisor while on an agency-only tab, fall back to Bookings
+                  if (next === 'advisor' && (tab === 'Commissions' || tab === 'Payments' || tab === 'Payouts')) setTab('Bookings')
                   showToast(`Viewing as ${next === 'agency' ? 'Agency' : 'Advisor'}`)
                 }}
                 className="text-xs font-semibold text-travefy-blue hover:underline"
@@ -506,10 +623,24 @@ export function BookingsAgency() {
                 variant={role}
                 onViewStatement={handleUnclaimedView}
                 onClaim={handleUnclaimedClaim}
+                onReviewMatch={setReviewItem}
+                onSearchMatch={openUnclaimedSearch}
                 onRemove={handleUnclaimedRemove}
                 onToast={showToast}
               />
-            ) : tab === 'Incoming' ? (
+            ) : tab === 'Commissions' ? (
+              <CommissionsTab
+                commissions={commissions}
+                onReconcile={reconcileCommission}
+                onMarkUnclaimed={markCommissionUnclaimed}
+                onSearchBooking={openCommissionSearch}
+                onUnlink={unlinkCommission}
+                onRemove={setRemoveCommissionId}
+                onExport={() => setExportOpen(true)}
+                onNewCommission={() => showToast('New commission flow not in this prototype')}
+                onToast={showToast}
+              />
+            ) : tab === 'Payments' ? (
               <IncomingTab
                 payments={incomingPayments}
                 onAddNew={() => { setDrawerOrigin('new-payment'); setPaymentDrawerOpen(true) }}
@@ -679,7 +810,7 @@ export function BookingsAgency() {
         onSave={(rows) => {
           if (drawerOrigin === 'notification' || drawerOrigin === 'new-payment') {
             addStatementToIncoming(rows)
-            setTab('Incoming')
+            setTab('Payments')
           }
           setDrawerOrigin(null)
         }}
@@ -715,6 +846,39 @@ export function BookingsAgency() {
           showToast(`Saved ${next.bookingRef ?? 'booking'}`)
           setEditingBooking(null)
         }}
+      />
+
+      {/* Commissions + Unclaimed match overlays */}
+      <SearchForBookingFlyout
+        open={searchTarget !== null}
+        onClose={() => setSearchTarget(null)}
+        contextRef={searchTarget?.ref ?? null}
+        onConfirm={handleSearchConfirm}
+      />
+
+      <MatchUnclaimedBookingModal
+        open={reviewItem !== null}
+        item={reviewItem}
+        onClose={() => setReviewItem(null)}
+        onMatch={handleMatchBooking}
+      />
+
+      <ConfirmMatchModal
+        open={confirmMatchItem !== null}
+        onClose={() => setConfirmMatchItem(null)}
+        onConfirm={handleConfirmMatch}
+      />
+
+      <RemoveCommissionModal
+        open={removeCommissionId !== null}
+        onClose={() => setRemoveCommissionId(null)}
+        onConfirm={confirmRemoveCommission}
+      />
+
+      <ExportCommissionsModal
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        onConfirm={() => { setExportOpen(false); showToast('Commissions exported') }}
       />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
