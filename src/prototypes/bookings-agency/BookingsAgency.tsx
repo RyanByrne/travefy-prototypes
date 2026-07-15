@@ -35,7 +35,8 @@ import { NewCommissionModal } from './NewCommissionModal'
 import { CommissionDrawer } from './CommissionDrawer'
 import { PayoutsTab } from './PayoutsTab'
 import { PayoutDrawer } from './PayoutDrawer'
-import { initialPayouts, newPayoutDraft, type Payout } from './payoutsData'
+import { ChecksPaidExportModal } from './ChecksPaidExportModal'
+import { initialPayouts, newPayoutDraft, payoutDateRange, type Payout } from './payoutsData'
 import { SearchForBookingFlyout } from './SearchForBookingFlyout'
 import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
 import { ExportCommissionsModal, RemoveCommissionModal } from './ConfirmDialogs'
@@ -289,6 +290,7 @@ export function BookingsAgency() {
   const [payouts, setPayouts] = useState<Payout[]>(initialPayouts)
   const [openPayoutId, setOpenPayoutId] = useState<string | null>(null)
   const [payoutIsNew, setPayoutIsNew] = useState(false)
+  const [exportState, setExportState] = useState<{ open: boolean; from: string; to: string }>({ open: false, from: '', to: '' })
 
   const showToast = (text: string) => setToast({ id: Date.now(), text })
 
@@ -531,6 +533,10 @@ export function BookingsAgency() {
     setPayouts((ps) => ps.filter((p) => p.id !== id))
     showToast('Payout removed')
   }
+  const openChecksExport = (payout?: Payout) => {
+    if (payout) setExportState({ open: true, from: payout.date, to: payout.date })
+    else { const r = payoutDateRange(payouts); setExportState({ open: true, from: r.from, to: r.to }) }
+  }
 
   // ── Unclaimed → match handlers ───────────────────────────────────────────────
   const openUnclaimedSearch = (item: UnclaimedItem) =>
@@ -713,6 +719,7 @@ export function BookingsAgency() {
                 onOpenPayout={handleOpenPayout}
                 onArchivePayout={archivePayout}
                 onRemovePayout={removePayout}
+                onExport={openChecksExport}
                 onToast={showToast}
               />
             ) : (
@@ -961,6 +968,14 @@ export function BookingsAgency() {
         onChange={changePayout}
         onClose={() => setOpenPayoutId(null)}
         onToast={showToast}
+      />
+
+      <ChecksPaidExportModal
+        open={exportState.open}
+        payouts={payouts}
+        initialFrom={exportState.from}
+        initialTo={exportState.to}
+        onClose={() => setExportState((s) => ({ ...s, open: false }))}
       />
 
       <NewCommissionModal

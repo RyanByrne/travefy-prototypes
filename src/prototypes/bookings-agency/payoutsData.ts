@@ -52,6 +52,8 @@ export interface PayoutAgent {
 export interface Payout {
   id: string
   name: string
+  /** Check/paid date, ISO YYYY-MM-DD — drives the "Checks Paid to Agents" export. */
+  date: string
   archived?: boolean
   agents: PayoutAgent[]
 }
@@ -91,6 +93,64 @@ export const fmtUsd = (n: number) => `$${n.toLocaleString('en-US')}`
 export const fmtUsdCents = (n: number) =>
   `US$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+// ── "Checks Paid to Agents" export ───────────────────────────────────────────
+// A check = a payment to an advisor within a payout. Commission Rcvd is the
+// advisor's booking commission, Adjustments is their net bonus/deduction, and
+// Check Amount = Commission Rcvd + Adjustments (the amount actually paid).
+
+export interface AgentCheck {
+  payoutId: string
+  payoutName: string
+  /** ISO check date. */
+  date: string
+  checkNumber: string
+  recipient: string
+  commissionRcvd: number
+  adjustments: number
+  checkAmount: number
+}
+
+/** ISO YYYY-MM-DD → M/D/YYYY (the format TESS-style reports use). */
+export function fmtCheckDate(iso: string): string {
+  const [y, m, d] = iso.split('-')
+  return `${Number(m)}/${Number(d)}/${y}`
+}
+
+export const fmtAmount = (n: number) =>
+  n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/** Earliest / latest payout dates (for the export's default range). */
+export function payoutDateRange(payouts: Payout[]): { from: string; to: string } {
+  const dates = payouts.filter((p) => !p.archived).map((p) => p.date).sort()
+  return { from: dates[0] ?? '2026-01-01', to: dates[dates.length - 1] ?? '2026-12-31' }
+}
+
+/** All advisor checks across payouts whose date falls within [from, to], one row
+ *  per advisor per payout, sorted by recipient then date. */
+export function buildAgentChecks(payouts: Payout[], from: string, to: string): AgentCheck[] {
+  const checks: AgentCheck[] = []
+  payouts
+    .filter((p) => !p.archived && p.date >= from && p.date <= to)
+    .forEach((p) => {
+      const compact = p.date.replace(/-/g, '')
+      p.agents.forEach((a, i) => {
+        const t = agentTotals(a)
+        if (t.count === 0 && t.adjustments === 0) return
+        checks.push({
+          payoutId: p.id,
+          payoutName: p.name,
+          date: p.date,
+          checkNumber: `${compact}-${i + 1}`,
+          recipient: a.name,
+          commissionRcvd: t.agentTotal - t.adjustments,
+          adjustments: t.adjustments,
+          checkAmount: t.agentTotal,
+        })
+      })
+    })
+  return checks.sort((x, y) => x.recipient.localeCompare(y.recipient) || x.date.localeCompare(y.date))
+}
+
 // ── Seeds ────────────────────────────────────────────────────────────────────
 
 const booking = (
@@ -108,6 +168,7 @@ export const initialPayouts: Payout[] = [
   {
     id: 'po-aug',
     name: 'August Payout',
+    date: '2026-08-31',
     agents: [
       {
         id: 'a-aug-1',
@@ -133,6 +194,7 @@ export const initialPayouts: Payout[] = [
   {
     id: 'po-jul',
     name: 'July Payout',
+    date: '2026-07-31',
     agents: [
       {
         id: 'a-jul-1',
@@ -162,6 +224,7 @@ export function newPayoutDraft(id: string): Payout {
   return {
     id,
     name: 'New Payout',
+    date: '2026-09-15',
     agents: [
       {
         id: `${id}-a1`,

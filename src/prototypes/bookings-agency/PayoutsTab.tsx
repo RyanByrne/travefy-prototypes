@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Banknote, ChevronDown, ChevronUp, Layers, Plus, Search } from 'lucide-react'
+import { Banknote, ChevronDown, ChevronUp, Download, Layers, Plus, Search } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Badge, Toggle } from '../../shared/components'
 import { fmtUsd, payoutTotals, type Payout } from './payoutsData'
@@ -10,6 +10,8 @@ interface PayoutsTabProps {
   onOpenPayout: (p: Payout) => void
   onArchivePayout: (id: string) => void
   onRemovePayout: (id: string) => void
+  /** Open the Checks Paid to Agents export — all payouts, or scoped to one. */
+  onExport: (payout?: Payout) => void
   onToast?: (text: string) => void
 }
 
@@ -25,7 +27,7 @@ function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-function RowMenu({ onView, onArchive, onRemove }: { onView: () => void; onArchive: () => void; onRemove: () => void }) {
+function RowMenu({ onView, onExport, onArchive, onRemove }: { onView: () => void; onExport: () => void; onArchive: () => void; onRemove: () => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   return (
@@ -43,6 +45,7 @@ function RowMenu({ onView, onArchive, onRemove }: { onView: () => void; onArchiv
           <div className="absolute right-0 top-9 z-20 w-44 rounded-lg border border-travefy-gray-200 bg-white py-1 text-sm shadow-lg">
             {[
               { label: 'View Payout', fn: onView, danger: false },
+              { label: 'Export', fn: onExport, danger: false },
               { label: 'Archive', fn: onArchive, danger: false },
               { label: 'Remove', fn: onRemove, danger: true },
             ].map((it) => (
@@ -61,7 +64,7 @@ function RowMenu({ onView, onArchive, onRemove }: { onView: () => void; onArchiv
   )
 }
 
-export function PayoutsTab({ payouts, onNewPayout, onOpenPayout, onArchivePayout, onRemovePayout, onToast }: PayoutsTabProps) {
+export function PayoutsTab({ payouts, onNewPayout, onOpenPayout, onArchivePayout, onRemovePayout, onExport, onToast }: PayoutsTabProps) {
   const [search, setSearch] = useState('')
   const [showFilters, setShowFilters] = useState(true)
   const [showArchived, setShowArchived] = useState(false)
@@ -131,6 +134,13 @@ export function PayoutsTab({ payouts, onNewPayout, onOpenPayout, onArchivePayout
         </span>
 
         <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={() => onExport()}
+            className="flex items-center gap-2 rounded border border-travefy-gray-200 bg-white px-3 py-2 text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
           <button
             onClick={() => onToast?.('Column picker is mocked for this prototype')}
             className="flex items-center gap-2 rounded border border-travefy-gray-200 bg-white px-3 py-2 text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50"
@@ -217,6 +227,7 @@ export function PayoutsTab({ payouts, onNewPayout, onOpenPayout, onArchivePayout
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <RowMenu
                         onView={() => onOpenPayout(p)}
+                        onExport={() => onExport(p)}
                         onArchive={() => onArchivePayout(p.id)}
                         onRemove={() => onRemovePayout(p.id)}
                       />
