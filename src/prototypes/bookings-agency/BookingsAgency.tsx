@@ -6,16 +6,19 @@ import {
   ChevronDown,
   ChevronUp,
   CircleDollarSign,
+  DollarSign,
   FileText,
   Filter,
   Info,
   Layers,
+  LineChart,
   Pencil,
+  Percent,
   Plus,
   Search,
   X,
 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AccountIcon, AppNav, Badge, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
@@ -76,19 +79,12 @@ type Tab = (typeof TABS)[number]
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
-function StatCard({ value, label }: { value: string; label: string }) {
+function StatCard({ icon, value, label }: { icon: ReactNode; value: string; label: string }) {
   return (
-    <div className="bg-white border border-travefy-gray-200 rounded-lg px-6 py-5 flex items-start justify-between">
-      <div>
-        <p className="text-3xl font-semibold text-travefy-navy leading-none">{value}</p>
-        <p className="text-sm text-travefy-gray-600 mt-3">{label}</p>
-      </div>
-      <button
-        className="w-5 h-5 rounded-full bg-travefy-gray-700 text-white flex items-center justify-center shrink-0 hover:bg-travefy-gray-800 transition-colors"
-        title={`About ${label}`}
-      >
-        <Info className="w-3 h-3" />
-      </button>
+    <div className="bg-white border border-travefy-gray-200 rounded-lg px-6 py-5">
+      <div className="w-8 h-8 rounded-full bg-travefy-gray-100 flex items-center justify-center text-travefy-gray-500 mb-3">{icon}</div>
+      <p className="text-3xl font-semibold text-travefy-navy leading-none">{value}</p>
+      <p className="text-sm text-travefy-gray-600 mt-2">{label}</p>
     </div>
   )
 }
@@ -691,10 +687,10 @@ export function BookingsAgency() {
               <>
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              <StatCard value={totals.totalBookings} label="Total Bookings" />
-              <StatCard value={totals.expectedCommission} label="Expected Commission" />
-              <StatCard value={totals.receivedCommission} label="Received Commission" />
-              <StatCard value={totals.disbursed} label="Disbursed" />
+              <StatCard icon={<LineChart className="w-4 h-4" />} value={totals.totalBookings} label="Total Bookings" />
+              <StatCard icon={<Percent className="w-4 h-4" />} value={totals.expectedCommission} label="Expected Commission" />
+              <StatCard icon={<DollarSign className="w-4 h-4" />} value={totals.receivedCommission} label="Received Commission" />
+              <StatCard icon={<CircleDollarSign className="w-4 h-4" />} value={totals.disbursed} label="Disbursed" />
             </div>
 
             {/* Toolbar */}
