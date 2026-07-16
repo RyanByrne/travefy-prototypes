@@ -12,11 +12,12 @@ import {
   Percent,
   Plus,
   Search,
+  Sliders,
   Star,
   Trash2,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { commissionTotals, type CommissionLine, type CommissionStatus } from './commissionsData'
+import { commissionAdjustedTotal, commissionTotals, type CommissionLine, type CommissionStatus } from './commissionsData'
 
 interface CommissionsTabProps {
   commissions: CommissionLine[]
@@ -53,19 +54,32 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string
 function StatusBadge({ status }: { status: CommissionStatus }) {
   if (status === 'match-found') {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-0.5 text-xs font-semibold text-travefy-primary-text">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-1 text-xs font-semibold text-travefy-primary-text">
         <Star className="w-3 h-3 fill-current" />
         Match Found
       </span>
     )
   }
-  if (status === 'reconciled') {
-    return <span className="inline-flex items-center whitespace-nowrap rounded-full border border-travefy-success-border bg-travefy-success-bg px-2.5 py-0.5 text-xs font-semibold text-travefy-success-dark">Reconciled</span>
+  if (status === 'reconciled' || status === 'disbursed') {
+    return <span className="inline-flex items-center whitespace-nowrap rounded border border-travefy-success-border bg-travefy-success-bg px-2.5 py-1 text-xs font-semibold text-travefy-success-dark">{status === 'disbursed' ? 'Disbursed' : 'Reconciled'}</span>
   }
-  if (status === 'disbursed') {
-    return <span className="inline-flex items-center whitespace-nowrap rounded-full bg-travefy-success px-2.5 py-0.5 text-xs font-semibold text-white">Disbursed</span>
-  }
-  return <span className="inline-flex items-center whitespace-nowrap rounded-full border border-travefy-warning-border bg-travefy-warning-bg px-2.5 py-0.5 text-xs font-semibold text-travefy-warning-dark">No Match</span>
+  return <span className="inline-flex items-center whitespace-nowrap rounded border border-travefy-warning-border bg-travefy-warning-bg px-2.5 py-1 text-xs font-semibold text-travefy-warning-dark">No Match</span>
+}
+
+// Small indicator shown on the Amount cell when a commission has adjustments.
+function AdjustedIndicator({ c }: { c: CommissionLine }) {
+  const n = c.adjustments?.length ?? 0
+  if (n === 0) return null
+  const total = commissionAdjustedTotal(c)
+  return (
+    <span className="group/adj relative inline-flex items-center gap-1 rounded border border-travefy-primary-border bg-travefy-blue-light px-1.5 py-0.5 text-[10px] font-semibold text-travefy-primary-text">
+      <Sliders className="h-2.5 w-2.5" />
+      Adjusted
+      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-travefy-navy px-2.5 py-1.5 text-xs font-normal text-white shadow-lg group-hover/adj:block">
+        {n} adjustment{n === 1 ? '' : 's'} · Net {`$${Number.isInteger(total) ? total : total.toFixed(2)}`}
+      </span>
+    </span>
+  )
 }
 
 // ── Mismatch cell (red underline + hover tooltip) ────────────────────────────
@@ -269,11 +283,14 @@ export function CommissionsTab({
                   <td className="px-4 py-3 text-travefy-gray-700">{c.statementRef}</td>
                   <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
                   <td className="px-4 py-3">
-                    {c.received !== null ? (
-                      <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}>{fmtMoney(c.received)}</MismatchCell>
-                    ) : (
-                      <span className="text-travefy-gray-400">--</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {c.received !== null ? (
+                        <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}>{fmtMoney(c.received)}</MismatchCell>
+                      ) : (
+                        <span className="text-travefy-gray-400">--</span>
+                      )}
+                      <AdjustedIndicator c={c} />
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">

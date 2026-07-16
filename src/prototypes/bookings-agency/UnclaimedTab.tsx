@@ -75,13 +75,13 @@ function RowMenu({ onEdit, onRemove }: { onEdit: () => void; onRemove: () => voi
 function StatusBadge({ status }: { status: UnclaimedStatus }) {
   if (status === 'match-found') {
     return (
-      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-0.5 text-xs font-semibold text-travefy-primary-text">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded border border-travefy-primary-border bg-travefy-blue-light px-2.5 py-1 text-xs font-semibold text-travefy-primary-text">
         <Star className="w-3 h-3 fill-current" />
         Match Found
       </span>
     )
   }
-  return <span className="inline-flex items-center whitespace-nowrap rounded-full border border-travefy-danger-border bg-travefy-danger-bg px-2.5 py-0.5 text-xs font-semibold text-travefy-danger-dark">Unclaimed</span>
+  return <span className="inline-flex items-center whitespace-nowrap rounded border border-travefy-danger-border bg-travefy-danger-bg px-2.5 py-1 text-xs font-semibold text-travefy-danger-dark">Unclaimed</span>
 }
 
 const fmtMoney = (n: number) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
