@@ -1,117 +1,59 @@
-import { clsx } from 'clsx'
 import { useEffect, useState } from 'react'
 import { Button, Input, Modal, Select } from '../../shared/components'
-import { BookingSearchSelect, type BookingOption } from './BookingSearchSelect'
 import {
-  ADJUSTMENT_METHODS,
-  ADJUSTMENT_TYPES,
+  COMMISSION_TYPES,
   advisorCommission,
   agencyCommission,
-  type AdjustmentType,
-  type CommissionKind,
   type CommissionLine,
+  type CommissionType,
 } from './commissionsData'
 
 interface Props {
   open: boolean
-  /** All system bookings, for the searchable association picker. */
-  bookings: BookingOption[]
-  presetKind?: CommissionKind
-  presetBookingRef?: string | null
   onClose: () => void
   onCreate: (line: CommissionLine) => void
 }
 
 const genRef = (prefix: string) => `${prefix}-${String(Date.now()).slice(-4)}`
 
-/**
- * Create a Commission or an Adjustment. An adjustment (recall / additional
- * payment) associates with a BOOKING — the booking is what groups commissions
- * and adjustments — and reconciles through the same match→reconcile flow as a
- * normal commission (so a late clawback never mutates an already-paid line).
- */
-export function NewCommissionModal({ open, bookings, presetKind, presetBookingRef, onClose, onCreate }: Props) {
-  const [kind, setKind] = useState<CommissionKind>('commission')
-
-  // Commission fields
+/** Create a commission. It starts unmatched and is reconciled against a supplier
+ *  statement from the Commissions table. Adjustments are added later from the
+ *  Edit Commission drawer. */
+export function NewCommissionModal({ open, onClose, onCreate }: Props) {
+  const [type, setType] = useState<CommissionType>('Commission Payment')
   const [supplier, setSupplier] = useState('')
   const [bookingRef, setBookingRef] = useState('')
   const [totalReceived, setTotalReceived] = useState('')
   const [split, setSplit] = useState('')
 
-  // Adjustment fields
-  const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>('recall')
-  const [reason, setReason] = useState('')
-  const [method, setMethod] = useState('USD')
-  const [amount, setAmount] = useState('')
-  const [date, setDate] = useState('')
-  const [bookingSel, setBookingSel] = useState('')
-
-  // Reset from presets each open.
   useEffect(() => {
     if (!open) return
-    setKind(presetKind ?? 'commission')
+    setType('Commission Payment')
     setSupplier('')
     setBookingRef('')
     setTotalReceived('')
     setSplit('')
-    setAdjustmentType('recall')
-    setReason('')
-    setMethod('USD')
-    setAmount('')
-    setDate('')
-    setBookingSel(presetBookingRef ?? '')
-  }, [open, presetKind, presetBookingRef])
-
-  const relatedBooking = bookings.find((b) => b.ref === bookingSel) ?? null
+  }, [open])
 
   const receivedNum = Number(totalReceived) || 0
   const splitNum = Number(split) || 0
+  const canCreate = supplier.trim() !== '' || bookingRef.trim() !== ''
 
   const create = () => {
-    if (kind === 'commission') {
-      const ref = bookingRef.trim() || genRef('BK')
-      onCreate({
-        id: genRef('c'),
-        kind: 'commission',
-        reference: ref,
-        statementRef: '--',
-        supplier: supplier.trim() || 'Manual entry',
-        received: receivedNum || null,
-        split: splitNum || null,
-        status: 'no-match',
-        matchingBookingRef: null,
-        advisor: null,
-        expected: null,
-      })
-    } else {
-      const signed = adjustmentType === 'recall' ? -Math.abs(Number(amount) || 0) : Math.abs(Number(amount) || 0)
-      onCreate({
-        id: genRef('adj'),
-        kind: 'adjustment',
-        reference: genRef('ADJ'),
-        statementRef: '--',
-        supplier: relatedBooking?.supplier ?? (supplier.trim() || 'Manual entry'),
-        received: null,
-        split: null,
-        // Associating a booking = matched (awaiting reconcile); otherwise unmatched.
-        status: bookingSel ? 'match-found' : 'no-match',
-        matchingBookingRef: bookingSel || null,
-        advisor: relatedBooking?.advisor ?? null,
-        expected: null,
-        adjustmentType,
-        reason: reason.trim(),
-        method,
-        amount: signed,
-        date: date.trim() || 'Today',
-      })
-    }
+    onCreate({
+      id: genRef('c'),
+      type,
+      reference: bookingRef.trim() || genRef('BK'),
+      statementRef: '--',
+      supplier: supplier.trim() || 'Manual entry',
+      received: receivedNum || null,
+      split: splitNum || null,
+      status: 'no-match',
+      matchingBookingRef: null,
+      advisor: null,
+      expected: null,
+    })
   }
-
-  const canCreate =
-    kind === 'commission'
-      ? supplier.trim() !== '' || bookingRef.trim() !== ''
-      : Number(amount) > 0 && reason.trim() !== ''
 
   return (
     <Modal
@@ -121,77 +63,25 @@ export function NewCommissionModal({ open, bookings, presetKind, presetBookingRe
       size="lg"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={!canCreate} onClick={create}>
-            {kind === 'adjustment' ? 'Add Adjustment' : 'Create Commission'}
-          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button disabled={!canCreate} onClick={create}>Create Commission</Button>
         </>
       }
     >
-      {/* Type toggle */}
-      <div className="mb-5">
-        <label className="mb-1.5 block text-sm font-semibold text-travefy-gray-800">Type</label>
-        <div className="inline-flex rounded-lg border border-travefy-gray-200 p-1">
-          {(['commission', 'adjustment'] as const).map((k) => (
-            <button
-              key={k}
-              onClick={() => setKind(k)}
-              className={clsx(
-                'px-4 py-1.5 rounded text-sm font-semibold capitalize transition-colors',
-                kind === k ? 'bg-travefy-navy text-white' : 'text-travefy-gray-600 hover:text-travefy-gray-900',
-              )}
-            >
-              {k}
-            </button>
-          ))}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <Select label="Type" value={type} onChange={(e) => setType(e.target.value as CommissionType)}>
+            {COMMISSION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </Select>
         </div>
+        <Input label="Supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="e.g. Marriott" />
+        <Input label="Booking Reference" value={bookingRef} onChange={(e) => setBookingRef(e.target.value)} placeholder="e.g. A2736555" />
+        <Input label="Total Received" value={totalReceived} onChange={(e) => setTotalReceived(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
+        <Input label="Commission Split" value={split} onChange={(e) => setSplit(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="%" />
+        <Input label="Agency Total" value={receivedNum && splitNum ? `$${agencyCommission(receivedNum, splitNum)}` : '--'} disabled />
+        <Input label="Advisor Total" value={receivedNum && splitNum ? `$${advisorCommission(receivedNum, splitNum)}` : '--'} disabled />
+        <p className="col-span-2 text-xs text-travefy-gray-500">New commissions start unmatched — reconcile them against a supplier statement from the Commissions table.</p>
       </div>
-
-      {kind === 'commission' ? (
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="e.g. Marriott" />
-          <Input label="Booking Reference" value={bookingRef} onChange={(e) => setBookingRef(e.target.value)} placeholder="e.g. A2736555" />
-          <Input label="Total Received" value={totalReceived} onChange={(e) => setTotalReceived(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
-          <Input label="Commission Split" value={split} onChange={(e) => setSplit(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="%" />
-          <Input label="Agency Commission" value={receivedNum && splitNum ? `$${agencyCommission(receivedNum, splitNum)}` : '--'} disabled />
-          <Input label="Advisor Commission" value={receivedNum && splitNum ? `$${advisorCommission(receivedNum, splitNum)}` : '--'} disabled />
-          <p className="col-span-2 text-xs text-travefy-gray-500">
-            New commissions start unmatched — reconcile them against a supplier statement from the Commissions table.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <Select label="Adjustment Type" value={adjustmentType} onChange={(e) => setAdjustmentType(e.target.value as AdjustmentType)}>
-            {ADJUSTMENT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </Select>
-          <Input label="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
-          <div className="col-span-2">
-            <Input label="Reason / Description" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Supplier recall — incorrect payment" />
-          </div>
-          <Select label="Method" value={method} onChange={(e) => setMethod(e.target.value)}>
-            {ADJUSTMENT_METHODS.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </Select>
-          <Input label="Date" value={date} onChange={(e) => setDate(e.target.value)} placeholder="MM/DD/YYYY" />
-          <div className="col-span-2">
-            <BookingSearchSelect label="Booking" value={bookingSel} options={bookings} onChange={(ref) => setBookingSel(ref)} />
-          </div>
-          <p className="col-span-2 text-xs text-travefy-gray-500">
-            {adjustmentType === 'recall'
-              ? 'A recall is deducted (negative) and settles on its own payout — it never changes an already-paid commission.'
-              : 'An additional payment is paid out (positive) on its own payout cycle.'}
-            {' '}
-            {relatedBooking
-              ? `Associated with booking ${relatedBooking.ref}; reconcile it like any commission.`
-              : 'Leave the booking blank to match it later from the Commissions table.'}
-          </p>
-        </div>
-      )}
     </Modal>
   )
 }

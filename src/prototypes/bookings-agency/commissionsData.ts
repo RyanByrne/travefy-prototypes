@@ -1,34 +1,43 @@
 // ── Commissions tab data ────────────────────────────────────────────────────
-// The Commissions tab is a top-level reconciliation surface: each row is a
-// received commission line from a supplier statement, matched (or not) to an
-// advisor booking in the system.
+// Each row is a received commission line from a supplier statement, matched (or
+// not) to an advisor booking. Multiple commissions can link to the same booking.
+// Adjustments live NESTED on a commission (edited in the Edit Commission drawer),
+// not as separate line types.
 
-export type CommissionStatus = 'no-match' | 'match-found' | 'reconciled'
+export type CommissionStatus = 'no-match' | 'match-found' | 'reconciled' | 'disbursed'
 
-/**
- * A line in the Commissions table is either a received `commission` (matched &
- * reconciled against a supplier statement) or an `adjustment` — a clawback
- * (recall) or extra payment that happens later, on its own reconcile→payout
- * lifecycle. Adjustments reference the commission they relate to for provenance
- * but are independent lines, so a late clawback never mutates an already-paid
- * commission or its payout.
- */
-export type CommissionKind = 'commission' | 'adjustment'
-export type AdjustmentType = 'recall' | 'additional'
+/** Commission Type (top of the Edit Commission drawer). */
+export const COMMISSION_TYPES = ['Commission Payment', 'Refund', 'Chargeback'] as const
+export type CommissionType = (typeof COMMISSION_TYPES)[number]
+
+/** A nested adjustment on a commission — a dollar amount or a percentage of the
+ *  received amount. Value is signed (e.g. -20 for -$20, -3 for -3%). */
+export type AdjustmentKind = 'amount' | 'percent'
+
+export interface CommissionAdjustment {
+  id: string
+  reason: string
+  kind: AdjustmentKind
+  value: number
+}
+
+export const ADJUSTMENT_KINDS: { value: AdjustmentKind; label: string }[] = [
+  { value: 'amount', label: '$' },
+  { value: 'percent', label: '%' },
+]
 
 export interface CommissionLine {
   id: string
-  /** Defaults to 'commission' when absent. */
-  kind?: CommissionKind
-  /** Received booking reference on the statement (or the adjustment's own ref). */
+  type: CommissionType
+  /** Received booking reference on the statement. */
   reference: string
   statementRef: string
   supplier: string
   received: number | null
-  /** Percent 0–100, null until matched. */
+  /** Percent 0–100, null until matched. Advisor's share of the commission. */
   split: number | null
   status: CommissionStatus
-  /** Linked advisor booking ref, once matched. */
+  /** Linked advisor booking ref, once matched. Multiple commissions may share one. */
   matchingBookingRef: string | null
   advisor: string | null
   /** Advisor's expected commission. */
@@ -37,45 +46,49 @@ export interface CommissionLine {
   receivedMismatch?: boolean
   /** Split doesn't match the advisor's expected split. */
   splitMismatch?: boolean
-
-  // ── Adjustment-only fields (kind === 'adjustment') ──
-  adjustmentType?: AdjustmentType
-  /** Reason / description of the adjustment. */
-  reason?: string
-  /** Payment method / currency, e.g. 'USD'. */
-  method?: string
-  /** Signed amount — recall is negative, additional is positive. */
-  amount?: number
-  /** Date the adjustment was recorded. */
-  date?: string
+  /** Nested deductions / additions applied to the commission. */
+  adjustments?: CommissionAdjustment[]
 }
-// NOTE: adjustments associate with a BOOKING via `matchingBookingRef` — the same
-// field commissions use. The booking is the grouping entity for commissions and
-// adjustments alike, and adjustments reconcile through the same match→reconcile
-// flow (status: no-match → match-found → reconciled).
 
-export const isAdjustment = (c: CommissionLine) => c.kind === 'adjustment'
+// ── Split + adjustment math ───────────────────────────────────────────────────
 
-/** Advisor / agency split of a received commission. */
+/** Advisor's share (split %) and agency's share of a received commission. */
 export const advisorCommission = (received: number, split: number) =>
   Math.round(received * (split / 100) * 100) / 100
 export const agencyCommission = (received: number, split: number) =>
   Math.round((received - advisorCommission(received, split)) * 100) / 100
 
-/** "+$150" / "-$200" for adjustment amounts. */
-export const formatSigned = (n: number) =>
-  `${n < 0 ? '-' : '+'}$${Math.abs(n).toLocaleString('en-US')}`
+/** Dollar delta of one adjustment (percent is computed against the received amount). */
+export const adjustmentDelta = (a: CommissionAdjustment, received: number) =>
+  a.kind === 'percent' ? Math.round((a.value / 100) * received * 100) / 100 : a.value
 
-export const ADJUSTMENT_TYPES: { value: AdjustmentType; label: string }[] = [
-  { value: 'recall', label: 'Recall (clawback)' },
-  { value: 'additional', label: 'Additional payment' },
-]
+/** Received total after all adjustments are applied. */
+export function commissionAdjustedTotal(c: CommissionLine): number {
+  const base = c.received ?? 0
+  const delta = (c.adjustments ?? []).reduce((sum, a) => sum + adjustmentDelta(a, base), 0)
+  return Math.round((base + delta) * 100) / 100
+}
 
-export const ADJUSTMENT_METHODS = ['USD', 'CAD', 'GBP', 'EUR'] as const
+/** "-$20" (amount) / "-3%" (percent) for display. */
+export const formatAdjustmentValue = (a: CommissionAdjustment) =>
+  a.kind === 'percent'
+    ? `${a.value}%`
+    : `${a.value < 0 ? '-' : ''}$${Math.abs(a.value).toLocaleString('en-US')}`
+
+/** Stat cards for the Commissions tab (V2). */
+export const commissionTotals = {
+  total: '$11.0k',
+  reconciled: '$375.20',
+  unreconciled: '$41.86',
+  disbursed: '$1.6k',
+}
+
+const CP: CommissionType = 'Commission Payment'
 
 export const initialCommissions: CommissionLine[] = [
   {
     id: 'c1',
+    type: CP,
     reference: 'A2736554',
     statementRef: 'FFFK232',
     supplier: 'Supplier X',
@@ -85,9 +98,11 @@ export const initialCommissions: CommissionLine[] = [
     matchingBookingRef: null,
     advisor: null,
     expected: null,
+    receivedMismatch: true,
   },
   {
     id: 'c2',
+    type: CP,
     reference: 'A2736555',
     statementRef: 'FFFK232',
     supplier: 'Supplier Y',
@@ -97,59 +112,69 @@ export const initialCommissions: CommissionLine[] = [
     matchingBookingRef: 'A2736555',
     advisor: 'Michael Smith',
     expected: 200,
+    adjustments: [
+      { id: 'c2-a1', reason: 'Supplier Recall - incorrect payment', kind: 'amount', value: -20 },
+      { id: 'c2-a2', reason: 'Processing Fees', kind: 'percent', value: -3 },
+    ],
   },
+  // Two commissions on the SAME booking (A2736552) — multiple-per-booking.
   {
     id: 'c3',
+    type: CP,
     reference: 'A2736552',
     statementRef: 'FFFK232',
     supplier: 'Supplier Z',
-    received: 180,
+    received: 200,
     split: 80,
     status: 'match-found',
+    matchingBookingRef: 'A2736552',
+    advisor: 'Michael Smith',
+    expected: 200,
+    splitMismatch: true,
+  },
+  {
+    id: 'c4',
+    type: CP,
+    reference: 'A2736552',
+    statementRef: 'FFFK232',
+    supplier: 'Supplier A',
+    received: 200,
+    split: 80,
+    status: 'reconciled',
     matchingBookingRef: 'A2736552',
     advisor: 'Michael Smith',
     expected: 200,
     receivedMismatch: true,
   },
   {
-    id: 'c4',
-    reference: 'A2736550',
-    statementRef: 'FFFK232',
-    supplier: 'Supplier A',
-    received: 200,
-    split: 70,
-    status: 'match-found',
-    matchingBookingRef: 'A2736550',
-    advisor: 'Michael Smith',
-    expected: 200,
-    splitMismatch: true,
-  },
-  {
     id: 'c5',
+    type: CP,
     reference: 'A2736553',
     statementRef: 'FFFK232',
     supplier: 'Supplier B',
     received: 300,
     split: 80,
-    status: 'reconciled',
+    status: 'disbursed',
     matchingBookingRef: 'A2736553',
     advisor: 'Michael Smith',
     expected: 300,
   },
   {
     id: 'c6',
+    type: CP,
     reference: 'BHS7997',
     statementRef: 'FFFK232',
     supplier: 'Safari Tour Company',
     received: 200,
     split: 75,
-    status: 'reconciled',
+    status: 'disbursed',
     matchingBookingRef: 'BHS7997',
     advisor: 'Brandon Jones',
     expected: 200,
   },
   {
     id: 'c7',
+    type: CP,
     reference: 'RC-2294013',
     statementRef: 'RCL8891',
     supplier: 'Royal Carribean',
@@ -162,6 +187,7 @@ export const initialCommissions: CommissionLine[] = [
   },
   {
     id: 'c8',
+    type: CP,
     reference: 'VTR-5521',
     statementRef: 'VTR0092',
     supplier: 'Viator',
@@ -174,6 +200,7 @@ export const initialCommissions: CommissionLine[] = [
   },
   {
     id: 'c9',
+    type: CP,
     reference: 'NCL-882341',
     statementRef: 'NCL4410',
     supplier: 'Norwegian Cruise Line',
@@ -186,6 +213,7 @@ export const initialCommissions: CommissionLine[] = [
   },
   {
     id: 'c10',
+    type: CP,
     reference: 'HYT-55089',
     statementRef: 'HYT7781',
     supplier: 'Hyatt',
@@ -199,65 +227,22 @@ export const initialCommissions: CommissionLine[] = [
   },
   {
     id: 'c11',
+    type: CP,
     reference: 'GAdv-882',
     statementRef: 'GAD1120',
     supplier: 'G Adventures',
     received: 248,
     split: 75,
-    status: 'reconciled',
+    status: 'disbursed',
     matchingBookingRef: 'GAdv-882',
     advisor: 'Kim Anderson',
     expected: 248,
   },
-  {
-    id: 'adj1',
-    kind: 'adjustment',
-    reference: 'ADJ-4821',
-    statementRef: 'FFFK232',
-    supplier: 'Supplier Y',
-    received: null,
-    split: null,
-    status: 'match-found',
-    matchingBookingRef: 'A2736555',
-    advisor: 'Michael Smith',
-    expected: null,
-    adjustmentType: 'recall',
-    reason: 'Supplier recall — incorrect payment',
-    method: 'USD',
-    amount: -200,
-    date: '02/08/2026',
-  },
-  {
-    id: 'adj2',
-    kind: 'adjustment',
-    reference: 'ADJ-5107',
-    statementRef: 'NCL4410',
-    supplier: 'Norwegian Cruise Line',
-    received: null,
-    split: null,
-    status: 'reconciled',
-    matchingBookingRef: 'NCL-882341',
-    advisor: 'Suzy Smith',
-    expected: null,
-    adjustmentType: 'additional',
-    reason: 'Loyalty bonus — repeat booking',
-    method: 'USD',
-    amount: 150,
-    date: '02/20/2026',
-  },
 ]
 
-/** Stat cards for the Commissions tab (per the Figma). */
-export const commissionTotals = {
-  total: '$11.0k',
-  expected: '$375.20',
-  overdue: '$41.86',
-  paid: '$1.6k',
-}
-
 // ── Search-for-booking cards ────────────────────────────────────────────────
-// Candidate advisor bookings shown in the redesigned card-based search flyout,
-// used when matching an unclaimed / unmatched commission line to a booking.
+// Candidate advisor bookings shown in the card-based search flyout, used when
+// matching an unmatched commission line to a booking.
 
 export type SearchCardStatus = 'Expected' | 'Reconciled' | 'Overdue'
 
@@ -273,64 +258,10 @@ export interface SearchBookingCard {
 }
 
 export const searchBookingCards: SearchBookingCard[] = [
-  {
-    id: 's1',
-    bookingRef: 'XJH29KQ',
-    agency: 'Wanderlust Escapes',
-    traveler: 'Leo Hawthorne',
-    advisor: 'Suzy Smith',
-    travelDate: 'Dec 1, 2025',
-    total: 12235,
-    status: 'Expected',
-  },
-  {
-    id: 's2',
-    bookingRef: 'ZPL56YT',
-    agency: 'Adventure Awaits Tours',
-    traveler: 'Mia Kensington',
-    advisor: 'Suzy Smith',
-    travelDate: 'Dec 1, 2025',
-    total: 12235,
-    status: 'Expected',
-  },
-  {
-    id: 's3',
-    bookingRef: 'QWE78MN',
-    agency: 'Explore More Travels',
-    traveler: 'Jasper Quinn',
-    advisor: 'Suzy Smith',
-    travelDate: 'Dec 1, 2025',
-    total: 12235,
-    status: 'Expected',
-  },
-  {
-    id: 's4',
-    bookingRef: 'TRF34BC',
-    agency: 'Journey Beyond Travel Co.',
-    traveler: 'Ava Sinclair',
-    advisor: 'Suzy Smith',
-    travelDate: 'Dec 1, 2025',
-    total: 12235,
-    status: 'Expected',
-  },
-  {
-    id: 's5',
-    bookingRef: 'MRK-88213',
-    agency: 'Coastline Journeys',
-    traveler: 'Noah Fletcher',
-    advisor: 'Brandon Jones',
-    travelDate: 'Jan 14, 2026',
-    total: 8420,
-    status: 'Overdue',
-  },
-  {
-    id: 's6',
-    bookingRef: 'HLD-77810',
-    agency: 'Summit & Shore Travel',
-    traveler: 'Ivy Bennett',
-    advisor: 'Suzy Smith',
-    travelDate: 'Feb 2, 2026',
-    total: 9900,
-    status: 'Reconciled',
-  },
+  { id: 's1', bookingRef: 'XJH29KQ', agency: 'Wanderlust Escapes', traveler: 'Leo Hawthorne', advisor: 'Suzy Smith', travelDate: 'Dec 1, 2025', total: 12235, status: 'Expected' },
+  { id: 's2', bookingRef: 'ZPL56YT', agency: 'Adventure Awaits Tours', traveler: 'Mia Kensington', advisor: 'Suzy Smith', travelDate: 'Dec 1, 2025', total: 12235, status: 'Expected' },
+  { id: 's3', bookingRef: 'QWE78MN', agency: 'Explore More Travels', traveler: 'Jasper Quinn', advisor: 'Suzy Smith', travelDate: 'Dec 1, 2025', total: 12235, status: 'Expected' },
+  { id: 's4', bookingRef: 'TRF34BC', agency: 'Journey Beyond Travel Co.', traveler: 'Ava Sinclair', advisor: 'Suzy Smith', travelDate: 'Dec 1, 2025', total: 12235, status: 'Expected' },
+  { id: 's5', bookingRef: 'MRK-88213', agency: 'Coastline Journeys', traveler: 'Noah Fletcher', advisor: 'Brandon Jones', travelDate: 'Jan 14, 2026', total: 8420, status: 'Overdue' },
+  { id: 's6', bookingRef: 'HLD-77810', agency: 'Summit & Shore Travel', traveler: 'Ivy Bennett', advisor: 'Suzy Smith', travelDate: 'Feb 2, 2026', total: 9900, status: 'Reconciled' },
 ]

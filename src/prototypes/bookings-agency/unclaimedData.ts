@@ -1,4 +1,4 @@
-export type UnclaimedMatch = 'no-match' | 'match-found'
+export type UnclaimedStatus = 'unclaimed' | 'match-found'
 
 /** The system booking a Match-Found unclaimed line is suggested against. */
 export interface SuggestedMatch {
@@ -8,83 +8,93 @@ export interface SuggestedMatch {
   split: number
 }
 
+// V2 Unclaimed mirrors the commissions table: an unclaimed commission line that
+// can be matched to a booking and reconciled.
 export interface UnclaimedItem {
   id: string
-  bookingRef: string
+  reference: string
   statementRef: string
   supplier: string
-  traveler: string | null
-  timeUnclaimed: string
   received: number | null
-  match: UnclaimedMatch
-  /** Present when match === 'match-found' — drives the Match Unclaimed Booking modal. */
+  timeUnclaimed: string
+  split: number | null
+  status: UnclaimedStatus
+  matchingBookingRef: string | null
+  advisor: string | null
+  expected: number | null
+  receivedMismatch?: boolean
+  splitMismatch?: boolean
   suggestedMatch?: SuggestedMatch
-  /** Optional link to a statement row (so the Unclaimed tab badge can react to drawer state) */
-  statementRowId?: string
 }
 
 export const initialUnclaimedItems: UnclaimedItem[] = [
   {
     id: 'u1',
-    bookingRef: 'A2736554',
+    reference: 'A2736554',
     statementRef: 'FFFK232',
-    supplier: 'Safari Hotel Inc.',
-    traveler: null,
-    timeUnclaimed: '10 days',
+    supplier: 'Supplier X',
     received: 240,
-    match: 'no-match',
-    statementRowId: 'r1',
+    timeUnclaimed: '4 Days',
+    split: null,
+    status: 'unclaimed',
+    matchingBookingRef: null,
+    advisor: null,
+    expected: null,
   },
   {
     id: 'u2',
-    bookingRef: 'R34D-4T490',
+    reference: 'A2736555',
     statementRef: 'FFFK232',
-    supplier: 'Desert Quest',
-    traveler: 'Michael Smith',
-    timeUnclaimed: '12 days',
-    received: 1756,
-    match: 'match-found',
-    suggestedMatch: {
-      bookingRef: 'R34D-4T490',
-      advisor: 'Michael Smith',
-      expected: 1756,
-      split: 80,
-    },
+    supplier: 'Supplier Y',
+    received: 200,
+    timeUnclaimed: '4 Days',
+    split: 80,
+    status: 'match-found',
+    matchingBookingRef: 'A2736555',
+    advisor: 'Michael Smith',
+    expected: 200,
+    suggestedMatch: { bookingRef: 'A2736555', advisor: 'Michael Smith', expected: 200, split: 80 },
   },
   {
     id: 'u3',
-    bookingRef: 'R34D-4T492',
+    reference: 'A2736552',
     statementRef: 'FFFK232',
-    supplier: 'Urban Escape',
-    traveler: null,
-    timeUnclaimed: '33 days',
-    received: 4213,
-    match: 'match-found',
-    suggestedMatch: {
-      bookingRef: 'R34D-4T492',
-      advisor: 'Suzy Smith',
-      expected: 4213,
-      split: 75,
-    },
+    supplier: 'Supplier Z',
+    received: 200,
+    timeUnclaimed: '4 Days',
+    split: 80,
+    status: 'match-found',
+    matchingBookingRef: 'A2736552',
+    advisor: 'Michael Smith',
+    expected: 200,
+    splitMismatch: true,
+    suggestedMatch: { bookingRef: 'A2736552', advisor: 'Michael Smith', expected: 200, split: 80 },
   },
   {
     id: 'u4',
-    bookingRef: 'R34D-4T493',
+    reference: 'A2736552',
     statementRef: 'FFFK232',
-    supplier: 'Desert Quest',
-    traveler: null,
-    timeUnclaimed: '45 days',
-    received: 2019,
-    match: 'no-match',
+    supplier: 'Supplier A',
+    received: 200,
+    timeUnclaimed: '4 Days',
+    split: 80,
+    status: 'unclaimed',
+    matchingBookingRef: null,
+    advisor: null,
+    expected: null,
+    receivedMismatch: true,
   },
   {
     id: 'u5',
-    bookingRef: 'R34D-4T494',
+    reference: 'A2736553',
     statementRef: 'FFFK232',
-    supplier: 'Heritage Trails',
-    traveler: null,
-    timeUnclaimed: '1 day',
-    received: 5634,
-    match: 'no-match',
+    supplier: 'Supplier B',
+    received: 300,
+    timeUnclaimed: '4 Days',
+    split: 80,
+    status: 'unclaimed',
+    matchingBookingRef: null,
+    advisor: null,
+    expected: null,
   },
 ]

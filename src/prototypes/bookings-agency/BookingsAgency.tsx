@@ -30,7 +30,7 @@ import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow }
 import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
-import { initialCommissions, isAdjustment, type CommissionKind, type CommissionLine, type SearchBookingCard } from './commissionsData'
+import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { NewCommissionModal } from './NewCommissionModal'
 import { CommissionDrawer } from './CommissionDrawer'
 import { PayoutsTab } from './PayoutsTab'
@@ -38,7 +38,6 @@ import { PayoutDrawer } from './PayoutDrawer'
 import { ChecksPaidExportModal } from './ChecksPaidExportModal'
 import { initialPayouts, newPayoutDraft, payoutDateRange, type Payout } from './payoutsData'
 import { SearchForBookingFlyout } from './SearchForBookingFlyout'
-import { MatchUnclaimedBookingModal } from './MatchUnclaimedBookingModal'
 import { ExportCommissionsModal, RemoveCommissionModal } from './ConfirmDialogs'
 
 // ── Top nav (new Compass IA) ────────────────────────────────────────────────────
@@ -284,8 +283,7 @@ export function BookingsAgency() {
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
-  const [reviewItem, setReviewItem] = useState<UnclaimedItem | null>(null)
-  const [newCommission, setNewCommission] = useState<{ open: boolean; presetKind?: CommissionKind; presetBookingRef?: string | null }>({ open: false })
+  const [newCommissionOpen, setNewCommissionOpen] = useState(false)
   const [drawerCommission, setDrawerCommission] = useState<CommissionLine | null>(null)
   const [payouts, setPayouts] = useState<Payout[]>(initialPayouts)
   const [openPayoutId, setOpenPayoutId] = useState<string | null>(null)
@@ -340,54 +338,43 @@ export function BookingsAgency() {
 
   const advisors = Array.from(new Set(bookings.map((b) => b.advisor))).sort()
 
-  // Searchable booking options for the adjustment↔booking association picker.
-  const bookingSearchOptions = bookings
-    .filter((b) => b.bookingRef)
-    .map((b) => ({ ref: b.bookingRef as string, supplier: b.supplier, advisor: b.advisor, traveler: b.traveler }))
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
   const visibleTabs = role === 'advisor' ? (['Bookings', 'Unclaimed'] as const) : TABS
 
   // ── Unclaimed handlers ──────────────────────────────────────────────────────
-  const handleUnclaimedView = (item: UnclaimedItem) => {
-    setDrawerOrigin('existing')
-    setPaymentDrawerOpen(true)
-    if (item.statementRowId) {
-      // No further action — the drawer reads samplePaymentStatement which already contains the row.
-    }
-  }
-  const handleUnclaimedClaim = (item: UnclaimedItem) => {
-    setSearchContextRow({ id: item.statementRowId ?? item.id, receivedRef: item.bookingRef })
-    setSearchModalOpen(true)
-  }
   const handleUnclaimedRemove = (id: string) => {
     setUnclaimedItems((u) => u.filter((x) => x.id !== id))
-    showToast('Unclaimed item removed')
+    showToast('Removed from unclaimed')
   }
+  const reconcileUnclaimed = (item: UnclaimedItem) => {
+    setUnclaimedItems((u) => u.filter((x) => x.id !== item.id))
+    const line: CommissionLine = {
+      id: `cm-${item.id}`,
+      type: 'Commission Payment',
+      reference: item.reference,
+      statementRef: item.statementRef,
+      supplier: item.supplier,
+      received: item.received,
+      split: item.split ?? 80,
+      status: 'reconciled',
+      matchingBookingRef: item.matchingBookingRef ?? item.reference,
+      advisor: item.advisor,
+      expected: item.expected,
+    }
+    setCommissions((cs) => [line, ...cs])
+    setTab('Commissions')
+    showToast('Booking reconciled')
+  }
+  const unlinkUnclaimed = (item: UnclaimedItem) =>
+    setUnclaimedItems((u) =>
+      u.map((it): UnclaimedItem => (it.id === item.id ? { ...it, status: 'unclaimed', matchingBookingRef: null, advisor: null, expected: null, suggestedMatch: undefined } : it)),
+    )
 
   // ── Drawer ↔ Unclaimed sync ─────────────────────────────────────────────────
-  const syncUnclaimedFromRows = (rows: StatementRow[]) => {
-    setUnclaimedItems((items) => {
-      let changed = false
-      const next = items.flatMap((item) => {
-        if (!item.statementRowId) return [item]
-        const row = rows.find((r) => r.id === item.statementRowId)
-        if (!row) return [item]
-        // If the row was reconciled, drop the item from Unclaimed entirely.
-        if (row.status === 'reconciled') {
-          changed = true
-          return []
-        }
-        const nextMatch: UnclaimedItem['match'] = row.matched !== null ? 'match-found' : 'no-match'
-        if (item.match !== nextMatch) {
-          changed = true
-          return [{ ...item, match: nextMatch }]
-        }
-        return [item]
-      })
-      return changed ? next : items
-    })
-  }
+  // V2: Unclaimed lines are commission-shaped and no longer linked to the Payment
+  // drawer's statement rows, so this is a no-op.
+  const syncUnclaimedFromRows = (_rows: StatementRow[]) => {}
 
   // ── Search booking modal handlers ───────────────────────────────────────────
   const openSearchForDrawerRow = (rowId: string) => {
@@ -463,6 +450,10 @@ export function BookingsAgency() {
     setCommissions((cs) => cs.map((c): CommissionLine => (c.id === id ? { ...c, status: 'reconciled' } : c)))
     showToast('Commission reconciled')
   }
+  const unreconcileCommission = (id: string) => {
+    setCommissions((cs) => cs.map((c): CommissionLine => (c.id === id ? { ...c, status: 'match-found' } : c)))
+    showToast('Commission unreconciled')
+  }
   const markCommissionUnclaimed = (id: string) => {
     const c = commissions.find((x) => x.id === id)
     if (!c) return
@@ -470,13 +461,16 @@ export function BookingsAgency() {
     setUnclaimedItems((u) => [
       {
         id: `un-${c.id}`,
-        bookingRef: c.reference,
+        reference: c.reference,
         statementRef: c.statementRef,
         supplier: c.supplier,
-        traveler: null,
-        timeUnclaimed: '0 days',
         received: c.received,
-        match: 'no-match' as const,
+        timeUnclaimed: '0 Days',
+        split: c.split,
+        status: 'unclaimed' as const,
+        matchingBookingRef: null,
+        advisor: null,
+        expected: null,
       },
       ...u,
     ])
@@ -502,17 +496,22 @@ export function BookingsAgency() {
     setRemoveCommissionId(null)
     showToast('Commission removed')
   }
-  const removeCommissionLine = (id: string) => {
+  const saveCommission = (updated: CommissionLine) => {
+    setCommissions((cs) => cs.map((c) => (c.id === updated.id ? updated : c)))
+    setDrawerCommission(null)
+    showToast('Commission saved')
+  }
+  const removeCommissionFromDrawer = (id: string) => {
     setCommissions((cs) => cs.filter((c) => c.id !== id))
-    showToast('Removed')
+    setDrawerCommission(null)
+    showToast('Commission removed')
   }
   const createCommissionLine = (line: CommissionLine) => {
     setCommissions((cs) => [line, ...cs])
-    setNewCommission({ open: false })
-    showToast(isAdjustment(line) ? 'Adjustment added' : 'Commission created')
+    setNewCommissionOpen(false)
+    showToast('Commission created')
   }
-  const openAddAdjustment = (c: CommissionLine) =>
-    setNewCommission({ open: true, presetKind: 'adjustment', presetBookingRef: c.matchingBookingRef })
+  const viewInPayout = (c: CommissionLine) => { setTab('Payouts'); showToast(`Viewing ${c.reference} in Payouts`) }
 
   // ── Payout handlers ──────────────────────────────────────────────────────────
   const openPayout = payouts.find((p) => p.id === openPayoutId) ?? null
@@ -538,9 +537,9 @@ export function BookingsAgency() {
     else { const r = payoutDateRange(payouts); setExportState({ open: true, from: r.from, to: r.to }) }
   }
 
-  // ── Unclaimed → match handlers ───────────────────────────────────────────────
+  // ── Match handlers (search flyout) ───────────────────────────────────────────
   const openUnclaimedSearch = (item: UnclaimedItem) =>
-    setSearchTarget({ source: 'unclaimed', id: item.id, ref: item.bookingRef })
+    setSearchTarget({ source: 'unclaimed', id: item.id, ref: item.reference })
 
   const handleSearchConfirm = (card: SearchBookingCard) => {
     if (!searchTarget) return
@@ -557,47 +556,13 @@ export function BookingsAgency() {
       setUnclaimedItems((u) =>
         u.map((it): UnclaimedItem =>
           it.id === searchTarget.id
-            ? { ...it, match: 'match-found', suggestedMatch: { bookingRef: card.bookingRef, advisor: card.advisor, expected: it.received ?? 0, split: 80 } }
+            ? { ...it, status: 'match-found', matchingBookingRef: card.bookingRef, advisor: card.advisor, expected: it.received, split: it.split ?? 80 }
             : it,
         ),
       )
       showToast(`Matched ${card.bookingRef}`)
     }
     setSearchTarget(null)
-  }
-
-  // Reconcile from Unclaimed → the modal confirms, then the line is filed under
-  // Commissions as reconciled and removed from Unclaimed.
-  const handleReconcileUnclaimed = () => {
-    const item = reviewItem
-    if (!item) return
-    const m = item.suggestedMatch
-    setUnclaimedItems((u) => u.filter((x) => x.id !== item.id))
-    setCommissions((cs) => [
-      {
-        id: `cm-${item.id}`,
-        reference: item.bookingRef,
-        statementRef: item.statementRef,
-        supplier: item.supplier,
-        received: item.received,
-        split: m?.split ?? 80,
-        status: 'reconciled' as const,
-        matchingBookingRef: m?.bookingRef ?? item.bookingRef,
-        advisor: m?.advisor ?? null,
-        expected: m?.expected ?? item.received,
-      },
-      ...cs,
-    ])
-    setReviewItem(null)
-    setTab('Commissions')
-    showToast('Booking reconciled')
-  }
-  const rejectUnclaimedMatch = (item: UnclaimedItem) => {
-    setUnclaimedItems((u) =>
-      u.map((it): UnclaimedItem => (it.id === item.id ? { ...it, match: 'no-match', suggestedMatch: undefined } : it)),
-    )
-    setReviewItem(null)
-    showToast('Match rejected')
   }
 
   const filtered = bookings.filter((b) => {
@@ -682,26 +647,26 @@ export function BookingsAgency() {
               <UnclaimedTab
                 items={unclaimedItems}
                 variant={role}
-                onViewStatement={handleUnclaimedView}
-                onClaim={handleUnclaimedClaim}
-                onReviewMatch={setReviewItem}
+                onReconcile={reconcileUnclaimed}
                 onSearchMatch={openUnclaimedSearch}
-                onRejectMatch={rejectUnclaimedMatch}
+                onUnlink={unlinkUnclaimed}
                 onRemove={handleUnclaimedRemove}
+                onEdit={() => showToast('Editing an unclaimed line is mocked for this prototype')}
                 onToast={showToast}
               />
             ) : tab === 'Commissions' ? (
               <CommissionsTab
                 commissions={commissions}
                 onReconcile={reconcileCommission}
+                onUnreconcile={unreconcileCommission}
                 onMarkUnclaimed={markCommissionUnclaimed}
                 onSearchBooking={openCommissionSearch}
                 onUnlink={unlinkCommission}
                 onRemove={setRemoveCommissionId}
                 onExport={() => setExportOpen(true)}
-                onNewCommission={() => setNewCommission({ open: true })}
+                onNewCommission={() => setNewCommissionOpen(true)}
                 onOpenDrawer={setDrawerCommission}
-                onAddAdjustment={openAddAdjustment}
+                onViewPayout={viewInPayout}
                 onToast={showToast}
               />
             ) : tab === 'Payments' ? (
@@ -930,14 +895,6 @@ export function BookingsAgency() {
         onConfirm={handleSearchConfirm}
       />
 
-      <MatchUnclaimedBookingModal
-        open={reviewItem !== null}
-        item={reviewItem}
-        onClose={() => setReviewItem(null)}
-        onReconcile={handleReconcileUnclaimed}
-        onReject={() => reviewItem && rejectUnclaimedMatch(reviewItem)}
-      />
-
       <RemoveCommissionModal
         open={removeCommissionId !== null}
         onClose={() => setRemoveCommissionId(null)}
@@ -953,12 +910,9 @@ export function BookingsAgency() {
       <CommissionDrawer
         open={drawerCommission !== null}
         commission={drawerCommission}
-        adjustments={commissions.filter(
-          (c) => isAdjustment(c) && drawerCommission?.matchingBookingRef != null && c.matchingBookingRef === drawerCommission.matchingBookingRef,
-        )}
+        onSave={saveCommission}
+        onRemove={removeCommissionFromDrawer}
         onClose={() => setDrawerCommission(null)}
-        onAddAdjustment={() => drawerCommission && openAddAdjustment(drawerCommission)}
-        onRemoveAdjustment={removeCommissionLine}
       />
 
       <PayoutDrawer
@@ -979,11 +933,8 @@ export function BookingsAgency() {
       />
 
       <NewCommissionModal
-        open={newCommission.open}
-        bookings={bookingSearchOptions}
-        presetKind={newCommission.presetKind}
-        presetBookingRef={newCommission.presetBookingRef}
-        onClose={() => setNewCommission({ open: false })}
+        open={newCommissionOpen}
+        onClose={() => setNewCommissionOpen(false)}
         onCreate={createCommissionLine}
       />
 
