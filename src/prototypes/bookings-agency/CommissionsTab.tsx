@@ -66,16 +66,15 @@ function StatusBadge({ status }: { status: CommissionStatus }) {
   return <span className="inline-flex items-center whitespace-nowrap rounded border border-travefy-warning-border bg-travefy-warning-bg px-2.5 py-1 text-xs font-semibold text-travefy-warning-dark">No Match</span>
 }
 
-// Small indicator shown on the Amount cell when a commission has adjustments.
+// Simple icon + tooltip shown on the Amount cell when a commission has adjustments.
 function AdjustedIndicator({ c }: { c: CommissionLine }) {
   const n = c.adjustments?.length ?? 0
   if (n === 0) return null
   const total = commissionAdjustedTotal(c)
   return (
-    <span className="group/adj relative inline-flex items-center gap-1 rounded border border-travefy-primary-border bg-travefy-blue-light px-1.5 py-0.5 text-[10px] font-semibold text-travefy-primary-text">
-      <Sliders className="h-2.5 w-2.5" />
-      Adjusted
-      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-travefy-navy px-2.5 py-1.5 text-xs font-normal text-white shadow-lg group-hover/adj:block">
+    <span className="group/adj relative inline-flex cursor-help text-travefy-blue" aria-label="Adjusted">
+      <Sliders className="h-3.5 w-3.5" />
+      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-travefy-navy px-2.5 py-1.5 text-xs text-white shadow-lg group-hover/adj:block">
         {n} adjustment{n === 1 ? '' : 's'} · Net {`$${Number.isInteger(total) ? total : total.toFixed(2)}`}
       </span>
     </span>
