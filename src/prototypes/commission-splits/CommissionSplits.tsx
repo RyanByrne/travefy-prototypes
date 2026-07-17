@@ -247,6 +247,10 @@ function TeamView({
   onToast: (text: string) => void
 }) {
   const splitLabel = (id: string) => formatSplit(splits.find((s) => s.id === id))
+  const fmtEffectiveDate = (iso: string) => {
+    const [y, m, d] = iso.split('-')
+    return `${Number(m)}/${Number(d)}/${y}`
+  }
 
   return (
     <div className="bg-white border border-travefy-gray-200 rounded-lg overflow-hidden">
@@ -319,6 +323,7 @@ function TeamView({
                       </span>
                     )}
                   </div>
+                  <span className="mt-0.5 block text-xs text-travefy-gray-500">Effective {fmtEffectiveDate(m.commissionSplitEffectiveDate)}</span>
                 </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <RowMenu onEdit={() => onEdit(m)} onDelete={() => onRemove(m)} />

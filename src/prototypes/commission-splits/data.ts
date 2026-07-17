@@ -23,6 +23,9 @@ export interface TeamMember {
   role: 'Admin' | 'Member'
   /** References a CommissionSplit.id */
   commissionSplitId: string
+  /** ISO YYYY-MM-DD the assigned tier takes effect — payouts use the tier
+   *  effective as of the booking/payout date. */
+  commissionSplitEffectiveDate: string
   /** When true, this advisor can override their default split per booking. */
   canOverrideSplit: boolean
 }
@@ -30,8 +33,8 @@ export interface TeamMember {
 // ── Seed: team members ─────────────────────────────────────────────────────────
 
 export const initialTeam: TeamMember[] = [
-  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', commissionSplitId: 's2', canOverrideSplit: false },
-  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', commissionSplitId: 's2', canOverrideSplit: true  },
-  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', commissionSplitId: 's2', canOverrideSplit: false },
-  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  commissionSplitId: 's6', canOverrideSplit: true  },
+  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: false },
+  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: true  },
+  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-07-01', canOverrideSplit: false },
+  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  commissionSplitId: 's6', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: true  },
 ]

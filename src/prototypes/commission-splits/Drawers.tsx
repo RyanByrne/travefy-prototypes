@@ -249,12 +249,14 @@ export function TeamMemberDrawer({
 }) {
   const [role, setRole] = useState<TeamMember['role']>('Member')
   const [splitId, setSplitId] = useState<string>('')
+  const [effectiveDate, setEffectiveDate] = useState<string>('')
   const [canOverrideSplit, setCanOverrideSplit] = useState(false)
 
   useEffect(() => {
     if (open && member) {
       setRole(member.role)
       setSplitId(member.commissionSplitId)
+      setEffectiveDate(member.commissionSplitEffectiveDate)
       setCanOverrideSplit(member.canOverrideSplit)
     }
   }, [open, member])
@@ -262,7 +264,7 @@ export function TeamMemberDrawer({
   if (!member) return null
 
   const handleSave = () => {
-    onSave({ ...member, role, commissionSplitId: splitId, canOverrideSplit })
+    onSave({ ...member, role, commissionSplitId: splitId, commissionSplitEffectiveDate: effectiveDate, canOverrideSplit })
   }
 
   return (
@@ -312,6 +314,19 @@ export function TeamMemberDrawer({
                 <option key={s.id} value={s.id}>{formatSplit(s)}</option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Effective date</label>
+            <input
+              type="date"
+              value={effectiveDate}
+              onChange={(e) => setEffectiveDate(e.target.value)}
+              className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+            />
+            <p className="text-xs text-travefy-gray-500 mt-1">Payouts use the tier in effect as of the booking date</p>
           </div>
         </div>
 
