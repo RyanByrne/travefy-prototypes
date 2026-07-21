@@ -5,9 +5,7 @@ import {
   ADJUSTMENT_KINDS,
   COMMISSION_TYPES,
   adjustmentDelta,
-  advisorCommission,
-  agencyCommission,
-  commissionAdjustedTotal,
+  commissionBreakdown,
   formatAdjustmentValue,
   type AdjustmentKind,
   type CommissionAdjustment,
@@ -25,6 +23,7 @@ interface Props {
 
 const label = 'mb-1.5 block text-sm font-semibold text-travefy-gray-800'
 const fmt2 = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`
+const fmtSigned = (n: number) => `${n < 0 ? '-' : ''}${fmt2(Math.abs(n))}`
 const genId = () => `adj-${String(Date.now()).slice(-6)}`
 
 /**
@@ -65,7 +64,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
     running += adjustmentDelta(a, base)
     return { a, lineTotal: Math.round(running * 100) / 100 }
   })
-  const finalTotal = commissionAdjustedTotal({ ...commission, received: base, adjustments })
+  const bd = commissionBreakdown(base, splitNum, adjustments)
 
   const patchAdj = (id: string, p: Partial<CommissionAdjustment>) =>
     setAdjustments((prev) => prev.map((a) => (a.id === id ? { ...a, ...p } : a)))
@@ -131,12 +130,12 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                 <Input value={`${split}%`} onChange={(e) => setSplit(e.target.value.replace(/[^0-9.]/g, ''))} />
               </div>
               <div>
-                <label className={label}>Agency Total</label>
-                <Input value={fmt2(agencyCommission(base, splitNum))} disabled />
+                <label className={label}>Agency Commission</label>
+                <Input value={fmt2(bd.agencyGross)} disabled />
               </div>
               <div>
-                <label className={label}>Advisor Total</label>
-                <Input value={fmt2(advisorCommission(base, splitNum))} disabled />
+                <label className={label}>Advisor Commission</label>
+                <Input value={fmt2(bd.advisorGross)} disabled />
               </div>
             </div>
           </div>
@@ -203,13 +202,37 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                 </div>
               ),
             )}
-            {rows.length > 0 && (
-              <div className="flex items-center justify-between py-3 text-sm">
-                <span className="font-semibold text-travefy-navy">Total</span>
-                <span className="font-bold text-travefy-navy">{fmt2(finalTotal)}</span>
-              </div>
-            )}
           </div>
+
+          {rows.length > 0 && (
+            <div className="mt-4 space-y-2 pt-1 text-sm">
+              <div className="flex items-center justify-between text-travefy-gray-600">
+                <span>Advisor commission</span>
+                <span>{fmt2(bd.advisorGross)}</span>
+              </div>
+              {bd.sharedAdj !== 0 && (
+                <div className="flex items-center justify-between text-travefy-gray-600">
+                  <span>Shared adjustments</span>
+                  <span className={bd.advisorSharedAdj < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.advisorSharedAdj)}</span>
+                </div>
+              )}
+              {bd.fees !== 0 && (
+                <div className="flex items-center justify-between text-travefy-gray-600">
+                  <span>Payment fees</span>
+                  <span className={bd.fees < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.fees)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between font-semibold text-travefy-navy">
+                <span>Advisor total</span>
+                <span>{fmt2(bd.advisorNet)}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-travefy-gray-100 pt-2 text-travefy-gray-500">
+                <span>Agency total</span>
+                <span>{fmt2(bd.agencyNet)}</span>
+              </div>
+              <p className="pt-1 text-xs text-travefy-gray-400">Payment fees come out of the advisor's commission; other adjustments are shared between advisor and agency.</p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t border-travefy-gray-200 bg-travefy-gray-50 px-6 py-4">

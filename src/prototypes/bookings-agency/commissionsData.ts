@@ -97,6 +97,61 @@ export function commissionAdjustedTotal(c: CommissionLine): number {
   return Math.round((base + delta) * 100) / 100
 }
 
+export interface CommissionBreakdown {
+  received: number
+  /** Advisor's share of the gross received, before adjustments. */
+  advisorGross: number
+  /** Agency's share of the gross received, before adjustments. */
+  agencyGross: number
+  /** Payment fees (auto supplier-rule adjustments) — deducted from the advisor only. */
+  fees: number
+  /** Other adjustments — reduce the overall commission, shared per the split. */
+  sharedAdj: number
+  /** Advisor's portion of the shared adjustments. */
+  advisorSharedAdj: number
+  /** Agency's portion of the shared adjustments. */
+  agencySharedAdj: number
+  /** Advisor's share after fees + shared adjustments. */
+  advisorNet: number
+  /** Agency's share after shared adjustments. */
+  agencyNet: number
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100
+
+/**
+ * Split a commission into advisor / agency shares. Payment fees (auto
+ * supplier-rule adjustments) come out of the advisor's share only; any other
+ * adjustment reduces the overall commission and is shared per the split.
+ */
+export function commissionBreakdown(
+  received: number,
+  split: number,
+  adjustments: CommissionAdjustment[] = [],
+): CommissionBreakdown {
+  const advisorGross = advisorCommission(received, split)
+  const agencyGross = agencyCommission(received, split)
+  const fees = round2(
+    adjustments.filter((a) => a.auto).reduce((sum, a) => sum + adjustmentDelta(a, received), 0),
+  )
+  const sharedAdj = round2(
+    adjustments.filter((a) => !a.auto).reduce((sum, a) => sum + adjustmentDelta(a, received), 0),
+  )
+  const advisorSharedAdj = round2(sharedAdj * (split / 100))
+  const agencySharedAdj = round2(sharedAdj - advisorSharedAdj)
+  return {
+    received,
+    advisorGross,
+    agencyGross,
+    fees,
+    sharedAdj,
+    advisorSharedAdj,
+    agencySharedAdj,
+    advisorNet: round2(advisorGross + advisorSharedAdj + fees),
+    agencyNet: round2(agencyGross + agencySharedAdj),
+  }
+}
+
 /** "-$20" (amount) / "-3%" (percent) for display. */
 export const formatAdjustmentValue = (a: CommissionAdjustment) =>
   a.kind === 'percent'
