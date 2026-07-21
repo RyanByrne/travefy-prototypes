@@ -15,6 +15,7 @@ import {
   Sliders,
   Star,
   Trash2,
+  Zap,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { commissionAdjustedTotal, commissionTotals, type CommissionLine, type CommissionStatus } from './commissionsData'
@@ -71,11 +72,13 @@ function AdjustedIndicator({ c }: { c: CommissionLine }) {
   const n = c.adjustments?.length ?? 0
   if (n === 0) return null
   const total = commissionAdjustedTotal(c)
+  const auto = c.adjustments?.find((a) => a.auto)
   return (
     <span className="group/adj relative inline-flex cursor-help text-travefy-blue" aria-label="Adjusted">
-      <Sliders className="h-3.5 w-3.5" />
+      {auto ? <Zap className="h-3.5 w-3.5" /> : <Sliders className="h-3.5 w-3.5" />}
       <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-travefy-navy px-2.5 py-1.5 text-xs text-white shadow-lg group-hover/adj:block">
         {n} adjustment{n === 1 ? '' : 's'} · Net {`$${Number.isInteger(total) ? total : total.toFixed(2)}`}
+        {auto && <span className="mt-0.5 block text-travefy-blue-light">Auto · {auto.rule ?? 'supplier rule'}</span>}
       </span>
     </span>
   )

@@ -164,24 +164,25 @@ const booking = (
   added: boolean,
 ): PayoutBooking => ({ id, bookingRef, supplier, travelDate, expected, received, agentAmount, status: 'reconciled', added })
 
+// This agency runs WEEKLY payouts — one per pay week, named "Week of …" and
+// dated on that week's Friday check run.
 export const initialPayouts: Payout[] = [
   {
-    id: 'po-aug',
-    name: 'August Payout',
-    date: '2026-08-31',
+    id: 'po-w-jul13',
+    name: 'Week of Jul 13, 2026',
+    date: '2026-07-17',
     agents: [
       {
-        id: 'a-aug-1',
+        id: 'a-jul13-1',
         name: 'Suzy Smith',
         disbursed: true,
         bookings: [
           booking('b1', 'NCL-882341', 'Norwegian Cruise Line', 'Jan 18, 2027', 1240, 1240, 992, true),
           booking('b2', 'RC-2294013', 'Royal Carribean', 'Nov 18, 2026', 612, 612, 490, true),
-          booking('b3', 'PRC-2210', 'Princess Cruises', 'Sep 21, 2026', 875, 875, 700, true),
         ],
       },
       {
-        id: 'a-aug-2',
+        id: 'a-jul13-2',
         name: 'Brandon Jones',
         disbursed: true,
         bookings: [
@@ -192,12 +193,12 @@ export const initialPayouts: Payout[] = [
     ],
   },
   {
-    id: 'po-jul',
-    name: 'July Payout',
-    date: '2026-07-31',
+    id: 'po-w-jul6',
+    name: 'Week of Jul 6, 2026',
+    date: '2026-07-10',
     agents: [
       {
-        id: 'a-jul-1',
+        id: 'a-jul6-1',
         name: 'Sam Rivera',
         disbursed: true,
         bookings: [
@@ -206,7 +207,7 @@ export const initialPayouts: Payout[] = [
         ],
       },
       {
-        id: 'a-jul-2',
+        id: 'a-jul6-2',
         name: 'Kim Anderson',
         disbursed: true,
         bookings: [
@@ -216,22 +217,38 @@ export const initialPayouts: Payout[] = [
       },
     ],
   },
+  {
+    id: 'po-w-jun29',
+    name: 'Week of Jun 29, 2026',
+    date: '2026-07-03',
+    archived: true,
+    agents: [
+      {
+        id: 'a-jun29-1',
+        name: 'Suzy Smith',
+        disbursed: true,
+        bookings: [
+          booking('b10', 'PRC-2210', 'Princess Cruises', 'Sep 21, 2026', 875, 875, 700, true),
+        ],
+      },
+    ],
+  },
 ]
 
-/** Template used by "New Payout" — advisors with reconciled bookings available
- *  to add. Mirrors the Figma "September Payout": some added, none disbursed. */
+/** Template used by "New Payout" — the current pay week, advisors with reconciled
+ *  bookings available to add. Some added, none disbursed. */
 export function newPayoutDraft(id: string): Payout {
   return {
     id,
-    name: 'New Payout',
-    date: '2026-09-15',
+    name: 'Week of Jul 20, 2026',
+    date: '2026-07-24',
     agents: [
       {
         id: `${id}-a1`,
         name: 'Alison Doe',
         disbursed: false,
         adjustments: [
-          { id: `${id}-adj1`, type: 'bonus', reason: 'Top performer bonus', amount: 100, date: '02/28/2026' },
+          { id: `${id}-adj1`, type: 'bonus', reason: 'Top performer bonus', amount: 100, date: '07/22/2026' },
         ],
         bookings: [
           booking(`${id}-b1`, 'R34D-4T488', 'Beach Bliss', 'Mar 15, 2025', 275, 275, 200, true),

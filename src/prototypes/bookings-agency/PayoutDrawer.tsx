@@ -1,6 +1,6 @@
-import { Check, Info, MinusCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { Check, Info, MinusCircle, Pencil, Plus, Search, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Badge, Button, Input, Modal, Select } from '../../shared/components'
+import { Badge, Button, Checkbox, Input, Modal, Select } from '../../shared/components'
 import {
   PAYOUT_ADJUSTMENT_TYPES,
   adjustmentSigned,
@@ -34,7 +34,9 @@ type View = { type: 'agents' } | { type: 'agent'; agentId: string }
  */
 export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }: Props) {
   const [view, setView] = useState<View>({ type: 'agents' })
-  const [adjustAgentId, setAdjustAgentId] = useState<string | null>(null)
+  // Adjustment modal. presetAgentIds seeds which advisors are checked: one agent
+  // (from a row) or all advisors (the payout-level bulk action).
+  const [adjustModal, setAdjustModal] = useState<{ open: boolean; presetAgentIds: string[] }>({ open: false, presetAgentIds: [] })
 
   useEffect(() => {
     if (open) setView({ type: 'agents' })
@@ -64,6 +66,20 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
     patchAgent(agentId, (a) => ({ ...a, adjustments: [...(a.adjustments ?? []), adj] }))
   const removeAdjustment = (agentId: string, adjId: string) =>
     patchAgent(agentId, (a) => ({ ...a, adjustments: (a.adjustments ?? []).filter((x) => x.id !== adjId) }))
+
+  // Apply one adjustment to many advisors at once (each gets its own line).
+  const applyBulkAdjustment = (agentIds: string[], base: Omit<PayoutAdjustment, 'id'>) => {
+    const stamp = String(Date.now()).slice(-6)
+    onChange({
+      ...payout,
+      agents: payout.agents.map((a) =>
+        agentIds.includes(a.id)
+          ? { ...a, adjustments: [...(a.adjustments ?? []), { ...base, id: `adj-${stamp}-${a.id}` }] }
+          : a,
+      ),
+    })
+    onToast(agentIds.length === 1 ? 'Adjustment added' : `Adjustment added to ${agentIds.length} advisors`)
+  }
 
   const totals = payoutTotals(payout)
   const activeAgent = view.type === 'agent' ? payout.agents.find((a) => a.id === view.agentId) ?? null : null
@@ -119,8 +135,20 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
                 status.
               </p>
 
+              {/* Advisors toolbar — payout-level bulk adjustment */}
+              <div className="mt-5 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-travefy-navy">Advisors</h3>
+                <button
+                  onClick={() => setAdjustModal({ open: true, presetAgentIds: payout.agents.map((a) => a.id) })}
+                  className="inline-flex items-center gap-1.5 rounded border border-travefy-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-travefy-blue hover:bg-travefy-gray-50"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  Add Adjustment
+                </button>
+              </div>
+
               {/* Agent table */}
-              <div className="mt-5 overflow-hidden rounded-lg border border-travefy-gray-200">
+              <div className="mt-3 overflow-hidden rounded-lg border border-travefy-gray-200">
                 <table className="w-full text-sm">
                   <thead className="bg-travefy-gray-50">
                     <tr className="text-left text-xs font-semibold uppercase tracking-wide text-travefy-gray-600">
@@ -155,7 +183,7 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-2">
                               <button
-                                onClick={() => setAdjustAgentId(a.id)}
+                                onClick={() => setAdjustModal({ open: true, presetAgentIds: [a.id] })}
                                 className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-travefy-gray-200 px-3 py-1.5 text-xs font-semibold text-travefy-blue hover:bg-travefy-gray-50"
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -210,57 +238,71 @@ export function PayoutDrawer({ open, payout, isNew, onChange, onClose, onToast }
         )}
       </div>
 
-      <AddAdjustmentModal
-        open={adjustAgentId !== null}
-        agentName={payout.agents.find((a) => a.id === adjustAgentId)?.name ?? ''}
-        onClose={() => setAdjustAgentId(null)}
-        onAdd={(adj) => {
-          if (adjustAgentId) addAdjustment(adjustAgentId, adj)
-          setAdjustAgentId(null)
-          onToast('Adjustment added')
+      <AdjustmentModal
+        open={adjustModal.open}
+        agents={payout.agents}
+        presetAgentIds={adjustModal.presetAgentIds}
+        onClose={() => setAdjustModal({ open: false, presetAgentIds: [] })}
+        onApply={(agentIds, base) => {
+          applyBulkAdjustment(agentIds, base)
+          setAdjustModal({ open: false, presetAgentIds: [] })
         }}
       />
     </div>
   )
 }
 
-// ── Add Adjustment modal (from the agent list) ────────────────────────────────
+// ── Add Adjustment modal — one adjustment, one or many advisors ───────────────
 
-function AddAdjustmentModal({
+function AdjustmentModal({
   open,
-  agentName,
+  agents,
+  presetAgentIds,
   onClose,
-  onAdd,
+  onApply,
 }: {
   open: boolean
-  agentName: string
+  agents: PayoutAgent[]
+  presetAgentIds: string[]
   onClose: () => void
-  onAdd: (adj: PayoutAdjustment) => void
+  onApply: (agentIds: string[], base: Omit<PayoutAdjustment, 'id'>) => void
 }) {
   const [type, setType] = useState<PayoutAdjustmentType>('bonus')
   const [reason, setReason] = useState('')
   const [amount, setAmount] = useState('')
+  const [selected, setSelected] = useState<string[]>([])
 
   useEffect(() => {
-    if (open) { setType('bonus'); setReason(''); setAmount('') }
-  }, [open])
+    if (open) { setType('bonus'); setReason(''); setAmount(''); setSelected(presetAgentIds) }
+  }, [open, presetAgentIds])
 
-  const canAdd = reason.trim() !== '' && Number(amount) > 0
+  const bulk = presetAgentIds.length > 1
+  const toggle = (id: string) => setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  const allSelected = selected.length === agents.length
+  const toggleAll = () => setSelected(allSelected ? [] : agents.map((a) => a.id))
+
+  const canAdd = reason.trim() !== '' && Number(amount) > 0 && selected.length > 0
   const add = () => {
     if (!canAdd) return
-    onAdd({ id: `adj-${String(Date.now()).slice(-6)}`, type, reason: reason.trim(), amount: Number(amount), date: 'Today' })
+    onApply(selected, { type, reason: reason.trim(), amount: Number(amount), date: 'Today' })
   }
+
+  const title = bulk
+    ? 'Add Adjustment · Multiple Advisors'
+    : `Add Adjustment${agents.find((a) => a.id === presetAgentIds[0]) ? ` · ${agents.find((a) => a.id === presetAgentIds[0])!.name}` : ''}`
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={agentName ? `Add Adjustment · ${agentName}` : 'Add Adjustment'}
+      title={title}
       size="md"
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button disabled={!canAdd} onClick={add}>Add Adjustment</Button>
+          <Button disabled={!canAdd} onClick={add}>
+            {selected.length > 1 ? `Add to ${selected.length} advisors` : 'Add Adjustment'}
+          </Button>
         </>
       }
     >
@@ -272,8 +314,26 @@ function AddAdjustmentModal({
         </Select>
         <Input label="Reason / Description" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Travel show incentive" />
         <Input label="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
+
+        {/* Advisor selector — bulk apply the same adjustment to many advisors */}
+        <div className="rounded-lg border border-travefy-gray-200">
+          <div className="flex items-center justify-between border-b border-travefy-gray-100 px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">Apply to</span>
+            <button onClick={toggleAll} className="text-xs font-semibold text-travefy-blue hover:underline">
+              {allSelected ? 'Clear all' : 'Select all'}
+            </button>
+          </div>
+          <div className="max-h-44 space-y-2 overflow-y-auto px-3 py-2.5">
+            {agents.map((a) => (
+              <Checkbox key={a.id} label={a.name} checked={selected.includes(a.id)} onChange={() => toggle(a.id)} />
+            ))}
+          </div>
+        </div>
+
         <p className="text-xs text-travefy-gray-500">
-          {type === 'bonus' ? 'Added to' : 'Deducted from'} this advisor's payout total.
+          {type === 'bonus' ? 'Added to' : 'Deducted from'}{' '}
+          {selected.length === 1 ? "this advisor's" : `each of the ${selected.length} selected advisors'`} payout total.
+          Each advisor gets its own editable adjustment line.
         </p>
       </div>
     </Modal>

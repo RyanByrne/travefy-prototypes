@@ -1,4 +1,4 @@
-import { Check, Pencil, Search, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Search, Trash2, X, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button, Input, Select } from '../../shared/components'
 import {
@@ -146,6 +146,16 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
             <h3 className="text-base font-semibold text-travefy-navy">Adjustments</h3>
             <button onClick={addAdjustment} className="rounded bg-travefy-blue px-3 py-1.5 text-sm font-semibold text-white hover:bg-travefy-blue-dark">Add Adjustment</button>
           </div>
+          {rows.some((r) => r.a.auto) && (
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-travefy-blue/30 bg-travefy-blue-light/60 px-3 py-2.5 text-xs text-travefy-navy">
+              <Zap className="mt-0.5 h-4 w-4 shrink-0 text-travefy-blue" />
+              <span>
+                An adjustment was added automatically based on the{' '}
+                <span className="font-semibold">{supplier} supplier rule</span>. Automatic adjustments are managed by
+                your commission rules and can't be edited here.
+              </span>
+            </div>
+          )}
           <div className="mt-2 border-t border-travefy-gray-100">
             {rows.length === 0 && <p className="py-4 text-sm text-travefy-gray-500">No adjustments on this commission.</p>}
             {rows.map(({ a, lineTotal }) =>
@@ -172,11 +182,24 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                 </div>
               ) : (
                 <div key={a.id} className="flex items-center gap-4 border-b border-travefy-gray-100 py-3 text-sm">
-                  <span className="flex-1 font-medium text-travefy-navy">{a.reason}</span>
+                  <span className="flex-1">
+                    <span className="font-medium text-travefy-navy">{a.reason}</span>
+                    {a.auto && (
+                      <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-travefy-blue">
+                        <Zap className="h-3 w-3" /> Added automatically by rule
+                      </span>
+                    )}
+                  </span>
                   <span className="w-8 text-center text-travefy-gray-500">{a.kind === 'percent' ? '%' : '$'}</span>
                   <span className={`w-16 text-right font-semibold ${adjustmentDelta(a, base) < 0 ? 'text-travefy-danger' : 'text-travefy-gray-700'}`}>{formatAdjustmentValue(a)}</span>
                   <span className="w-20 text-right font-semibold text-travefy-navy">{fmt2(lineTotal)}</span>
-                  <button onClick={() => setEditingId(a.id)} className="rounded border border-travefy-gray-200 p-1.5 text-travefy-gray-500 hover:bg-travefy-gray-50" aria-label="Edit adjustment"><Pencil className="h-3.5 w-3.5" /></button>
+                  {a.auto ? (
+                    <span className="inline-flex items-center gap-1 rounded border border-travefy-blue/30 bg-travefy-blue-light px-2 py-1 text-[11px] font-semibold text-travefy-blue" title={a.rule ?? 'Automatic supplier rule'}>
+                      <Zap className="h-3 w-3" /> Auto
+                    </span>
+                  ) : (
+                    <button onClick={() => setEditingId(a.id)} className="rounded border border-travefy-gray-200 p-1.5 text-travefy-gray-500 hover:bg-travefy-gray-50" aria-label="Edit adjustment"><Pencil className="h-3.5 w-3.5" /></button>
+                  )}
                 </div>
               ),
             )}

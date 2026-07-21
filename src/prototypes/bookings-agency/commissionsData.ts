@@ -19,12 +19,40 @@ export interface CommissionAdjustment {
   reason: string
   kind: AdjustmentKind
   value: number
+  /** True when applied automatically by a supplier rule (read-only on the commission). */
+  auto?: boolean
+  /** Human-readable rule that produced an auto adjustment, e.g. "Onyx 8% supplier fee". */
+  rule?: string
 }
 
 export const ADJUSTMENT_KINDS: { value: AdjustmentKind; label: string }[] = [
   { value: 'amount', label: '$' },
   { value: 'percent', label: '%' },
 ]
+
+// ── Automatic supplier-rule adjustments ──────────────────────────────────────
+// Some suppliers deduct a standard fee on every commission. These rules apply an
+// adjustment automatically and surface a callout on the commission. (Client
+// examples: Onyx 8% fee, Hilton 3% fee.)
+export interface AutoAdjustmentRule {
+  supplier: string
+  kind: AdjustmentKind
+  /** Signed value, e.g. -8 for a -8% fee. */
+  value: number
+  label: string
+}
+
+export const AUTO_ADJUSTMENT_RULES: AutoAdjustmentRule[] = [
+  { supplier: 'Onyx', kind: 'percent', value: -8, label: 'Onyx 8% supplier fee' },
+  { supplier: 'Hilton', kind: 'percent', value: -3, label: 'Hilton 3% processing fee' },
+]
+
+/** The auto adjustment(s) a supplier triggers, as CommissionAdjustments. */
+export function autoAdjustmentsForSupplier(supplier: string): CommissionAdjustment[] {
+  return AUTO_ADJUSTMENT_RULES.filter(
+    (r) => r.supplier.toLowerCase() === supplier.trim().toLowerCase(),
+  ).map((r) => ({ id: `auto-${r.supplier.toLowerCase()}`, reason: r.label, kind: r.kind, value: r.value, auto: true, rule: r.label }))
+}
 
 export interface CommissionLine {
   id: string
@@ -237,6 +265,40 @@ export const initialCommissions: CommissionLine[] = [
     matchingBookingRef: 'GAdv-882',
     advisor: 'Kim Anderson',
     expected: 248,
+  },
+  // Automatic supplier-rule adjustments — Onyx (8%) and Hilton (3%) fees applied
+  // on receipt. These carry auto/rule flags and are read-only on the commission.
+  {
+    id: 'c12',
+    type: CP,
+    reference: 'ONX-4471',
+    statementRef: 'ONX2207',
+    supplier: 'Onyx',
+    received: 500,
+    split: 80,
+    status: 'match-found',
+    matchingBookingRef: 'ONX-4471',
+    advisor: 'Suzy Smith',
+    expected: 500,
+    adjustments: [
+      { id: 'c12-auto', reason: 'Onyx 8% supplier fee', kind: 'percent', value: -8, auto: true, rule: 'Onyx 8% supplier fee' },
+    ],
+  },
+  {
+    id: 'c13',
+    type: CP,
+    reference: 'HLT-9912',
+    statementRef: 'HLT7781',
+    supplier: 'Hilton',
+    received: 312.5,
+    split: 70,
+    status: 'match-found',
+    matchingBookingRef: 'HLT-9912',
+    advisor: 'Sam Rivera',
+    expected: 312.5,
+    adjustments: [
+      { id: 'c13-auto', reason: 'Hilton 3% processing fee', kind: 'percent', value: -3, auto: true, rule: 'Hilton 3% processing fee' },
+    ],
   },
 ]
 
