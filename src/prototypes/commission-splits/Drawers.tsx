@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Plus, TrendingUp, X } from 'lucide-react'
+import { Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
 import { fmtMoney, formatSplit, LABEL_PALETTE, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
@@ -251,6 +251,8 @@ export function TeamMemberDrawer({
   const [splitId, setSplitId] = useState<string>('')
   const [effectiveDate, setEffectiveDate] = useState<string>('')
   const [canOverrideSplit, setCanOverrideSplit] = useState(false)
+  const [accountNumber, setAccountNumber] = useState('')
+  const [routingNumber, setRoutingNumber] = useState('')
 
   useEffect(() => {
     if (open && member) {
@@ -258,13 +260,23 @@ export function TeamMemberDrawer({
       setSplitId(member.commissionSplitId)
       setEffectiveDate(member.commissionSplitEffectiveDate)
       setCanOverrideSplit(member.canOverrideSplit)
+      setAccountNumber(member.bankAccountNumber ?? '')
+      setRoutingNumber(member.bankRoutingNumber ?? '')
     }
   }, [open, member])
 
   if (!member) return null
 
   const handleSave = () => {
-    onSave({ ...member, role, commissionSplitId: splitId, commissionSplitEffectiveDate: effectiveDate, canOverrideSplit })
+    onSave({
+      ...member,
+      role,
+      commissionSplitId: splitId,
+      commissionSplitEffectiveDate: effectiveDate,
+      canOverrideSplit,
+      bankAccountNumber: accountNumber.trim() || undefined,
+      bankRoutingNumber: routingNumber.trim() || undefined,
+    })
   }
 
   return (
@@ -379,6 +391,38 @@ export function TeamMemberDrawer({
               </span>
             </span>
           </label>
+        </div>
+
+        <div className="border-t border-travefy-gray-100 pt-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Landmark className="w-4 h-4 text-travefy-gray-500" />
+            <h3 className="text-sm font-semibold text-travefy-navy">Banking Info</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Account Number</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 17))}
+                placeholder="000123456789"
+                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Routing Number</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={routingNumber}
+                onChange={(e) => setRoutingNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 9))}
+                placeholder="021000021"
+                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+              />
+              <p className="text-xs text-travefy-gray-500 mt-1">9-digit ABA routing number</p>
+            </div>
+          </div>
         </div>
       </div>
     </DrawerShell>
