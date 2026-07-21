@@ -1,8 +1,8 @@
 import { clsx } from 'clsx'
-import { Plus, X } from 'lucide-react'
+import { Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
-import { formatSplit, LABEL_PALETTE, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { fmtMoney, formatSplit, LABEL_PALETTE, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
 
 // ── Drawer shell (reused by both drawers) ──────────────────────────────────────
 
@@ -329,6 +329,40 @@ export function TeamMemberDrawer({
             <p className="text-xs text-travefy-gray-500 mt-1">Payouts use the tier in effect as of the booking date</p>
           </div>
         </div>
+
+        {member.tierProgression && (() => {
+          const prog = member.tierProgression!
+          const next = splits.find((s) => s.id === prog.nextSplitId)
+          const pct = tierProgressPercent(prog)
+          const remaining = Math.max(0, prog.targetSales - prog.currentSales)
+          const done = pct >= 100
+          return (
+            <div className="rounded-lg border border-travefy-blue/30 bg-travefy-blue-light/50 p-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-travefy-blue" />
+                <span className="text-sm font-semibold text-travefy-navy">Automatic tier upgrade</span>
+              </div>
+              <p className="mt-1 text-sm text-travefy-gray-700">
+                Moves to <span className="font-semibold text-travefy-navy">{next ? formatSplit(next) : 'the next tier'}</span> at{' '}
+                <span className="font-semibold text-travefy-navy">{fmtMoney(prog.targetSales)}</span> in sales.
+              </p>
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white">
+                <div
+                  className={clsx('h-full rounded-full', done ? 'bg-travefy-success' : 'bg-travefy-blue')}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="mt-1.5 flex items-center justify-between text-xs">
+                <span className="text-travefy-gray-600">
+                  {fmtMoney(prog.currentSales)} of {fmtMoney(prog.targetSales)} ({pct}%)
+                </span>
+                <span className="font-semibold text-travefy-blue">
+                  {done ? 'Target reached — upgrade applies on next booking' : `${fmtMoney(remaining)} to go`}
+                </span>
+              </div>
+            </div>
+          )
+        })()}
 
         <div className="border-t border-travefy-gray-100 pt-5">
           <label className="flex items-start gap-3 cursor-pointer">

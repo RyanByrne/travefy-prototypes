@@ -1,11 +1,11 @@
 import { clsx } from 'clsx'
-import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, TrendingUp, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { SplitDrawer, TeamMemberDrawer } from './Drawers'
-import { formatSplit, initialSplits, initialTeam, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { fmtMoneyShort, formatSplit, initialSplits, initialTeam, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
 
 // ── Nav config (Compass IA) ────────────────────────────────────────────────────
 
@@ -324,6 +324,22 @@ function TeamView({
                     )}
                   </div>
                   <span className="mt-0.5 block text-xs text-travefy-gray-500">Effective {fmtEffectiveDate(m.commissionSplitEffectiveDate)}</span>
+                  {m.tierProgression && (() => {
+                    const prog = m.tierProgression!
+                    const next = splits.find((s) => s.id === prog.nextSplitId)
+                    const pct = tierProgressPercent(prog)
+                    return (
+                      <span className="mt-1.5 block max-w-[13rem]">
+                        <span className="flex items-center gap-1 text-xs font-medium text-travefy-blue">
+                          <TrendingUp className="h-3 w-3" />
+                          → {next?.name ?? 'next tier'} at {fmtMoneyShort(prog.targetSales)} ({pct}%)
+                        </span>
+                        <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-travefy-gray-100">
+                          <span className="block h-full rounded-full bg-travefy-blue" style={{ width: `${pct}%` }} />
+                        </span>
+                      </span>
+                    )
+                  })()}
                 </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <RowMenu onEdit={() => onEdit(m)} onDelete={() => onRemove(m)} />
