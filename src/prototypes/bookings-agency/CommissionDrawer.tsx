@@ -24,6 +24,9 @@ interface Props {
 const label = 'mb-1.5 block text-sm font-semibold text-travefy-gray-800'
 const fmt2 = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`
 const fmtSigned = (n: number) => `${n < 0 ? '-' : ''}${fmt2(Math.abs(n))}`
+/** Keep digits + one decimal, allowing a single leading minus (chargebacks). */
+const cleanSigned = (v: string) => (v.trim().startsWith('-') ? '-' : '') + v.replace(/[^0-9.]/g, '')
+const signedDollar = (raw: string) => (raw.startsWith('-') ? `-$${raw.slice(1)}` : `$${raw}`)
 const genId = () => `adj-${String(Date.now()).slice(-6)}`
 
 /**
@@ -123,7 +126,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={label}>Total Received</label>
-                <Input value={`$${received}`} onChange={(e) => setReceived(e.target.value.replace(/[^0-9.]/g, ''))} />
+                <Input value={signedDollar(received)} onChange={(e) => setReceived(cleanSigned(e.target.value))} />
               </div>
               <div>
                 <label className={label}>Commission Split</label>
@@ -131,11 +134,11 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
               </div>
               <div>
                 <label className={label}>Agency Commission</label>
-                <Input value={fmt2(bd.agencyGross)} disabled />
+                <Input value={fmtSigned(bd.agencyGross)} disabled />
               </div>
               <div>
                 <label className={label}>Advisor Commission</label>
-                <Input value={fmt2(bd.advisorGross)} disabled />
+                <Input value={fmtSigned(bd.advisorGross)} disabled />
               </div>
             </div>
           </div>
@@ -191,7 +194,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                   </span>
                   <span className="w-8 text-center text-travefy-gray-500">{a.kind === 'percent' ? '%' : '$'}</span>
                   <span className={`w-16 text-right font-semibold ${adjustmentDelta(a, base) < 0 ? 'text-travefy-danger' : 'text-travefy-gray-700'}`}>{formatAdjustmentValue(a)}</span>
-                  <span className="w-20 text-right font-semibold text-travefy-navy">{fmt2(lineTotal)}</span>
+                  <span className="w-20 text-right font-semibold text-travefy-navy">{fmtSigned(lineTotal)}</span>
                   {a.auto ? (
                     <span className="inline-flex items-center gap-1 rounded border border-travefy-blue/30 bg-travefy-blue-light px-2 py-1 text-[11px] font-semibold text-travefy-blue" title={a.rule ?? 'Automatic supplier rule'}>
                       <Zap className="h-3 w-3" /> Auto
@@ -208,7 +211,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
             <div className="mt-4 space-y-2 pt-1 text-sm">
               <div className="flex items-center justify-between text-travefy-gray-600">
                 <span>Advisor commission</span>
-                <span>{fmt2(bd.advisorGross)}</span>
+                <span>{fmtSigned(bd.advisorGross)}</span>
               </div>
               {bd.sharedAdj !== 0 && (
                 <div className="flex items-center justify-between text-travefy-gray-600">
@@ -224,11 +227,11 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
               )}
               <div className="flex items-center justify-between font-semibold text-travefy-navy">
                 <span>Advisor total</span>
-                <span>{fmt2(bd.advisorNet)}</span>
+                <span>{fmtSigned(bd.advisorNet)}</span>
               </div>
               <div className="flex items-center justify-between border-t border-travefy-gray-100 pt-2 text-travefy-gray-500">
                 <span>Agency total</span>
-                <span>{fmt2(bd.agencyNet)}</span>
+                <span>{fmtSigned(bd.agencyNet)}</span>
               </div>
               <p className="pt-1 text-xs text-travefy-gray-400">Payment fees come out of the advisor's commission; other adjustments are shared between advisor and agency.</p>
             </div>

@@ -36,7 +36,10 @@ interface CommissionsTabProps {
   onToast?: (text: string) => void
 }
 
-const fmtMoney = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`)
+const fmtMoney = (n: number) => {
+  const abs = Math.abs(n)
+  return `${n < 0 ? '-' : ''}$${Number.isInteger(abs) ? abs : abs.toFixed(2)}`
+}
 
 // ── Stat card ────────────────────────────────────────────────────────────────
 
@@ -287,7 +290,7 @@ export function CommissionsTab({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {c.received !== null ? (
-                        <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}>{fmtMoney(c.received)}</MismatchCell>
+                        <MismatchCell tip="Amount received does not match the advisor's expected amount." flagged={c.receivedMismatch}><span className={clsx(c.received < 0 && 'font-semibold text-travefy-danger')}>{fmtMoney(c.received)}</span></MismatchCell>
                       ) : (
                         <span className="text-travefy-gray-400">--</span>
                       )}

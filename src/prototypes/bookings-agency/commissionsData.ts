@@ -355,6 +355,22 @@ export const initialCommissions: CommissionLine[] = [
       { id: 'c13-auto', reason: 'Hilton 3% processing fee', kind: 'percent', value: -3, auto: true, rule: 'Hilton 3% processing fee' },
     ],
   },
+  // Negative commission — a supplier chargeback / commission call-back. The
+  // guest cancelled and Royal Caribbean recalled the commission paid on
+  // RC-2294013, so this line comes through as a negative amount.
+  {
+    id: 'c14',
+    type: 'Chargeback',
+    reference: 'RC-2294013-CB',
+    statementRef: 'RCL8891',
+    supplier: 'Royal Carribean',
+    received: -612,
+    split: 80,
+    status: 'match-found',
+    matchingBookingRef: 'RC-2294013',
+    advisor: 'Suzy Smith',
+    expected: -612,
+  },
 ]
 
 // ── Search-for-booking cards ────────────────────────────────────────────────
