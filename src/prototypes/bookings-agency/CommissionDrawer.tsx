@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Button, Input, Select } from '../../shared/components'
 import {
   ADJUSTMENT_KINDS,
+  COMMISSION_ADJUSTMENT_REASONS,
   COMMISSION_TYPES,
   adjustmentDelta,
   commissionBreakdown,
@@ -12,6 +13,7 @@ import {
   type CommissionLine,
   type CommissionType,
 } from './commissionsData'
+import { ReasonSelect } from './ReasonSelect'
 
 interface Props {
   open: boolean
@@ -165,7 +167,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                 <div key={a.id} className="grid grid-cols-[1fr_90px_110px_auto] items-end gap-3 border-b border-travefy-gray-100 py-3">
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-travefy-gray-600">Reason / Description</label>
-                    <Input value={a.reason} onChange={(e) => patchAdj(a.id, { reason: e.target.value })} placeholder="Reason" />
+                    <ReasonSelect label="" value={a.reason} onChange={(v) => patchAdj(a.id, { reason: v })} options={COMMISSION_ADJUSTMENT_REASONS} />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-travefy-gray-600">Type</label>

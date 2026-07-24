@@ -30,6 +30,19 @@ export const ADJUSTMENT_KINDS: { value: AdjustmentKind; label: string }[] = [
   { value: 'percent', label: '%' },
 ]
 
+/** Prepopulated reasons for a commission adjustment (Edit Commission drawer). */
+export const COMMISSION_ADJUSTMENT_REASONS = [
+  'Supplier recall',
+  'Processing fee',
+  'Payment / supplier fee',
+  'Chargeback',
+  'Cancellation fee',
+  'Currency conversion',
+  'Overpayment correction',
+  'Underpayment correction',
+  'Manual correction',
+] as const
+
 // ── Automatic supplier-rule adjustments ──────────────────────────────────────
 // Some suppliers deduct a standard fee on every commission. These rules apply an
 // adjustment automatically and surface a callout on the commission. (Client
@@ -196,8 +209,8 @@ export const initialCommissions: CommissionLine[] = [
     advisor: 'Michael Smith',
     expected: 200,
     adjustments: [
-      { id: 'c2-a1', reason: 'Supplier Recall - incorrect payment', kind: 'amount', value: -20 },
-      { id: 'c2-a2', reason: 'Processing Fees', kind: 'percent', value: -3 },
+      { id: 'c2-a1', reason: 'Supplier recall', kind: 'amount', value: -20 },
+      { id: 'c2-a2', reason: 'Processing fee', kind: 'percent', value: -3 },
     ],
   },
   // Two commissions on the SAME booking (A2736552) — multiple-per-booking.

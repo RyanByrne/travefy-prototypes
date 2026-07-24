@@ -2,6 +2,7 @@ import { Check, Info, MinusCircle, Pencil, Plus, Search, Trash2, Users, X } from
 import { useEffect, useState } from 'react'
 import { Badge, Button, Checkbox, Input, Modal, Select } from '../../shared/components'
 import {
+  PAYOUT_ADJUSTMENT_REASONS,
   PAYOUT_ADJUSTMENT_TYPES,
   adjustmentSigned,
   agentTotals,
@@ -14,6 +15,7 @@ import {
   type PayoutAdjustmentType,
   type PayoutAgent,
 } from './payoutsData'
+import { ReasonSelect } from './ReasonSelect'
 
 interface Props {
   open: boolean
@@ -312,7 +314,7 @@ function AdjustmentModal({
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </Select>
-        <Input label="Reason / Description" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Travel show incentive" />
+        <ReasonSelect value={reason} onChange={setReason} options={PAYOUT_ADJUSTMENT_REASONS} />
         <Input label="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />
 
         {/* Advisor selector — bulk apply the same adjustment to many advisors */}
@@ -505,7 +507,7 @@ function AgentView({
               </Select>
             </div>
             <div className="flex-1">
-              <Input label="Reason / Description" value={adjReason} onChange={(e) => setAdjReason(e.target.value)} placeholder="e.g. Travel show incentive" />
+              <ReasonSelect value={adjReason} onChange={setAdjReason} options={PAYOUT_ADJUSTMENT_REASONS} />
             </div>
             <div className="w-32">
               <Input label="Amount" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="$0" />

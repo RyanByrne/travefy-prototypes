@@ -34,6 +34,19 @@ export const PAYOUT_ADJUSTMENT_TYPES: { value: PayoutAdjustmentType; label: stri
   { value: 'deduction', label: 'Deduction' },
 ]
 
+/** Prepopulated reasons for a payout adjustment (bonuses / deductions). */
+export const PAYOUT_ADJUSTMENT_REASONS = [
+  'Performance bonus',
+  'Sales incentive',
+  'Travel show incentive',
+  'Referral bonus',
+  'Sign-on bonus',
+  'Advance repayment',
+  'Overpayment recovery',
+  'Chargeback recovery',
+  'Manual correction',
+] as const
+
 export const adjustmentSigned = (a: PayoutAdjustment) =>
   a.type === 'deduction' ? -Math.abs(a.amount) : Math.abs(a.amount)
 
