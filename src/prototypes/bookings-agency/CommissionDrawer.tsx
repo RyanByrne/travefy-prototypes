@@ -6,6 +6,7 @@ import {
   COMMISSION_ADJUSTMENT_REASONS,
   COMMISSION_TYPES,
   adjustmentDelta,
+  adjustmentSplit,
   commissionBreakdown,
   formatAdjustmentValue,
   type AdjustmentKind,
@@ -76,7 +77,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
   const removeAdj = (id: string) => { setAdjustments((prev) => prev.filter((a) => a.id !== id)); if (editingId === id) setEditingId(null) }
   const addAdjustment = () => {
     const id = genId()
-    setAdjustments((prev) => [...prev, { id, reason: '', kind: 'amount', value: 0 }])
+    setAdjustments((prev) => [...prev, { id, reason: '', kind: 'amount', value: 0, split: splitNum || 100 }])
     setEditingId(id)
   }
 
@@ -164,7 +165,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
             {rows.length === 0 && <p className="py-4 text-sm text-travefy-gray-500">No adjustments on this commission.</p>}
             {rows.map(({ a, lineTotal }) =>
               editingId === a.id ? (
-                <div key={a.id} className="grid grid-cols-[1fr_90px_110px_auto] items-end gap-3 border-b border-travefy-gray-100 py-3">
+                <div key={a.id} className="grid grid-cols-[1fr_64px_84px_84px_auto] items-end gap-3 border-b border-travefy-gray-100 py-3">
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-travefy-gray-600">Reason / Description</label>
                     <ReasonSelect label="" value={a.reason} onChange={(v) => patchAdj(a.id, { reason: v })} options={COMMISSION_ADJUSTMENT_REASONS} />
@@ -179,6 +180,10 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                     <label className="mb-1 block text-xs font-semibold text-travefy-gray-600">Value</label>
                     <Input value={String(a.value)} onChange={(e) => patchAdj(a.id, { value: Number(e.target.value.replace(/[^0-9.-]/g, '')) || 0 })} placeholder="0" />
                   </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-travefy-gray-600" title="Advisor's share of this adjustment; the rest falls on the agency">Advisor %</label>
+                    <Input value={String(a.split ?? splitNum)} onChange={(e) => patchAdj(a.id, { split: Math.min(100, Number(e.target.value.replace(/[^0-9]/g, '')) || 0) })} placeholder="%" />
+                  </div>
                   <div className="flex items-center gap-1.5 pb-1">
                     <button onClick={() => setEditingId(null)} disabled={!a.reason.trim()} className="rounded border border-travefy-gray-200 p-1.5 text-travefy-success hover:bg-travefy-gray-50 disabled:opacity-40" aria-label="Confirm"><Check className="h-4 w-4" /></button>
                     <button onClick={() => removeAdj(a.id)} className="rounded border border-travefy-gray-200 p-1.5 text-travefy-gray-400 hover:text-travefy-danger" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
@@ -188,6 +193,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
                 <div key={a.id} className="flex items-center gap-4 border-b border-travefy-gray-100 py-3 text-sm">
                   <span className="flex-1">
                     <span className="font-medium text-travefy-navy">{a.reason}</span>
+                    <span className="mt-0.5 block text-xs text-travefy-gray-500">{adjustmentSplit(a, splitNum)}% advisor · {100 - adjustmentSplit(a, splitNum)}% agency</span>
                     {a.auto && (
                       <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-travefy-blue">
                         <Zap className="h-3 w-3" /> Added automatically by rule
@@ -211,31 +217,37 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
 
           {rows.length > 0 && (
             <div className="mt-4 space-y-2 pt-1 text-sm">
+              {/* Advisor */}
               <div className="flex items-center justify-between text-travefy-gray-600">
                 <span>Advisor commission</span>
                 <span>{fmtSigned(bd.advisorGross)}</span>
               </div>
-              {bd.sharedAdj !== 0 && (
+              {bd.advisorAdj !== 0 && (
                 <div className="flex items-center justify-between text-travefy-gray-600">
-                  <span>Shared adjustments</span>
-                  <span className={bd.advisorSharedAdj < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.advisorSharedAdj)}</span>
-                </div>
-              )}
-              {bd.fees !== 0 && (
-                <div className="flex items-center justify-between text-travefy-gray-600">
-                  <span>Payment fees</span>
-                  <span className={bd.fees < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.fees)}</span>
+                  <span>Advisor adjustments</span>
+                  <span className={bd.advisorAdj < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.advisorAdj)}</span>
                 </div>
               )}
               <div className="flex items-center justify-between font-semibold text-travefy-navy">
                 <span>Advisor total</span>
                 <span>{fmtSigned(bd.advisorNet)}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-travefy-gray-100 pt-2 text-travefy-gray-500">
+              {/* Agency */}
+              <div className="flex items-center justify-between border-t border-travefy-gray-100 pt-2 text-travefy-gray-600">
+                <span>Agency commission</span>
+                <span>{fmtSigned(bd.agencyGross)}</span>
+              </div>
+              {bd.agencyAdj !== 0 && (
+                <div className="flex items-center justify-between text-travefy-gray-600">
+                  <span>Agency adjustments</span>
+                  <span className={bd.agencyAdj < 0 ? 'text-travefy-danger' : undefined}>{fmtSigned(bd.agencyAdj)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between font-semibold text-travefy-navy">
                 <span>Agency total</span>
                 <span>{fmtSigned(bd.agencyNet)}</span>
               </div>
-              <p className="pt-1 text-xs text-travefy-gray-400">Payment fees come out of the advisor's commission; other adjustments are shared between advisor and agency.</p>
+              <p className="pt-1 text-xs text-travefy-gray-400">Each adjustment is split between the advisor and agency by its own advisor split %.</p>
             </div>
           )}
         </div>

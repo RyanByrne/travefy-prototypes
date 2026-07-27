@@ -19,6 +19,10 @@ export interface CommissionAdjustment {
   reason: string
   kind: AdjustmentKind
   value: number
+  /** Advisor's share of this adjustment, 0–100. The remainder falls on the
+   *  agency. e.g. 100 = advisor-only fee, 0 = agency-only, 50 = split evenly.
+   *  When omitted, defaults to 100 for auto fees, else the commission split. */
+  split?: number
   /** True when applied automatically by a supplier rule (read-only on the commission). */
   auto?: boolean
   /** Human-readable rule that produced an auto adjustment, e.g. "Onyx 8% supplier fee". */
@@ -116,26 +120,29 @@ export interface CommissionBreakdown {
   advisorGross: number
   /** Agency's share of the gross received, before adjustments. */
   agencyGross: number
-  /** Payment fees (auto supplier-rule adjustments) — deducted from the advisor only. */
-  fees: number
-  /** Other adjustments — reduce the overall commission, shared per the split. */
-  sharedAdj: number
-  /** Advisor's portion of the shared adjustments. */
-  advisorSharedAdj: number
-  /** Agency's portion of the shared adjustments. */
-  agencySharedAdj: number
-  /** Advisor's share after fees + shared adjustments. */
+  /** Sum of all adjustments (signed dollars), before splitting. */
+  totalAdj: number
+  /** Advisor's portion across all adjustments, per each adjustment's split. */
+  advisorAdj: number
+  /** Agency's portion across all adjustments. */
+  agencyAdj: number
+  /** Advisor's share after their portion of the adjustments. */
   advisorNet: number
-  /** Agency's share after shared adjustments. */
+  /** Agency's share after their portion of the adjustments. */
   agencyNet: number
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
+/** Advisor's split % for an adjustment. Defaults: auto supplier fees fall on the
+ *  advisor (100%); any other adjustment follows the commission split. */
+export const adjustmentSplit = (a: CommissionAdjustment, commissionSplit: number) =>
+  a.split ?? (a.auto ? 100 : commissionSplit)
+
 /**
- * Split a commission into advisor / agency shares. Payment fees (auto
- * supplier-rule adjustments) come out of the advisor's share only; any other
- * adjustment reduces the overall commission and is shared per the split.
+ * Split a commission into advisor / agency shares. Every adjustment carries its
+ * own split (advisor's %); its dollar delta is divided between advisor and
+ * agency accordingly, so both nets reflect each adjustment's split.
  */
 export function commissionBreakdown(
   received: number,
@@ -144,24 +151,25 @@ export function commissionBreakdown(
 ): CommissionBreakdown {
   const advisorGross = advisorCommission(received, split)
   const agencyGross = agencyCommission(received, split)
-  const fees = round2(
-    adjustments.filter((a) => a.auto).reduce((sum, a) => sum + adjustmentDelta(a, received), 0),
-  )
-  const sharedAdj = round2(
-    adjustments.filter((a) => !a.auto).reduce((sum, a) => sum + adjustmentDelta(a, received), 0),
-  )
-  const advisorSharedAdj = round2(sharedAdj * (split / 100))
-  const agencySharedAdj = round2(sharedAdj - advisorSharedAdj)
+  let advisorAdj = 0
+  let agencyAdj = 0
+  for (const a of adjustments) {
+    const delta = adjustmentDelta(a, received)
+    const advisorShare = delta * (adjustmentSplit(a, split) / 100)
+    advisorAdj += advisorShare
+    agencyAdj += delta - advisorShare
+  }
+  advisorAdj = round2(advisorAdj)
+  agencyAdj = round2(agencyAdj)
   return {
     received,
     advisorGross,
     agencyGross,
-    fees,
-    sharedAdj,
-    advisorSharedAdj,
-    agencySharedAdj,
-    advisorNet: round2(advisorGross + advisorSharedAdj + fees),
-    agencyNet: round2(agencyGross + agencySharedAdj),
+    totalAdj: round2(advisorAdj + agencyAdj),
+    advisorAdj,
+    agencyAdj,
+    advisorNet: round2(advisorGross + advisorAdj),
+    agencyNet: round2(agencyGross + agencyAdj),
   }
 }
 
@@ -209,8 +217,8 @@ export const initialCommissions: CommissionLine[] = [
     advisor: 'Michael Smith',
     expected: 200,
     adjustments: [
-      { id: 'c2-a1', reason: 'Supplier recall', kind: 'amount', value: -20 },
-      { id: 'c2-a2', reason: 'Processing fee', kind: 'percent', value: -3 },
+      { id: 'c2-a1', reason: 'Supplier recall', kind: 'amount', value: -20, split: 50 },
+      { id: 'c2-a2', reason: 'Processing fee', kind: 'percent', value: -3, split: 100 },
     ],
   },
   // Two commissions on the SAME booking (A2736552) — multiple-per-booking.
@@ -349,7 +357,7 @@ export const initialCommissions: CommissionLine[] = [
     advisor: 'Suzy Smith',
     expected: 500,
     adjustments: [
-      { id: 'c12-auto', reason: 'Onyx 8% supplier fee', kind: 'percent', value: -8, auto: true, rule: 'Onyx 8% supplier fee' },
+      { id: 'c12-auto', reason: 'Onyx 8% supplier fee', kind: 'percent', value: -8, split: 100, auto: true, rule: 'Onyx 8% supplier fee' },
     ],
   },
   {
@@ -365,7 +373,7 @@ export const initialCommissions: CommissionLine[] = [
     advisor: 'Sam Rivera',
     expected: 312.5,
     adjustments: [
-      { id: 'c13-auto', reason: 'Hilton 3% processing fee', kind: 'percent', value: -3, auto: true, rule: 'Hilton 3% processing fee' },
+      { id: 'c13-auto', reason: 'Hilton 3% processing fee', kind: 'percent', value: -3, split: 100, auto: true, rule: 'Hilton 3% processing fee' },
     ],
   },
   // Negative commission — a supplier chargeback / commission call-back. The
