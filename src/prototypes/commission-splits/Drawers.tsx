@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { History, Landmark, Plus, TrendingUp, X } from 'lucide-react'
+import { ChevronDown, History, Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
 import { fmtMoney, fmtSplitDate, formatSplit, tierProgressPercent, type CommissionSplit, type TeamMember } from './data'
@@ -185,6 +185,7 @@ export function TeamMemberDrawer({
   const [canOverrideSplit, setCanOverrideSplit] = useState(false)
   const [accountNumber, setAccountNumber] = useState('')
   const [routingNumber, setRoutingNumber] = useState('')
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   useEffect(() => {
     if (open && member) {
@@ -330,27 +331,31 @@ export function TeamMemberDrawer({
 
         {member.splitHistory && member.splitHistory.length > 0 && (
           <div className="border-t border-travefy-gray-100 pt-5">
-            <div className="mb-3 flex items-center gap-2">
-              <History className="w-4 h-4 text-travefy-gray-500" />
-              <h3 className="text-sm font-semibold text-travefy-navy">Commission split history</h3>
-            </div>
-            <ol className="space-y-3 border-l border-travefy-gray-200 pl-4">
-              {[...member.splitHistory].reverse().map((h, i) => (
-                <li key={`${h.effectiveDate}-${i}`} className="relative">
-                  <span className={clsx('absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white', i === 0 ? 'bg-travefy-blue' : 'bg-travefy-gray-300')} />
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm font-semibold text-travefy-navy">
-                      {h.splitName} <span className="font-normal text-travefy-gray-500">({h.percentage}%)</span>
+            <button
+              onClick={() => setHistoryOpen((v) => !v)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold text-travefy-navy">
+                <History className="w-4 h-4 text-travefy-gray-500" />
+                Commission split history
+                <span className="rounded-full bg-travefy-gray-100 px-1.5 text-xs font-semibold text-travefy-gray-600">{member.splitHistory.length}</span>
+              </span>
+              <ChevronDown className={clsx('w-4 h-4 text-travefy-gray-400 transition-transform', historyOpen && 'rotate-180')} />
+            </button>
+            {historyOpen && (
+              <div className="mt-3 space-y-1.5">
+                {[...member.splitHistory].reverse().map((h, i) => (
+                  <div key={`${h.effectiveDate}-${i}`} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="min-w-0 truncate text-travefy-navy">
+                      {h.splitName} <span className="text-travefy-gray-500">({h.percentage}%)</span>
+                      {i === 0 && <span className="ml-2 rounded bg-travefy-blue-light px-1.5 py-0.5 text-[11px] font-semibold text-travefy-blue">Current</span>}
                     </span>
                     <span className="whitespace-nowrap text-xs text-travefy-gray-500">{fmtSplitDate(h.effectiveDate)}</span>
                   </div>
-                  <p className="mt-0.5 text-xs text-travefy-gray-500">
-                    {i === 0 ? `Current${h.note ? ` · ${h.note}` : ''}` : h.note}
-                  </p>
-                </li>
-              ))}
-            </ol>
-            <p className="mt-3 text-xs text-travefy-gray-400">A split change is never retroactive — a booking uses the rate in effect on its date, locked in when it’s reconciled.</p>
+                ))}
+                <p className="pt-1 text-xs text-travefy-gray-400">Never retroactive — a booking keeps the rate in effect on its date.</p>
+              </div>
+            )}
           </div>
         )}
 
