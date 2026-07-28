@@ -212,8 +212,8 @@ export function SplitDrawer({
               className="w-full max-w-xs px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             />
             <p className="text-xs text-travefy-gray-600 mt-2">
-              The new rate applies to bookings reconciled on or after this date. Existing bookings keep the rate they
-              were calculated with — changing a split is never retroactive.
+              Bookings dated on or after this date use the new rate when they’re reconciled. Already-reconciled bookings
+              are unchanged — a rate change is never retroactive.
             </p>
           </div>
         )}
@@ -292,6 +292,30 @@ export function TeamMemberDrawer({
   if (!member) return null
 
   const handleSave = () => {
+    const prevHistory = member.splitHistory ?? []
+    const splitChanged = splitId !== member.commissionSplitId
+    const nextSplit = splits.find((s) => s.id === splitId)
+    const currentSplit = splits.find((s) => s.id === member.commissionSplitId)
+
+    let splitHistory = prevHistory
+    if (nextSplit && splitChanged) {
+      // New tier assigned — append a log entry (forward-only; never retroactive).
+      const note = !currentSplit
+        ? 'Tier change'
+        : nextSplit.percentage > currentSplit.percentage
+          ? 'Tier upgrade'
+          : nextSplit.percentage < currentSplit.percentage
+            ? 'Tier downgrade'
+            : 'Tier change'
+      splitHistory = [
+        ...prevHistory,
+        { effectiveDate, splitName: nextSplit.name, percentage: nextSplit.percentage, note },
+      ]
+    } else if (prevHistory.length > 0 && effectiveDate !== member.commissionSplitEffectiveDate) {
+      // Same tier, corrected effective date — update the current (last) entry.
+      splitHistory = prevHistory.map((h, i) => (i === prevHistory.length - 1 ? { ...h, effectiveDate } : h))
+    }
+
     onSave({
       ...member,
       role,
@@ -300,6 +324,7 @@ export function TeamMemberDrawer({
       canOverrideSplit,
       bankAccountNumber: accountNumber.trim() || undefined,
       bankRoutingNumber: routingNumber.trim() || undefined,
+      splitHistory,
     })
   }
 
@@ -343,7 +368,13 @@ export function TeamMemberDrawer({
             <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Commission Split</label>
             <select
               value={splitId}
-              onChange={(e) => setSplitId(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value
+                setSplitId(next)
+                // A new tier takes effect today by default (editable); reverting
+                // to the current tier restores its original effective date.
+                setEffectiveDate(next === member.commissionSplitId ? member.commissionSplitEffectiveDate : todayISO())
+              }}
               className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             >
               {splits.map((s) => (
@@ -362,7 +393,7 @@ export function TeamMemberDrawer({
               onChange={(e) => setEffectiveDate(e.target.value)}
               className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             />
-            <p className="text-xs text-travefy-gray-500 mt-1">Applies to bookings on or after this date. Existing bookings keep the split they were calculated with.</p>
+            <p className="text-xs text-travefy-gray-500 mt-1">Bookings dated on or after this apply the new split when reconciled. Already-reconciled bookings keep the rate they were calculated at.</p>
           </div>
         </div>
 
@@ -388,7 +419,7 @@ export function TeamMemberDrawer({
                 </li>
               ))}
             </ol>
-            <p className="mt-3 text-xs text-travefy-gray-400">Splits are never applied retroactively — each booking keeps the rate in effect on its date.</p>
+            <p className="mt-3 text-xs text-travefy-gray-400">A split change is never retroactive — a booking uses the rate in effect on its date, locked in when it’s reconciled.</p>
           </div>
         )}
 
