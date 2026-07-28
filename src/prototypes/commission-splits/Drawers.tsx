@@ -1,8 +1,11 @@
 import { clsx } from 'clsx'
-import { Landmark, Plus, TrendingUp, X } from 'lucide-react'
+import { History, Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
-import { fmtMoney, formatSplit, LABEL_PALETTE, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { fmtMoney, fmtSplitDate, formatSplit, LABEL_PALETTE, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+
+/** Today as ISO YYYY-MM-DD (browser only — used to default effective dates). */
+const todayISO = () => new Date().toISOString().slice(0, 10)
 
 // ── Drawer shell (reused by both drawers) ──────────────────────────────────────
 
@@ -143,6 +146,10 @@ export function SplitDrawer({
   const [description, setDescription] = useState('')
   const [labels, setLabels] = useState<SplitLabel[]>([])
   const [advisorSelectable, setAdvisorSelectable] = useState(true)
+  const [effectiveDate, setEffectiveDate] = useState(todayISO())
+
+  // A rate change vs. the saved split — only then does "effective date" matter.
+  const rateChanged = !!split && parseInt(percentage.replace(/[^0-9]/g, ''), 10) !== split.percentage
 
   useEffect(() => {
     if (open) {
@@ -151,6 +158,7 @@ export function SplitDrawer({
       setDescription(split?.description ?? '')
       setLabels(split?.labels ?? [])
       setAdvisorSelectable(split?.advisorSelectable ?? true)
+      setEffectiveDate(todayISO())
     }
   }, [open, split])
 
@@ -193,6 +201,22 @@ export function SplitDrawer({
             <p className="text-xs text-travefy-gray-500 mt-1">Percent of commission assigned to advisor</p>
           </div>
         </div>
+
+        {rateChanged && (
+          <div className="rounded-lg border border-travefy-blue/30 bg-travefy-blue-light/40 p-4">
+            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Rate effective date</label>
+            <input
+              type="date"
+              value={effectiveDate}
+              onChange={(e) => setEffectiveDate(e.target.value)}
+              className="w-full max-w-xs px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+            />
+            <p className="text-xs text-travefy-gray-600 mt-2">
+              The new rate applies to bookings reconciled on or after this date. Existing bookings keep the rate they
+              were calculated with — changing a split is never retroactive.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Description</label>
@@ -338,9 +362,35 @@ export function TeamMemberDrawer({
               onChange={(e) => setEffectiveDate(e.target.value)}
               className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
             />
-            <p className="text-xs text-travefy-gray-500 mt-1">Payouts use the tier in effect as of the booking date</p>
+            <p className="text-xs text-travefy-gray-500 mt-1">Applies to bookings on or after this date. Existing bookings keep the split they were calculated with.</p>
           </div>
         </div>
+
+        {member.splitHistory && member.splitHistory.length > 0 && (
+          <div className="border-t border-travefy-gray-100 pt-5">
+            <div className="mb-3 flex items-center gap-2">
+              <History className="w-4 h-4 text-travefy-gray-500" />
+              <h3 className="text-sm font-semibold text-travefy-navy">Commission split history</h3>
+            </div>
+            <ol className="space-y-3 border-l border-travefy-gray-200 pl-4">
+              {[...member.splitHistory].reverse().map((h, i) => (
+                <li key={`${h.effectiveDate}-${i}`} className="relative">
+                  <span className={clsx('absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white', i === 0 ? 'bg-travefy-blue' : 'bg-travefy-gray-300')} />
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-semibold text-travefy-navy">
+                      {h.splitName} <span className="font-normal text-travefy-gray-500">({h.percentage}%)</span>
+                    </span>
+                    <span className="whitespace-nowrap text-xs text-travefy-gray-500">{fmtSplitDate(h.effectiveDate)}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-travefy-gray-500">
+                    {i === 0 ? `Current${h.note ? ` · ${h.note}` : ''}` : h.note}
+                  </p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-3 text-xs text-travefy-gray-400">Splits are never applied retroactively — each booking keeps the rate in effect on its date.</p>
+          </div>
+        )}
 
         {member.tierProgression && (() => {
           const prog = member.tierProgression!
