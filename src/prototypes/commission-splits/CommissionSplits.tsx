@@ -431,6 +431,14 @@ export function CommissionSplits() {
     showToast(`Updated ${next.name}`)
     setTeamDrawer({ open: false, member: null })
   }
+  // Applying a split change is its own action: persist + append to the log, but
+  // keep the drawer open (and refresh its member) so the timeline updates live.
+  const applyMemberSplit = (next: TeamMember) => {
+    setTeam((prev) => prev.map((m) => (m.id === next.id ? next : m)))
+    setTeamDrawer((d) => ({ ...d, member: next }))
+    const current = next.splitHistory?.[next.splitHistory.length - 1]
+    showToast(current ? `${next.name} moved to ${current.splitName}` : `Updated ${next.name}`)
+  }
   const removeMember = (m: TeamMember) => {
     setTeam((prev) => prev.filter((x) => x.id !== m.id))
     showToast(`Removed ${m.name}`)
@@ -491,6 +499,7 @@ export function CommissionSplits() {
         member={teamDrawer.member}
         splits={splits}
         onSave={saveMember}
+        onApplySplit={applyMemberSplit}
       />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />

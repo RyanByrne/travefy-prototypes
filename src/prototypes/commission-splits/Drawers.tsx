@@ -264,12 +264,15 @@ export function TeamMemberDrawer({
   member,
   splits,
   onSave,
+  onApplySplit,
 }: {
   open: boolean
   onClose: () => void
   member: TeamMember | null
   splits: CommissionSplit[]
   onSave: (next: TeamMember) => void
+  /** Apply a split change as its own action (persists + logs, keeps drawer open). */
+  onApplySplit: (next: TeamMember) => void
 }) {
   const [role, setRole] = useState<TeamMember['role']>('Member')
   const [splitId, setSplitId] = useState<string>('')
@@ -291,41 +294,45 @@ export function TeamMemberDrawer({
 
   if (!member) return null
 
-  const handleSave = () => {
-    const prevHistory = member.splitHistory ?? []
-    const splitChanged = splitId !== member.commissionSplitId
+  const currentSplit = splits.find((s) => s.id === member.commissionSplitId)
+  const splitChanged = splitId !== member.commissionSplitId
+
+  // The other editable fields, carried through both actions.
+  const baseEdits = () => ({
+    role,
+    canOverrideSplit,
+    bankAccountNumber: accountNumber.trim() || undefined,
+    bankRoutingNumber: routingNumber.trim() || undefined,
+  })
+
+  // Distinct action: assign a new split. Appends a log entry (forward-only) and
+  // persists in place — separate from the general "Save and close" below.
+  const handleApplySplit = () => {
     const nextSplit = splits.find((s) => s.id === splitId)
-    const currentSplit = splits.find((s) => s.id === member.commissionSplitId)
-
-    let splitHistory = prevHistory
-    if (nextSplit && splitChanged) {
-      // New tier assigned — append a log entry (forward-only; never retroactive).
-      const note = !currentSplit
-        ? 'Tier change'
-        : nextSplit.percentage > currentSplit.percentage
-          ? 'Tier upgrade'
-          : nextSplit.percentage < currentSplit.percentage
-            ? 'Tier downgrade'
-            : 'Tier change'
-      splitHistory = [
-        ...prevHistory,
-        { effectiveDate, splitName: nextSplit.name, percentage: nextSplit.percentage, note },
-      ]
-    } else if (prevHistory.length > 0 && effectiveDate !== member.commissionSplitEffectiveDate) {
-      // Same tier, corrected effective date — update the current (last) entry.
-      splitHistory = prevHistory.map((h, i) => (i === prevHistory.length - 1 ? { ...h, effectiveDate } : h))
-    }
-
-    onSave({
+    if (!nextSplit || !splitChanged) return
+    const note = !currentSplit
+      ? 'Tier change'
+      : nextSplit.percentage > currentSplit.percentage
+        ? 'Tier upgrade'
+        : nextSplit.percentage < currentSplit.percentage
+          ? 'Tier downgrade'
+          : 'Tier change'
+    onApplySplit({
       ...member,
-      role,
+      ...baseEdits(),
       commissionSplitId: splitId,
       commissionSplitEffectiveDate: effectiveDate,
-      canOverrideSplit,
-      bankAccountNumber: accountNumber.trim() || undefined,
-      bankRoutingNumber: routingNumber.trim() || undefined,
-      splitHistory,
+      splitHistory: [
+        ...(member.splitHistory ?? []),
+        { effectiveDate, splitName: nextSplit.name, percentage: nextSplit.percentage, note },
+      ],
     })
+  }
+
+  // General save — role, override and banking. The split is managed by its own
+  // "Apply split change" action, so it (and the log) are left untouched here.
+  const handleSave = () => {
+    onSave({ ...member, ...baseEdits() })
   }
 
   return (
@@ -364,36 +371,55 @@ export function TeamMemberDrawer({
               <option value="Admin">Admin</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Commission Split</label>
-            <select
-              value={splitId}
-              onChange={(e) => {
-                const next = e.target.value
-                setSplitId(next)
-                // A new tier takes effect today by default (editable); reverting
-                // to the current tier restores its original effective date.
-                setEffectiveDate(next === member.commissionSplitId ? member.commissionSplitEffectiveDate : todayISO())
-              }}
-              className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-            >
-              {splits.map((s) => (
-                <option key={s.id} value={s.id}>{formatSplit(s)}</option>
-              ))}
-            </select>
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Effective date</label>
-            <input
-              type="date"
-              value={effectiveDate}
-              onChange={(e) => setEffectiveDate(e.target.value)}
-              className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-            />
-            <p className="text-xs text-travefy-gray-500 mt-1">Bookings dated on or after this apply the new split when reconciled. Already-reconciled bookings keep the rate they were calculated at.</p>
+        {/* Commission split — its own action, separate from the general Save */}
+        <div className="rounded-lg border border-travefy-gray-200 p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-travefy-navy">Commission split</h3>
+            <span className="text-xs text-travefy-gray-500">
+              Current: <span className="font-semibold text-travefy-navy">{formatSplit(currentSplit)}</span> · effective {fmtSplitDate(member.commissionSplitEffectiveDate)}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">New split</label>
+              <select
+                value={splitId}
+                onChange={(e) => {
+                  const next = e.target.value
+                  setSplitId(next)
+                  // A new tier takes effect today by default (editable); reverting
+                  // to the current tier restores its original effective date.
+                  setEffectiveDate(next === member.commissionSplitId ? member.commissionSplitEffectiveDate : todayISO())
+                }}
+                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+              >
+                {splits.map((s) => (
+                  <option key={s.id} value={s.id}>{formatSplit(s)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Effective date</label>
+              <input
+                type="date"
+                value={effectiveDate}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-travefy-gray-500 mt-2">Bookings dated on or after this apply the new split when reconciled. Already-reconciled bookings keep the rate they were calculated at.</p>
+          <div className="mt-3 flex justify-end">
+            <button
+              onClick={handleApplySplit}
+              disabled={!splitChanged}
+              className="inline-flex items-center gap-1.5 rounded bg-travefy-blue px-4 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Apply split change
+            </button>
           </div>
         </div>
 
