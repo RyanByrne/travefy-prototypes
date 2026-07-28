@@ -2,7 +2,7 @@ import { clsx } from 'clsx'
 import { History, Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
-import { fmtMoney, fmtSplitDate, formatSplit, LABEL_PALETTE, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { fmtMoney, fmtSplitDate, formatSplit, tierProgressPercent, type CommissionSplit, type TeamMember } from './data'
 
 /** Today as ISO YYYY-MM-DD (browser only — used to default effective dates). */
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -61,73 +61,6 @@ function DrawerShell({
   )
 }
 
-// ── Label chip + picker ────────────────────────────────────────────────────────
-
-const labelClass: Record<LabelColor, string> = {
-  green:  'bg-travefy-success-bg text-travefy-success-dark border-travefy-success-border',
-  blue:   'bg-travefy-blue-light text-travefy-blue border-travefy-blue/40',
-  orange: 'bg-travefy-warning-bg text-travefy-warning-dark border-travefy-warning-border',
-  gray:   'bg-travefy-gray-100 text-travefy-gray-700 border-travefy-gray-300',
-}
-
-function LabelChip({ label, onRemove }: { label: SplitLabel; onRemove?: () => void }) {
-  return (
-    <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded border text-xs font-semibold', labelClass[label.color])}>
-      {label.name}
-      {onRemove && (
-        <button onClick={onRemove} className="ml-0.5 hover:opacity-70" aria-label={`Remove ${label.name}`}>
-          <X className="w-3 h-3" />
-        </button>
-      )}
-    </span>
-  )
-}
-
-function LabelPicker({ value, onChange }: { value: SplitLabel[]; onChange: (next: SplitLabel[]) => void }) {
-  const [open, setOpen] = useState(false)
-  const isSelected = (l: SplitLabel) => value.some((v) => v.name === l.name)
-  const toggle = (l: SplitLabel) => {
-    if (isSelected(l)) onChange(value.filter((v) => v.name !== l.name))
-    else onChange([...value, l])
-  }
-
-  return (
-    <div>
-      <div className="flex flex-wrap items-center gap-2">
-        {value.map((l) => (
-          <LabelChip key={l.name} label={l} onRemove={() => toggle(l)} />
-        ))}
-        <div className="relative">
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-travefy-blue/40 bg-travefy-blue-light text-travefy-blue text-xs font-semibold hover:bg-travefy-blue-light/80 transition-colors"
-          >
-            Labels
-            <Plus className="w-3 h-3" />
-          </button>
-          {open && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-              <div className="absolute left-0 top-9 z-20 w-56 bg-white border border-travefy-gray-200 rounded-lg shadow-lg py-1 max-h-64 overflow-auto">
-                {LABEL_PALETTE.map((l) => (
-                  <button
-                    key={l.name}
-                    onClick={() => toggle(l)}
-                    className="w-full px-3 py-2 text-left text-sm flex items-center justify-between hover:bg-travefy-gray-50 text-travefy-gray-700"
-                  >
-                    <LabelChip label={l} />
-                    {isSelected(l) && <span className="text-travefy-blue text-xs">✓</span>}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Split drawer ───────────────────────────────────────────────────────────────
 
 export function SplitDrawer({
@@ -144,8 +77,6 @@ export function SplitDrawer({
   const [name, setName] = useState('')
   const [percentage, setPercentage] = useState('0%')
   const [description, setDescription] = useState('')
-  const [labels, setLabels] = useState<SplitLabel[]>([])
-  const [advisorSelectable, setAdvisorSelectable] = useState(true)
   const [effectiveDate, setEffectiveDate] = useState(todayISO())
 
   // A rate change vs. the saved split — only then does "effective date" matter.
@@ -156,8 +87,6 @@ export function SplitDrawer({
       setName(split?.name ?? '')
       setPercentage(split ? `${split.percentage}%` : '0%')
       setDescription(split?.description ?? '')
-      setLabels(split?.labels ?? [])
-      setAdvisorSelectable(split?.advisorSelectable ?? true)
       setEffectiveDate(todayISO())
     }
   }, [open, split])
@@ -169,8 +98,6 @@ export function SplitDrawer({
       name: name.trim() || 'Untitled Split',
       description: description.trim(),
       percentage: pct,
-      labels,
-      advisorSelectable,
     })
   }
 
@@ -228,28 +155,6 @@ export function SplitDrawer({
             className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue resize-none"
           />
           <p className="text-xs text-travefy-gray-500 mt-1">Internal notes about this supplier are only visible to the team, not to clients</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-travefy-navy mb-2">Labels</label>
-          <LabelPicker value={labels} onChange={setLabels} />
-        </div>
-
-        <div className="border-t border-travefy-gray-100 pt-5">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={advisorSelectable}
-              onChange={(e) => setAdvisorSelectable(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-travefy-gray-300 text-travefy-blue focus:ring-2 focus:ring-travefy-blue/20"
-            />
-            <span className="flex-1">
-              <span className="block text-sm font-semibold text-travefy-navy">Allow advisor to select this split</span>
-              <span className="block text-xs text-travefy-gray-500 mt-0.5">
-                When enabled, advisors who are allowed to override their default split can pick this one per booking.
-              </span>
-            </span>
-          </label>
         </div>
       </div>
     </DrawerShell>

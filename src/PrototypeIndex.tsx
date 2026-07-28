@@ -17,7 +17,7 @@ const prototypes: Prototype[] = [
   {
     slug: 'commission-splits',
     title: 'Commission Splits',
-    description: 'Create custom commission split tiers (name, percentage, description, labels) and assign them to team members. Includes Splits + Team views under Business Hub → Agency.',
+    description: 'Create custom commission split tiers (name, percentage, description) and assign them to team members. Includes Splits + Team views under Business Hub → Agency.',
     status: 'draft',
     date: '2026-05-28',
   },

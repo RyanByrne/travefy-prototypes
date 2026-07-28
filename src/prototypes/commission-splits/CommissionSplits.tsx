@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
 import { SplitDrawer, TeamMemberDrawer } from './Drawers'
-import { fmtMoneyShort, formatSplit, initialSplits, initialTeam, tierProgressPercent, type CommissionSplit, type LabelColor, type SplitLabel, type TeamMember } from './data'
+import { fmtMoneyShort, formatSplit, initialSplits, initialTeam, tierProgressPercent, type CommissionSplit, type TeamMember } from './data'
 
 // ── Nav config (Compass IA) ────────────────────────────────────────────────────
 
@@ -45,23 +45,6 @@ function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
     <span className="inline-flex flex-col -space-y-1 ml-1">
       <ChevronUp className={clsx('w-3 h-3', active && dir === 'asc' ? 'text-travefy-blue' : 'text-travefy-gray-300')} />
       <ChevronDown className={clsx('w-3 h-3', active && dir === 'desc' ? 'text-travefy-blue' : 'text-travefy-gray-300')} />
-    </span>
-  )
-}
-
-// ── Label pill ─────────────────────────────────────────────────────────────────
-
-const labelClass: Record<LabelColor, string> = {
-  green:  'bg-travefy-success-bg text-travefy-success-dark border-travefy-success-border',
-  blue:   'bg-travefy-blue-light text-travefy-blue border-travefy-blue/40',
-  orange: 'bg-travefy-warning-bg text-travefy-warning-dark border-travefy-warning-border',
-  gray:   'bg-travefy-gray-100 text-travefy-gray-700 border-travefy-gray-300',
-}
-
-function LabelPill({ label }: { label: SplitLabel }) {
-  return (
-    <span className={clsx('inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-semibold', labelClass[label.color])}>
-      {label.name}
     </span>
   )
 }
@@ -198,7 +181,6 @@ function SplitsView({
                   <SortIndicator active={sortBy === 'percentage'} dir={sortDir} />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Label</th>
               <th className="w-12 px-4 py-3" />
             </tr>
           </thead>
@@ -215,11 +197,6 @@ function SplitsView({
                 <td className="px-4 py-3 font-medium text-travefy-navy">{s.name}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{s.description}</td>
                 <td className="px-4 py-3 text-right text-travefy-gray-700 font-medium">{s.percentage}%</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1.5 flex-wrap">
-                    {s.labels.map((l) => <LabelPill key={l.name} label={l} />)}
-                  </div>
-                </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <RowMenu onEdit={() => onEdit(s)} onDuplicate={() => onDuplicate(s)} onDelete={() => onDelete(s)} />
                 </td>

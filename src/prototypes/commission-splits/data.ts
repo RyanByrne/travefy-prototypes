@@ -9,10 +9,7 @@
 export {
   formatSplit,
   initialSplits,
-  LABEL_PALETTE,
   type CommissionSplit,
-  type LabelColor,
-  type SplitLabel,
 } from '../../shared/data/commissionSplits'
 
 /** Rule-based tier progression. An advisor automatically moves to `nextSplitId`
