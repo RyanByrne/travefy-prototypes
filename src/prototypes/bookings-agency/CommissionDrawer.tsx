@@ -38,8 +38,9 @@ const genId = () => `adj-${String(Date.now()).slice(-6)}`
  * the received amount to a running Total.
  */
 export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }: Props) {
-  const [type, setType] = useState<CommissionType>('Commission Payment')
+  const [type, setType] = useState<CommissionType>('Commission')
   const [bookingRef, setBookingRef] = useState('')
+  const [advisor, setAdvisor] = useState('')
   const [supplier, setSupplier] = useState('')
   const [statementRef, setStatementRef] = useState('')
   const [received, setReceived] = useState('')
@@ -51,6 +52,7 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
     if (!open || !commission) return
     setType(commission.type)
     setBookingRef(commission.matchingBookingRef ?? commission.reference)
+    setAdvisor(commission.advisor ?? '')
     setSupplier(commission.supplier)
     setStatementRef(commission.statementRef)
     setReceived(commission.received !== null ? String(commission.received) : '')
@@ -81,6 +83,8 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
     setEditingId(id)
   }
 
+  const isAdjustment = type === 'Adjustment'
+
   const save = () => {
     onSave({
       ...commission,
@@ -89,6 +93,9 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
       statementRef,
       received: base || null,
       split: split === '' ? null : splitNum,
+      // Adjustments aren't tied to a booking; persist the advisor instead.
+      advisor: isAdjustment ? advisor.trim() || null : commission.advisor,
+      matchingBookingRef: isAdjustment ? null : commission.matchingBookingRef,
       adjustments: adjustments.filter((a) => a.reason.trim() !== ''),
     })
   }
@@ -111,10 +118,18 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
               </Select>
             </div>
 
-            <div>
-              <label className={label}>Booking Reference</label>
-              <Input value={bookingRef} onChange={(e) => setBookingRef(e.target.value)} />
-            </div>
+            {isAdjustment ? (
+              <div>
+                <label className={label}>Advisor</label>
+                <Input value={advisor} onChange={(e) => setAdvisor(e.target.value)} placeholder="Search for advisor" trailingIcon={<Search className="h-4 w-4" />} />
+                <p className="mt-1 text-xs text-travefy-gray-500">Adjustments aren’t tied to a booking — they’re assigned to an advisor.</p>
+              </div>
+            ) : (
+              <div>
+                <label className={label}>Booking Reference</label>
+                <Input value={bookingRef} onChange={(e) => setBookingRef(e.target.value)} />
+              </div>
+            )}
 
             <div>
               <label className={label}>Supplier</label>

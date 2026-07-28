@@ -312,7 +312,9 @@ export function CommissionsTab({
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                   <td className="px-4 py-3">
-                    {c.status === 'no-match' ? (
+                    {c.type === 'Adjustment' ? (
+                      <span className="italic text-travefy-gray-400">Not tied to a booking</span>
+                    ) : c.status === 'no-match' ? (
                       <div className="flex items-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onSearchBooking(c.id) }} className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded bg-travefy-blue text-white text-xs font-semibold hover:bg-travefy-blue-dark"><Search className="w-3.5 h-3.5 shrink-0" />Search for booking</button>
                         <button onClick={(e) => { e.stopPropagation(); onToast?.('Add booking manually is mocked for this prototype') }} className="p-1.5 rounded border border-travefy-gray-200 text-travefy-blue hover:bg-travefy-gray-50" aria-label="Add booking"><Plus className="w-4 h-4" /></button>

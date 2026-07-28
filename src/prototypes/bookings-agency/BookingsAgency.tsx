@@ -34,7 +34,7 @@ import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
 import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
-import { NewCommissionModal } from './NewCommissionModal'
+import { NewCommissionDrawer } from './NewCommissionDrawer'
 import { CommissionDrawer } from './CommissionDrawer'
 import { PayoutsTab } from './PayoutsTab'
 import { PayoutDrawer } from './PayoutDrawer'
@@ -347,7 +347,7 @@ export function BookingsAgency() {
     setUnclaimedItems((u) => u.filter((x) => x.id !== item.id))
     const line: CommissionLine = {
       id: `cm-${item.id}`,
-      type: 'Commission Payment',
+      type: 'Commission',
       reference: item.reference,
       statementRef: item.statementRef,
       supplier: item.supplier,
@@ -928,7 +928,7 @@ export function BookingsAgency() {
         onClose={() => setExportState((s) => ({ ...s, open: false }))}
       />
 
-      <NewCommissionModal
+      <NewCommissionDrawer
         open={newCommissionOpen}
         onClose={() => setNewCommissionOpen(false)}
         onCreate={createCommissionLine}

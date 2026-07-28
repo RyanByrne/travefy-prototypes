@@ -6,9 +6,15 @@
 
 export type CommissionStatus = 'no-match' | 'match-found' | 'reconciled' | 'disbursed'
 
-/** Commission Type (top of the Edit Commission drawer). */
-export const COMMISSION_TYPES = ['Commission Payment', 'Refund', 'Chargeback'] as const
+/** Commission Type (top of the Edit Commission drawer).
+ *  - Commission: tied to an advisor booking (has a Booking Reference).
+ *  - Adjustment: a commission NOT tied to a booking — has an Advisor instead.
+ *    Otherwise it behaves like a commission (received, split, reconciliation). */
+export const COMMISSION_TYPES = ['Commission', 'Adjustment'] as const
 export type CommissionType = (typeof COMMISSION_TYPES)[number]
+
+/** An adjustment-type commission isn't tied to a booking (advisor, not booking). */
+export const isAdjustmentType = (t: CommissionType) => t === 'Adjustment'
 
 /** A nested adjustment on a commission — a dollar amount or a percentage of the
  *  received amount. Value is signed (e.g. -20 for -$20, -3 for -3%). */
@@ -187,7 +193,7 @@ export const commissionTotals = {
   disbursed: '$1.6k',
 }
 
-const CP: CommissionType = 'Commission Payment'
+const CP: CommissionType = 'Commission'
 
 export const initialCommissions: CommissionLine[] = [
   {
@@ -381,7 +387,7 @@ export const initialCommissions: CommissionLine[] = [
   // RC-2294013, so this line comes through as a negative amount.
   {
     id: 'c14',
-    type: 'Chargeback',
+    type: 'Commission',
     reference: 'RC-2294013-CB',
     statementRef: 'RCL8891',
     supplier: 'Royal Carribean',
@@ -391,6 +397,22 @@ export const initialCommissions: CommissionLine[] = [
     matchingBookingRef: 'RC-2294013',
     advisor: 'Suzy Smith',
     expected: -612,
+  },
+  // Adjustment — a commission NOT tied to a booking. It has an advisor but no
+  // matching booking; it still carries a received amount, split and reconciles
+  // like any other commission.
+  {
+    id: 'c15',
+    type: 'Adjustment',
+    reference: 'ADJ-1042',
+    statementRef: '--',
+    supplier: 'Agency incentive',
+    received: 150,
+    split: 80,
+    status: 'match-found',
+    matchingBookingRef: null,
+    advisor: 'Brandon Jones',
+    expected: null,
   },
 ]
 
