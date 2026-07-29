@@ -181,6 +181,7 @@ function SplitsView({
                   <SortIndicator active={sortBy === 'percentage'} dir={sortDir} />
                 </button>
               </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Applies to</th>
               <th className="w-12 px-4 py-3" />
             </tr>
           </thead>
@@ -197,6 +198,13 @@ function SplitsView({
                 <td className="px-4 py-3 font-medium text-travefy-navy">{s.name}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{s.description}</td>
                 <td className="px-4 py-3 text-right text-travefy-gray-700 font-medium">{s.percentage}%</td>
+                <td className="px-4 py-3 text-travefy-gray-700">
+                  {s.supplier ? (
+                    <span className="inline-flex items-center rounded border border-travefy-blue/40 bg-travefy-blue-light px-2 py-0.5 text-[11px] font-semibold text-travefy-blue">{s.supplier}</span>
+                  ) : (
+                    <span className="text-travefy-gray-400">All suppliers</span>
+                  )}
+                </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <RowMenu onEdit={() => onEdit(s)} onDuplicate={() => onDuplicate(s)} onDelete={() => onDelete(s)} />
                 </td>
@@ -223,11 +231,7 @@ function TeamView({
   onRemove: (m: TeamMember) => void
   onToast: (text: string) => void
 }) {
-  const splitLabel = (id: string) => formatSplit(splits.find((s) => s.id === id))
-  const fmtEffectiveDate = (iso: string) => {
-    const [y, m, d] = iso.split('-')
-    return `${Number(m)}/${Number(d)}/${y}`
-  }
+  const splitById = (id: string) => splits.find((s) => s.id === id)
 
   return (
     <div className="bg-white border border-travefy-gray-200 rounded-lg overflow-hidden">
@@ -289,18 +293,31 @@ function TeamView({
                 <td className="px-4 py-3 text-travefy-gray-700">{m.status}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{m.role}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span>{splitLabel(m.commissionSplitId)}</span>
-                    {m.canOverrideSplit && (
-                      <span
-                        title="This advisor can override their default split per booking"
-                        className="inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-semibold bg-travefy-blue-light text-travefy-blue border-travefy-blue/40"
-                      >
-                        Can override
-                      </span>
-                    )}
-                  </div>
-                  <span className="mt-0.5 block text-xs text-travefy-gray-500">Effective {fmtEffectiveDate(m.commissionSplitEffectiveDate)}</span>
+                  {(() => {
+                    const active = (m.assignedSplits ?? []).filter((a) => a.active)
+                    if (active.length === 0) return <span className="text-travefy-gray-400">No active split</span>
+                    return (
+                      <div className="space-y-0.5">
+                        {active.map((a) => {
+                          const s = splitById(a.splitId)
+                          return (
+                            <span key={a.id} className="block">
+                              {formatSplit(s)}
+                              {s?.supplier && <span className="text-travefy-gray-500"> · {s.supplier}</span>}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
+                  {m.canOverrideSplit && (
+                    <span
+                      title="This advisor can override their split per booking"
+                      className="mt-1 inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-semibold bg-travefy-blue-light text-travefy-blue border-travefy-blue/40"
+                    >
+                      Can override
+                    </span>
+                  )}
                   {m.tierProgression && (() => {
                     const prog = m.tierProgression!
                     const next = splits.find((s) => s.id === prog.nextSplitId)

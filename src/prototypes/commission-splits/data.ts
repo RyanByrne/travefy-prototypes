@@ -21,46 +21,20 @@ export interface TierProgression {
   currentSales: number
 }
 
-/** One entry in an advisor's commission-split change log. A snapshot: it records
- *  the split name + rate as they were at the time, so the log stays accurate even
- *  if the split definition later changes. Splits are never applied retroactively —
- *  each booking keeps the rate in effect on its date, so this is purely an audit
- *  trail of when an advisor's split changed. */
-export interface SplitChange {
-  /** ISO YYYY-MM-DD this split took effect. */
-  effectiveDate: string
-  splitName: string
-  percentage: number
-  /** Optional context, e.g. "Joined team", "Tier upgrade", "Rate change". */
-  note?: string
-}
-
-/** A supplier-specific split override. An advisor can have several at once; for a
- *  booking, the override matching its supplier wins over the default split
- *  ("most specific wins"). Reuses a CommissionSplit tier. */
-export interface SupplierSplit {
+/** A commission split assigned to an advisor. An advisor can have several at
+ *  once, each with its own effective date and active/inactive state. For a
+ *  booking, the active split matching its supplier wins over an active general
+ *  (unscoped) split; inactive splits are ignored. Never retroactive — a booking
+ *  keeps the rate in effect on its date. */
+export interface AssignedSplit {
   id: string
-  supplier: string
-  /** References a CommissionSplit.id (reuses the same tiers as the default). */
+  /** References a CommissionSplit.id. The split's own `supplier` scope decides
+   *  which bookings it applies to. */
   splitId: string
-  /** ISO YYYY-MM-DD this override takes effect (forward-only, like the default). */
+  /** ISO YYYY-MM-DD this split takes effect (forward-only). */
   effectiveDate: string
-  /** 'manual' = set by an admin; 'reward' = granted by an earned policy. */
-  source: 'manual' | 'reward'
-}
-
-/** An earned policy: once YTD sales reach `targetSales`, the advisor unlocks a
- *  high split (e.g. 100%) on ONE supplier of their choice. Redeemed by choosing a
- *  supplier, which creates a `SupplierSplit` with source 'reward'. */
-export interface SupplierReward {
-  targetSales: number
-  currentSales: number
-  /** The tier granted when redeemed (e.g. the 100% "Personal Travel" split). */
-  rewardSplitId: string
-  /** Supplier chosen once redeemed; undefined until an admin picks one. */
-  chosenSupplier?: string
-  /** ISO YYYY-MM-DD the reward split took effect. */
-  effectiveDate?: string
+  /** Inactive splits are kept for the record but ignored when resolving a rate. */
+  active: boolean
 }
 
 export interface TeamMember {
@@ -69,29 +43,19 @@ export interface TeamMember {
   email: string
   status: 'Accepted' | 'Pending' | 'Invited'
   role: 'Admin' | 'Member'
-  /** References a CommissionSplit.id — the default split (all suppliers). */
-  commissionSplitId: string
-  /** ISO YYYY-MM-DD the assigned tier takes effect — payouts use the tier
-   *  effective as of the booking/payout date. */
-  commissionSplitEffectiveDate: string
-  /** When true, this advisor can override their default split per booking. */
+  /** Commission splits assigned to this advisor (general + supplier-scoped). */
+  assignedSplits: AssignedSplit[]
+  /** When true, this advisor can override their split per booking. */
   canOverrideSplit: boolean
   /** Optional automatic upgrade to a higher tier once a sales target is hit. */
   tierProgression?: TierProgression
-  /** Supplier-specific split overrides — coexist with the default split. */
-  supplierSplits?: SupplierSplit[]
-  /** Optional earned "100% on a supplier of your choice" policy. */
-  supplierReward?: SupplierReward
   /** Bank account number for payouts (North American standard). */
   bankAccountNumber?: string
   /** 9-digit ABA routing number. */
   bankRoutingNumber?: string
-  /** Append-only log of split changes (oldest first). The last entry is the
-   *  current split; earlier entries are historical and never recalculated. */
-  splitHistory?: SplitChange[]
 }
 
-/** Suppliers available for supplier-specific splits (mirrors bookings-agency). */
+/** Suppliers available for scoping a split (mirrors bookings-agency). */
 export const SUPPLIERS = [
   'Royal Caribbean',
   'Norwegian Cruise Line',
@@ -124,26 +88,19 @@ export const fmtSplitDate = (iso: string) => {
 // ── Seed: team members ─────────────────────────────────────────────────────────
 
 export const initialTeam: TeamMember[] = [
-  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: false, bankAccountNumber: '000123456789', bankRoutingNumber: '021000021', splitHistory: [
-    { effectiveDate: '2025-07-01', splitName: 'Default', percentage: 65, note: 'Joined team' },
-    { effectiveDate: '2026-01-01', splitName: 'Tier 1', percentage: 70, note: 'Tier upgrade' },
+  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', canOverrideSplit: false, bankAccountNumber: '000123456789', bankRoutingNumber: '021000021', assignedSplits: [
+    { id: 'as-t1-1', splitId: 's2', effectiveDate: '2026-01-01', active: true },
   ] },
-  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: true,  tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 47200 }, bankAccountNumber: '000987654321', bankRoutingNumber: '011401533', supplierSplits: [
-    { id: 'ss-t2-1', supplier: 'Royal Caribbean', splitId: 's4', effectiveDate: '2026-03-01', source: 'manual' },
-  ], supplierReward: { targetSales: 75000, currentSales: 47200, rewardSplitId: 's7' }, splitHistory: [
-    { effectiveDate: '2025-09-15', splitName: 'Default', percentage: 65, note: 'Joined team' },
-    { effectiveDate: '2026-01-01', splitName: 'Tier 1', percentage: 70, note: 'Tier upgrade' },
+  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', canOverrideSplit: true,  tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 47200 }, bankAccountNumber: '000987654321', bankRoutingNumber: '011401533', assignedSplits: [
+    { id: 'as-t2-1', splitId: 's2', effectiveDate: '2026-01-01', active: true },
+    { id: 'as-t2-2', splitId: 's8', effectiveDate: '2026-03-01', active: true },
   ] },
-  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', commissionSplitId: 's2', commissionSplitEffectiveDate: '2026-07-01', canOverrideSplit: false, tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 38500 }, bankAccountNumber: '000456789012', bankRoutingNumber: '121000248', supplierSplits: [
-    { id: 'ss-t3-1', supplier: 'Norwegian Cruise Line', splitId: 's3', effectiveDate: '2026-07-01', source: 'manual' },
-  ], supplierReward: { targetSales: 35000, currentSales: 38500, rewardSplitId: 's7' }, splitHistory: [
-    { effectiveDate: '2026-02-01', splitName: 'Default', percentage: 65, note: 'Joined team' },
-    { effectiveDate: '2026-07-01', splitName: 'Tier 1', percentage: 70, note: 'Tier upgrade' },
+  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', canOverrideSplit: false, tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 38500 }, bankAccountNumber: '000456789012', bankRoutingNumber: '121000248', assignedSplits: [
+    { id: 'as-t3-1', splitId: 's1', effectiveDate: '2026-02-01', active: false },
+    { id: 'as-t3-2', splitId: 's2', effectiveDate: '2026-07-01', active: true },
   ] },
-  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  commissionSplitId: 's6', commissionSplitEffectiveDate: '2026-01-01', canOverrideSplit: true,  bankAccountNumber: '000345678901', bankRoutingNumber: '026009593', supplierSplits: [
-    { id: 'ss-t4-1', supplier: 'Marriott', splitId: 's7', effectiveDate: '2026-01-15', source: 'reward' },
-  ], supplierReward: { targetSales: 60000, currentSales: 82000, rewardSplitId: 's7', chosenSupplier: 'Marriott', effectiveDate: '2026-01-15' }, splitHistory: [
-    { effectiveDate: '2024-03-01', splitName: 'Tier 3', percentage: 80, note: 'Joined team' },
-    { effectiveDate: '2026-01-01', splitName: 'Veteran', percentage: 90, note: 'Promoted to Veteran' },
+  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  canOverrideSplit: true,  bankAccountNumber: '000345678901', bankRoutingNumber: '026009593', assignedSplits: [
+    { id: 'as-t4-1', splitId: 's6', effectiveDate: '2026-01-01', active: true },
+    { id: 'as-t4-2', splitId: 's9', effectiveDate: '2026-01-15', active: true },
   ] },
 ]

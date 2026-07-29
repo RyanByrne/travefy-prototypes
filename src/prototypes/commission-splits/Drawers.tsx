@@ -1,8 +1,8 @@
 import { clsx } from 'clsx'
-import { Award, ChevronDown, History, Landmark, Plus, TrendingUp, X } from 'lucide-react'
+import { Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
-import { fmtMoney, fmtSplitDate, formatSplit, SUPPLIERS, tierProgressPercent, type CommissionSplit, type SupplierSplit, type TeamMember } from './data'
+import { fmtMoney, fmtSplitDate, formatSplit, SUPPLIERS, tierProgressPercent, type AssignedSplit, type CommissionSplit, type TeamMember } from './data'
 
 /** Today as ISO YYYY-MM-DD (browser only — used to default effective dates). */
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -77,6 +77,7 @@ export function SplitDrawer({
   const [name, setName] = useState('')
   const [percentage, setPercentage] = useState('0%')
   const [description, setDescription] = useState('')
+  const [supplier, setSupplier] = useState('')
   const [effectiveDate, setEffectiveDate] = useState(todayISO())
 
   // A rate change vs. the saved split — only then does "effective date" matter.
@@ -87,6 +88,7 @@ export function SplitDrawer({
       setName(split?.name ?? '')
       setPercentage(split ? `${split.percentage}%` : '0%')
       setDescription(split?.description ?? '')
+      setSupplier(split?.supplier ?? '')
       setEffectiveDate(todayISO())
     }
   }, [open, split])
@@ -98,6 +100,7 @@ export function SplitDrawer({
       name: name.trim() || 'Untitled Split',
       description: description.trim(),
       percentage: pct,
+      supplier: supplier || undefined,
     })
   }
 
@@ -127,6 +130,19 @@ export function SplitDrawer({
             />
             <p className="text-xs text-travefy-gray-500 mt-1">Percent of commission assigned to advisor</p>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Applies to</label>
+          <select
+            value={supplier}
+            onChange={(e) => setSupplier(e.target.value)}
+            className="w-full max-w-xs px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+          >
+            <option value="">All suppliers</option>
+            {SUPPLIERS.map((s) => <option key={s} value={s}>{s} only</option>)}
+          </select>
+          <p className="text-xs text-travefy-gray-500 mt-1">Scope this split to one supplier, or leave as all suppliers. When assigned to an advisor, a supplier-scoped split only applies to that supplier’s bookings.</p>
         </div>
 
         {rateChanged && (
@@ -180,42 +196,31 @@ export function TeamMemberDrawer({
   onApplySplit: (next: TeamMember, message?: string) => void
 }) {
   const [role, setRole] = useState<TeamMember['role']>('Member')
-  const [splitId, setSplitId] = useState<string>('')
-  const [effectiveDate, setEffectiveDate] = useState<string>('')
   const [canOverrideSplit, setCanOverrideSplit] = useState(false)
   const [accountNumber, setAccountNumber] = useState('')
   const [routingNumber, setRoutingNumber] = useState('')
-  const [historyOpen, setHistoryOpen] = useState(false)
-  // Supplier-specific split add form
-  const [addingSupplier, setAddingSupplier] = useState(false)
-  const [newSupplier, setNewSupplier] = useState('')
-  const [newSupplierSplitId, setNewSupplierSplitId] = useState('')
-  const [newSupplierDate, setNewSupplierDate] = useState(todayISO())
-  // Reward redemption
-  const [rewardSupplier, setRewardSupplier] = useState('')
+  // Add-split form
+  const [addingSplit, setAddingSplit] = useState(false)
+  const [newSplitId, setNewSplitId] = useState('')
+  const [newSplitDate, setNewSplitDate] = useState(todayISO())
 
   useEffect(() => {
     if (open && member) {
       setRole(member.role)
-      setSplitId(member.commissionSplitId)
-      setEffectiveDate(member.commissionSplitEffectiveDate)
       setCanOverrideSplit(member.canOverrideSplit)
       setAccountNumber(member.bankAccountNumber ?? '')
       setRoutingNumber(member.bankRoutingNumber ?? '')
-      setAddingSupplier(false)
-      setNewSupplier('')
-      setNewSupplierSplitId(splits[0]?.id ?? '')
-      setNewSupplierDate(todayISO())
-      setRewardSupplier('')
+      setAddingSplit(false)
+      setNewSplitId(splits[0]?.id ?? '')
+      setNewSplitDate(todayISO())
     }
   }, [open, member, splits])
 
   if (!member) return null
 
-  const currentSplit = splits.find((s) => s.id === member.commissionSplitId)
-  const splitChanged = splitId !== member.commissionSplitId
+  const assignedSplits = member.assignedSplits ?? []
 
-  // The other editable fields, carried through both actions.
+  // Editable fields carried through the in-place split actions.
   const baseEdits = () => ({
     role,
     canOverrideSplit,
@@ -223,65 +228,34 @@ export function TeamMemberDrawer({
     bankRoutingNumber: routingNumber.trim() || undefined,
   })
 
-  // Distinct action: assign a new split. Appends a log entry (forward-only) and
-  // persists in place — separate from the general "Save and close" below.
-  const handleApplySplit = () => {
-    const nextSplit = splits.find((s) => s.id === splitId)
-    if (!nextSplit || !splitChanged) return
-    const note = !currentSplit
-      ? 'Tier change'
-      : nextSplit.percentage > currentSplit.percentage
-        ? 'Tier upgrade'
-        : nextSplit.percentage < currentSplit.percentage
-          ? 'Tier downgrade'
-          : 'Tier change'
-    onApplySplit({
-      ...member,
-      ...baseEdits(),
-      commissionSplitId: splitId,
-      commissionSplitEffectiveDate: effectiveDate,
-      splitHistory: [
-        ...(member.splitHistory ?? []),
-        { effectiveDate, splitName: nextSplit.name, percentage: nextSplit.percentage, note },
-      ],
-    })
+  // Persist an assigned-splits change in place (keeps the drawer open).
+  const persist = (next: AssignedSplit[], message: string) =>
+    onApplySplit({ ...member, ...baseEdits(), assignedSplits: next }, message)
+
+  const handleAddSplit = () => {
+    const tier = splits.find((s) => s.id === newSplitId)
+    if (!tier) return
+    const entry: AssignedSplit = { id: `as-${Date.now()}`, splitId: tier.id, effectiveDate: newSplitDate, active: true }
+    persist([...assignedSplits, entry], `Added ${formatSplit(tier)} to ${member.name}`)
   }
 
-  // Persist a supplier-split / reward change in place (keeps the drawer open),
-  // carrying through any pending role/override/banking edits.
-  const persist = (patch: Partial<TeamMember>, message: string) =>
-    onApplySplit({ ...member, ...baseEdits(), ...patch }, message)
-
-  const supplierSplits = member.supplierSplits ?? []
-
-  const handleAddSupplierSplit = () => {
-    const tier = splits.find((s) => s.id === newSupplierSplitId)
-    if (!newSupplier || !tier) return
-    const entry: SupplierSplit = { id: `ss-${Date.now()}`, supplier: newSupplier, splitId: tier.id, effectiveDate: newSupplierDate, source: 'manual' }
-    // One override per supplier — replace any existing for this supplier.
-    const next = [...supplierSplits.filter((s) => s.supplier !== newSupplier), entry]
-    persist({ supplierSplits: next }, `${newSupplier} → ${formatSplit(tier)} for ${member.name}`)
-  }
-
-  const handleRemoveSupplierSplit = (id: string) => {
-    const removed = supplierSplits.find((s) => s.id === id)
-    persist({ supplierSplits: supplierSplits.filter((s) => s.id !== id) }, removed ? `Removed ${removed.supplier} split` : `Updated ${member.name}`)
-  }
-
-  const handleGrantReward = () => {
-    const r = member.supplierReward
-    const tier = splits.find((s) => s.id === r?.rewardSplitId)
-    if (!r || !tier || !rewardSupplier) return
-    const entry: SupplierSplit = { id: `ss-reward-${Date.now()}`, supplier: rewardSupplier, splitId: tier.id, effectiveDate: todayISO(), source: 'reward' }
-    const nextSplits = [...supplierSplits.filter((s) => s.supplier !== rewardSupplier), entry]
+  const handleToggleActive = (id: string) => {
+    const target = assignedSplits.find((a) => a.id === id)
+    const tier = target && splits.find((s) => s.id === target.splitId)
     persist(
-      { supplierSplits: nextSplits, supplierReward: { ...r, chosenSupplier: rewardSupplier, effectiveDate: todayISO() } },
-      `Granted ${formatSplit(tier)} on ${rewardSupplier} to ${member.name}`,
+      assignedSplits.map((a) => (a.id === id ? { ...a, active: !a.active } : a)),
+      target ? `${tier ? formatSplit(tier) : 'Split'} ${target.active ? 'deactivated' : 'activated'}` : `Updated ${member.name}`,
     )
   }
 
-  // General save — role, override and banking. Splits (default, supplier, reward)
-  // are managed by their own distinct actions, so they're left untouched here.
+  const handleRemoveSplit = (id: string) => {
+    const target = assignedSplits.find((a) => a.id === id)
+    const tier = target && splits.find((s) => s.id === target.splitId)
+    persist(assignedSplits.filter((a) => a.id !== id), tier ? `Removed ${formatSplit(tier)}` : `Updated ${member.name}`)
+  }
+
+  // General save — role, override and banking. Splits are managed by their own
+  // in-place actions above, so they're left untouched here.
   const handleSave = () => {
     onSave({ ...member, ...baseEdits() })
   }
@@ -324,197 +298,70 @@ export function TeamMemberDrawer({
           </div>
         </div>
 
-        {/* Commission split — its own action, separate from the general Save */}
-        <div className="rounded-lg border border-travefy-gray-200 p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-travefy-navy">Default split <span className="font-normal text-travefy-gray-400">· all suppliers</span></h3>
-            <span className="text-xs text-travefy-gray-500">
-              Current: <span className="font-semibold text-travefy-navy">{formatSplit(currentSplit)}</span> · effective {fmtSplitDate(member.commissionSplitEffectiveDate)}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">New split</label>
-              <select
-                value={splitId}
-                onChange={(e) => {
-                  const next = e.target.value
-                  setSplitId(next)
-                  // A new tier takes effect today by default (editable); reverting
-                  // to the current tier restores its original effective date.
-                  setEffectiveDate(next === member.commissionSplitId ? member.commissionSplitEffectiveDate : todayISO())
-                }}
-                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-              >
-                {splits.map((s) => (
-                  <option key={s.id} value={s.id}>{formatSplit(s)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Effective date</label>
-              <input
-                type="date"
-                value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
-                className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-travefy-gray-500 mt-2">Bookings dated on or after this apply the new split when reconciled. Already-reconciled bookings keep the rate they were calculated at.</p>
-          <div className="mt-3 flex justify-end">
-            <button
-              onClick={handleApplySplit}
-              disabled={!splitChanged}
-              className="inline-flex items-center gap-1.5 rounded bg-travefy-blue px-4 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Apply split change
-            </button>
-          </div>
-        </div>
-
-        {/* Supplier-specific splits — override the default for a given supplier */}
+        {/* Commission splits — assign multiple; supplier-scoped ones win for that supplier */}
         <div className="rounded-lg border border-travefy-gray-200 p-4">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold text-travefy-navy">Supplier-specific splits</h3>
-            {!addingSupplier && (
-              <button onClick={() => setAddingSupplier(true)} className="inline-flex items-center gap-1 text-sm font-semibold text-travefy-blue hover:underline">
-                <Plus className="w-3.5 h-3.5" /> Add supplier split
+            <h3 className="text-sm font-semibold text-travefy-navy">Commission splits</h3>
+            {!addingSplit && (
+              <button onClick={() => setAddingSplit(true)} className="inline-flex items-center gap-1 text-sm font-semibold text-travefy-blue hover:underline">
+                <Plus className="w-3.5 h-3.5" /> Add split
               </button>
             )}
           </div>
-          <p className="mt-1 mb-3 text-xs text-travefy-gray-500">Override the default for a specific supplier. On a booking, the supplier’s split wins over the default.</p>
+          <p className="mt-1 mb-3 text-xs text-travefy-gray-500">On a booking, the active split matching its supplier wins over an active all-suppliers split. Inactive splits are ignored.</p>
 
-          {supplierSplits.length === 0 ? (
-            <p className="text-sm text-travefy-gray-500">No supplier-specific splits — the default applies to every supplier.</p>
+          {assignedSplits.length === 0 ? (
+            <p className="text-sm text-travefy-gray-500">No splits assigned yet.</p>
           ) : (
             <div className="space-y-1.5">
-              {supplierSplits.map((ss) => {
-                const tier = splits.find((s) => s.id === ss.splitId)
+              {assignedSplits.map((a) => {
+                const tier = splits.find((s) => s.id === a.splitId)
                 return (
-                  <div key={ss.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="min-w-0">
-                      <span className="font-medium text-travefy-navy">{ss.supplier}</span>
-                      <span className="text-travefy-gray-500"> → {formatSplit(tier)}</span>
-                      {ss.source === 'reward' && <span className="ml-2 rounded bg-travefy-warning-bg px-1.5 py-0.5 text-[11px] font-semibold text-travefy-warning-dark">Reward</span>}
-                      <span className="block text-xs text-travefy-gray-400">effective {fmtSplitDate(ss.effectiveDate)}</span>
+                  <div key={a.id} className={clsx('flex items-center justify-between gap-3 rounded border px-3 py-2 text-sm', a.active ? 'border-travefy-gray-200 bg-white' : 'border-travefy-gray-100 bg-travefy-gray-50')}>
+                    <span className={clsx('min-w-0', !a.active && 'opacity-60')}>
+                      <span className="font-medium text-travefy-navy">{tier?.name ?? 'Unknown split'}</span>
+                      <span className="text-travefy-gray-500"> ({tier?.percentage ?? 0}%)</span>
+                      <span className="ml-2 text-xs text-travefy-gray-500">{tier?.supplier ? `${tier.supplier} only` : 'All suppliers'}</span>
+                      <span className="block text-xs text-travefy-gray-400">effective {fmtSplitDate(a.effectiveDate)}</span>
                     </span>
-                    <button onClick={() => handleRemoveSupplierSplit(ss.id)} className="shrink-0 rounded p-1 text-travefy-gray-400 hover:text-travefy-danger" aria-label={`Remove ${ss.supplier} split`}>
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        onClick={() => handleToggleActive(a.id)}
+                        className={clsx('rounded border px-2 py-1 text-xs font-semibold', a.active ? 'border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark' : 'border-travefy-gray-300 bg-white text-travefy-gray-500')}
+                      >
+                        {a.active ? 'Active' : 'Inactive'}
+                      </button>
+                      <button onClick={() => handleRemoveSplit(a.id)} className="rounded p-1 text-travefy-gray-400 hover:text-travefy-danger" aria-label="Remove split">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 )
               })}
             </div>
           )}
 
-          {addingSupplier && (
+          {addingSplit && (
             <div className="mt-3 rounded-lg border border-travefy-gray-200 bg-travefy-gray-50 p-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-travefy-gray-600 mb-1">Supplier</label>
-                  <select value={newSupplier} onChange={(e) => setNewSupplier(e.target.value)} className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue">
-                    <option value="" disabled>Select supplier</option>
-                    {SUPPLIERS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <label className="block text-xs font-semibold text-travefy-gray-600 mb-1">Split</label>
+                  <select value={newSplitId} onChange={(e) => setNewSplitId(e.target.value)} className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue">
+                    {splits.map((s) => <option key={s.id} value={s.id}>{formatSplit(s)}{s.supplier ? ` · ${s.supplier}` : ''}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-travefy-gray-600 mb-1">Split</label>
-                  <select value={newSupplierSplitId} onChange={(e) => setNewSupplierSplitId(e.target.value)} className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue">
-                    {splits.map((s) => <option key={s.id} value={s.id}>{formatSplit(s)}</option>)}
-                  </select>
+                  <label className="block text-xs font-semibold text-travefy-gray-600 mb-1">Effective date</label>
+                  <input type="date" value={newSplitDate} onChange={(e) => setNewSplitDate(e.target.value)} className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue" />
                 </div>
               </div>
-              <div className="mt-3">
-                <label className="block text-xs font-semibold text-travefy-gray-600 mb-1">Effective date</label>
-                <input type="date" value={newSupplierDate} onChange={(e) => setNewSupplierDate(e.target.value)} className="w-full max-w-xs px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue" />
-              </div>
               <div className="mt-3 flex justify-end gap-2">
-                <button onClick={() => setAddingSupplier(false)} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
-                <button onClick={handleAddSupplierSplit} disabled={!newSupplier} className="inline-flex items-center gap-1.5 rounded bg-travefy-blue px-4 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark disabled:cursor-not-allowed disabled:opacity-40">Add split</button>
+                <button onClick={() => setAddingSplit(false)} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
+                <button onClick={handleAddSplit} className="inline-flex items-center gap-1.5 rounded bg-travefy-blue px-4 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark">Add split</button>
               </div>
             </div>
           )}
         </div>
-
-        {/* Earned reward — 100% (or other tier) on one supplier of their choice */}
-        {member.supplierReward && (() => {
-          const r = member.supplierReward!
-          const tier = splits.find((s) => s.id === r.rewardSplitId)
-          const pct = Math.min(100, Math.round((r.currentSales / r.targetSales) * 100))
-          const earned = r.currentSales >= r.targetSales
-          const remaining = Math.max(0, r.targetSales - r.currentSales)
-          return (
-            <div className="rounded-lg border border-travefy-warning-border bg-travefy-warning-bg/40 p-4">
-              <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-travefy-warning-dark" />
-                <span className="text-sm font-semibold text-travefy-navy">Supplier reward</span>
-              </div>
-              <p className="mt-1 text-sm text-travefy-gray-700">
-                Earn <span className="font-semibold text-travefy-navy">{formatSplit(tier)}</span> on one supplier of their choice at{' '}
-                <span className="font-semibold text-travefy-navy">{fmtMoney(r.targetSales)}</span> in YTD sales.
-              </p>
-
-              {r.chosenSupplier ? (
-                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-travefy-success-dark">
-                  <Award className="w-4 h-4" /> {formatSplit(tier)} on {r.chosenSupplier}{r.effectiveDate ? ` · since ${fmtSplitDate(r.effectiveDate)}` : ''}
-                </p>
-              ) : earned ? (
-                <div className="mt-3">
-                  <p className="mb-2 text-sm font-semibold text-travefy-navy">Unlocked — choose the supplier for {formatSplit(tier)}</p>
-                  <div className="flex items-end gap-2">
-                    <select value={rewardSupplier} onChange={(e) => setRewardSupplier(e.target.value)} className="flex-1 px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue">
-                      <option value="" disabled>Select supplier</option>
-                      {SUPPLIERS.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <button onClick={handleGrantReward} disabled={!rewardSupplier} className="rounded bg-travefy-blue px-4 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark disabled:cursor-not-allowed disabled:opacity-40">Grant</button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white">
-                    <div className="h-full rounded-full bg-travefy-warning-dark" style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between text-xs">
-                    <span className="text-travefy-gray-600">{fmtMoney(r.currentSales)} of {fmtMoney(r.targetSales)} ({pct}%)</span>
-                    <span className="font-semibold text-travefy-warning-dark">{fmtMoney(remaining)} to go</span>
-                  </div>
-                </>
-              )}
-            </div>
-          )
-        })()}
-
-        {member.splitHistory && member.splitHistory.length > 0 && (
-          <div className="border-t border-travefy-gray-100 pt-5">
-            <button
-              onClick={() => setHistoryOpen((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
-            >
-              <span className="flex items-center gap-2 text-sm font-semibold text-travefy-navy">
-                <History className="w-4 h-4 text-travefy-gray-500" />
-                Commission split history
-                <span className="rounded-full bg-travefy-gray-100 px-1.5 text-xs font-semibold text-travefy-gray-600">{member.splitHistory.length}</span>
-              </span>
-              <ChevronDown className={clsx('w-4 h-4 text-travefy-gray-400 transition-transform', historyOpen && 'rotate-180')} />
-            </button>
-            {historyOpen && (
-              <div className="mt-3 space-y-1.5">
-                {[...member.splitHistory].reverse().map((h, i) => (
-                  <div key={`${h.effectiveDate}-${i}`} className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate text-travefy-navy">
-                      {h.splitName} <span className="text-travefy-gray-500">({h.percentage}%)</span>
-                      {i === 0 && <span className="ml-2 rounded bg-travefy-blue-light px-1.5 py-0.5 text-[11px] font-semibold text-travefy-blue">Current</span>}
-                    </span>
-                    <span className="whitespace-nowrap text-xs text-travefy-gray-500">{fmtSplitDate(h.effectiveDate)}</span>
-                  </div>
-                ))}
-                <p className="pt-1 text-xs text-travefy-gray-400">Never retroactive — a booking keeps the rate in effect on its date.</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {member.tierProgression && (() => {
           const prog = member.tierProgression!

@@ -175,7 +175,7 @@ export function EditAdvisorBookingDrawer({ open, booking, onClose, onSave }: Pro
                 onChange={(e) => setSplitId(e.target.value)}
                 className={baseInput}
               >
-                {initialSplits.map((s) => (
+                {initialSplits.filter((s) => !s.supplier).map((s) => (
                   <option key={s.id} value={s.id}>{formatSplit(s)}</option>
                 ))}
                 <option value={OVERRIDE}>Override (custom %)</option>

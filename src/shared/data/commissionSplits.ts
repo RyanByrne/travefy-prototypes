@@ -15,6 +15,9 @@ export interface CommissionSplit {
   description: string
   /** 0-100, percent of commission assigned to the advisor */
   percentage: number
+  /** When set, this split only applies to bookings with this supplier. When
+   *  omitted, it's a general split that applies to all suppliers. */
+  supplier?: string
 }
 
 /** Display helper — formats a split as "Default (65%)". */
@@ -37,4 +40,7 @@ export const initialSplits: CommissionSplit[] = [
   { id: 's5', name: 'Tier 4', description: 'Basic tier 4 commission split.', percentage: 85 },
   { id: 's6', name: 'Veteran', description: 'Veteran commission split.', percentage: 90 },
   { id: 's7', name: 'Personal Travel', description: 'Personal advisor travel commission split.', percentage: 100 },
+  // Supplier-scoped splits — only apply to bookings with the named supplier.
+  { id: 's8', name: 'Royal Caribbean Special', description: 'Boosted split for Royal Caribbean bookings.', percentage: 85, supplier: 'Royal Caribbean' },
+  { id: 's9', name: 'Marriott Full', description: 'Full commission on Marriott bookings.', percentage: 100, supplier: 'Marriott' },
 ]
