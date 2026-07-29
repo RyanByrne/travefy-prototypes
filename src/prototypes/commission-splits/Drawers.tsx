@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Landmark, Plus, TrendingUp, X } from 'lucide-react'
+import { Building2, Landmark, Plus, TrendingUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
 import { fmtMoney, fmtSplitDate, formatSplit, SUPPLIERS, tierProgressPercent, type AssignedSplit, type CommissionSplit, type TeamMember } from './data'
@@ -196,6 +196,7 @@ export function TeamMemberDrawer({
   onApplySplit: (next: TeamMember, message?: string) => void
 }) {
   const [role, setRole] = useState<TeamMember['role']>('Member')
+  const [entityType, setEntityType] = useState<TeamMember['entityType']>('Agent')
   const [canOverrideSplit, setCanOverrideSplit] = useState(false)
   const [accountNumber, setAccountNumber] = useState('')
   const [routingNumber, setRoutingNumber] = useState('')
@@ -207,6 +208,7 @@ export function TeamMemberDrawer({
   useEffect(() => {
     if (open && member) {
       setRole(member.role)
+      setEntityType(member.entityType)
       setCanOverrideSplit(member.canOverrideSplit)
       setAccountNumber(member.bankAccountNumber ?? '')
       setRoutingNumber(member.bankRoutingNumber ?? '')
@@ -223,6 +225,7 @@ export function TeamMemberDrawer({
   // Editable fields carried through the in-place split actions.
   const baseEdits = () => ({
     role,
+    entityType,
     canOverrideSplit,
     bankAccountNumber: accountNumber.trim() || undefined,
     bankRoutingNumber: routingNumber.trim() || undefined,
@@ -265,10 +268,16 @@ export function TeamMemberDrawer({
       <div className="space-y-6">
         <div>
           <p className="text-sm text-travefy-navy">
-            Advisor <span className="text-travefy-danger">*</span>
+            {entityType === 'Agency' ? 'Agency' : 'Advisor'} <span className="text-travefy-danger">*</span>
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <Avatar name={member.name} size="sm" />
+            {entityType === 'Agency' ? (
+              <span className="flex h-8 w-8 items-center justify-center rounded bg-travefy-navy/10 text-travefy-navy">
+                <Building2 className="h-4 w-4" />
+              </span>
+            ) : (
+              <Avatar name={member.name} size="sm" />
+            )}
             <span className="text-base font-semibold text-travefy-navy">{member.name}</span>
           </div>
         </div>
@@ -285,6 +294,18 @@ export function TeamMemberDrawer({
         </div>
 
         <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Type</label>
+            <select
+              value={entityType}
+              onChange={(e) => setEntityType(e.target.value as TeamMember['entityType'])}
+              className="w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue"
+            >
+              <option value="Agent">Agent</option>
+              <option value="Agency">Agency</option>
+            </select>
+            <p className="text-xs text-travefy-gray-500 mt-1">Agents and agencies work the same way.</p>
+          </div>
           <div>
             <label className="block text-sm font-semibold text-travefy-navy mb-1.5">Role</label>
             <select

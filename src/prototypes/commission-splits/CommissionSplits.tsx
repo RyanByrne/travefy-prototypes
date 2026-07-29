@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, TrendingUp, X } from 'lucide-react'
+import { Building2, ChevronDown, ChevronUp, ClipboardCheck, MoreHorizontal, Plus, Search, TrendingUp, User, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
@@ -269,6 +269,7 @@ function TeamView({
           <thead className="bg-travefy-gray-50">
             <tr className="border-b border-travefy-gray-100">
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Name</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Type</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Email</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Status</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-travefy-gray-600 uppercase tracking-wide">Role</th>
@@ -285,9 +286,21 @@ function TeamView({
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <Avatar name={m.name} size="sm" />
+                    {m.entityType === 'Agency' ? (
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-travefy-navy/10 text-travefy-navy">
+                        <Building2 className="h-4 w-4" />
+                      </span>
+                    ) : (
+                      <Avatar name={m.name} size="sm" />
+                    )}
                     <span className="font-medium text-travefy-navy">{m.name}</span>
                   </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5 text-travefy-gray-700">
+                    {m.entityType === 'Agency' ? <Building2 className="h-3.5 w-3.5 text-travefy-gray-500" /> : <User className="h-3.5 w-3.5 text-travefy-gray-500" />}
+                    {m.entityType}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-travefy-gray-700">{m.email}</td>
                 <td className="px-4 py-3 text-travefy-gray-700">{m.status}</td>

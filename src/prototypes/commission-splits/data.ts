@@ -43,6 +43,9 @@ export interface TeamMember {
   email: string
   status: 'Accepted' | 'Pending' | 'Invited'
   role: 'Admin' | 'Member'
+  /** A team member is either an individual agent or an agency (consortia model).
+   *  Both function identically — same splits, payouts and banking. */
+  entityType: 'Agent' | 'Agency'
   /** Commission splits assigned to this advisor (general + supplier-scoped). */
   assignedSplits: AssignedSplit[]
   /** When true, this advisor can override their split per booking. */
@@ -88,19 +91,27 @@ export const fmtSplitDate = (iso: string) => {
 // ── Seed: team members ─────────────────────────────────────────────────────────
 
 export const initialTeam: TeamMember[] = [
-  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', canOverrideSplit: false, bankAccountNumber: '000123456789', bankRoutingNumber: '021000021', assignedSplits: [
+  { id: 't1', name: 'Liam Carter',   email: 'liam@travelco.com',   status: 'Accepted', role: 'Member', entityType: 'Agent', canOverrideSplit: false, bankAccountNumber: '000123456789', bankRoutingNumber: '021000021', assignedSplits: [
     { id: 'as-t1-1', splitId: 's2', effectiveDate: '2026-01-01', active: true },
   ] },
-  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', canOverrideSplit: true,  tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 47200 }, bankAccountNumber: '000987654321', bankRoutingNumber: '011401533', assignedSplits: [
+  { id: 't2', name: 'Sophie Turner', email: 'sophie@travelco.com', status: 'Accepted', role: 'Member', entityType: 'Agent', canOverrideSplit: true,  tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 47200 }, bankAccountNumber: '000987654321', bankRoutingNumber: '011401533', assignedSplits: [
     { id: 'as-t2-1', splitId: 's2', effectiveDate: '2026-01-01', active: true },
     { id: 'as-t2-2', splitId: 's8', effectiveDate: '2026-03-01', active: true },
   ] },
-  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', canOverrideSplit: false, tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 38500 }, bankAccountNumber: '000456789012', bankRoutingNumber: '121000248', assignedSplits: [
+  { id: 't3', name: 'Ethan Brooks',  email: 'ethan@travelco.com',  status: 'Accepted', role: 'Member', entityType: 'Agent', canOverrideSplit: false, tierProgression: { nextSplitId: 's3', targetSales: 50000, currentSales: 38500 }, bankAccountNumber: '000456789012', bankRoutingNumber: '121000248', assignedSplits: [
     { id: 'as-t3-1', splitId: 's1', effectiveDate: '2026-02-01', active: false },
     { id: 'as-t3-2', splitId: 's2', effectiveDate: '2026-07-01', active: true },
   ] },
-  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  canOverrideSplit: true,  bankAccountNumber: '000345678901', bankRoutingNumber: '026009593', assignedSplits: [
+  { id: 't4', name: 'Mia Johnson',   email: 'mia@travelco.com',    status: 'Accepted', role: 'Admin',  entityType: 'Agent', canOverrideSplit: true,  bankAccountNumber: '000345678901', bankRoutingNumber: '026009593', assignedSplits: [
     { id: 'as-t4-1', splitId: 's6', effectiveDate: '2026-01-01', active: true },
     { id: 'as-t4-2', splitId: 's9', effectiveDate: '2026-01-15', active: true },
+  ] },
+  // Agencies / consortia members — function identically to agents.
+  { id: 't5', name: 'Coastline Travel Co.',   email: 'ops@coastlinetravel.com',   status: 'Accepted', role: 'Member', entityType: 'Agency', canOverrideSplit: true,  bankAccountNumber: '000552310098', bankRoutingNumber: '031201360', assignedSplits: [
+    { id: 'as-t5-1', splitId: 's3', effectiveDate: '2026-01-01', active: true },
+    { id: 'as-t5-2', splitId: 's8', effectiveDate: '2026-04-01', active: true },
+  ] },
+  { id: 't6', name: 'Summit Journeys Agency', email: 'team@summitjourneys.com',    status: 'Accepted', role: 'Member', entityType: 'Agency', canOverrideSplit: false, bankAccountNumber: '000778450021', bankRoutingNumber: '011000015', assignedSplits: [
+    { id: 'as-t6-1', splitId: 's4', effectiveDate: '2026-02-15', active: true },
   ] },
 ]
