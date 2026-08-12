@@ -131,15 +131,19 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
               </div>
             )}
 
-            <div>
-              <label className={label}>Supplier</label>
-              <Input value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Search for supplier" trailingIcon={<Search className="h-4 w-4" />} />
-            </div>
+            {!isAdjustment && (
+              <>
+                <div>
+                  <label className={label}>Supplier</label>
+                  <Input value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Search for supplier" trailingIcon={<Search className="h-4 w-4" />} />
+                </div>
 
-            <div>
-              <label className={label}>Statement Reference</label>
-              <Input value={statementRef} onChange={(e) => setStatementRef(e.target.value)} trailingIcon={<Search className="h-4 w-4" />} />
-            </div>
+                <div>
+                  <label className={label}>Statement Reference</label>
+                  <Input value={statementRef} onChange={(e) => setStatementRef(e.target.value)} trailingIcon={<Search className="h-4 w-4" />} />
+                </div>
+              </>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -161,7 +165,9 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
             </div>
           </div>
 
-          {/* Adjustments */}
+          {/* Adjustments — not shown on adjustment-type commissions */}
+          {!isAdjustment && (
+            <>
           <div className="mt-6 flex items-center justify-between">
             <h3 className="text-base font-semibold text-travefy-navy">Adjustments</h3>
             <button onClick={addAdjustment} className="rounded bg-travefy-blue px-3 py-1.5 text-sm font-semibold text-white hover:bg-travefy-blue-dark">Add Adjustment</button>
@@ -264,6 +270,8 @@ export function CommissionDrawer({ open, commission, onSave, onRemove, onClose }
               </div>
               <p className="pt-1 text-xs text-travefy-gray-400">Each adjustment is split between the advisor and agency by its own advisor split %.</p>
             </div>
+          )}
+            </>
           )}
         </div>
 
