@@ -1,7 +1,6 @@
 import { clsx } from 'clsx'
 import { Building2, Check, CircleDollarSign, Copy, Landmark, Mail, MapPin, Pencil, Phone, Shield, TrendingUp, User, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
-import { Avatar } from '../../shared/components'
 import { SplitCombobox } from './SplitCombobox'
 import {
   currentGeneralSplit,
@@ -40,19 +39,23 @@ const TABS: { id: Tab; icon: typeof User }[] = [
 const inputCls =
   'w-full px-3 py-2.5 border border-travefy-gray-200 rounded text-sm bg-white text-travefy-gray-700 focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue'
 const fieldLabel = 'block text-sm font-semibold text-travefy-navy mb-1.5'
+const cardLabel = 'text-sm font-semibold text-travefy-gray-500'
+
+const initials = (n: string) =>
+  n.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
 /** Read-only contact chip with a copy affordance (email / phone / address). */
 function ContactChip({ icon: Icon, value }: { icon: typeof Mail; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded border border-travefy-gray-200 bg-white px-2.5 py-1 text-xs text-travefy-gray-700">
-      <Icon className="h-3.5 w-3.5 text-travefy-gray-400" />
+    <span className="inline-flex items-center gap-2 rounded-md bg-travefy-gray-100 px-3 py-1.5 text-sm text-travefy-gray-700">
+      <Icon className="h-4 w-4 text-travefy-gray-500" />
       {value}
       <button
         onClick={() => navigator.clipboard?.writeText(value)}
-        className="text-travefy-gray-300 hover:text-travefy-blue"
+        className="text-travefy-blue/60 hover:text-travefy-blue"
         aria-label={`Copy ${value}`}
       >
-        <Copy className="h-3 w-3" />
+        <Copy className="h-3.5 w-3.5" />
       </button>
     </span>
   )
@@ -146,27 +149,29 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-travefy-navy/40 backdrop-blur-[1px]" onClick={onClose} />
-      <div className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl">
+      <div className="absolute right-0 top-0 flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-travefy-gray-100 px-6 py-3.5">
-          <h2 className="text-sm font-semibold text-travefy-navy">Member</h2>
-          <button onClick={onClose} className="text-travefy-gray-400 hover:text-travefy-gray-700" aria-label="Close"><X className="h-5 w-5" /></button>
+        <div className="flex items-center justify-between border-b border-travefy-gray-100 px-8 py-4">
+          <h2 className="text-lg font-semibold text-travefy-navy">Member</h2>
+          <button onClick={onClose} className="text-travefy-gray-400 hover:text-travefy-gray-700" aria-label="Close"><X className="h-6 w-6" /></button>
         </div>
 
         {/* Profile block */}
-        <div className="px-6 pt-5 pb-4">
-          <div className="flex items-start gap-4">
+        <div className="px-8 py-6">
+          <div className="flex items-center gap-5">
             {isAgency ? (
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-travefy-navy/10 text-travefy-navy">
-                <Building2 className="h-6 w-6" />
+              <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-travefy-navy/10 text-travefy-navy ring-4 ring-travefy-gray-100">
+                <Building2 className="h-9 w-9" />
               </span>
             ) : (
-              <Avatar name={member.name} size="xl" />
+              <span className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-travefy-gray-200 text-2xl font-semibold text-travefy-gray-600 ring-4 ring-travefy-gray-100">
+                {initials(member.name)}
+              </span>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-base font-semibold text-travefy-navy">{member.name}</p>
-              {organization && <p className="text-sm text-travefy-gray-500">{organization}</p>}
-              <div className="mt-2 flex flex-wrap gap-2">
+              <p className="text-2xl font-bold text-travefy-navy">{member.name}</p>
+              {organization && <p className="mt-0.5 text-base text-travefy-gray-500">{organization}</p>}
+              <div className="mt-3 flex flex-wrap gap-2">
                 <ContactChip icon={Mail} value={member.email} />
                 {member.phone && <ContactChip icon={Phone} value={member.phone} />}
                 {member.address && <ContactChip icon={MapPin} value={member.address} />}
@@ -176,7 +181,7 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 border-b border-travefy-gray-200 px-6">
+        <div className="flex items-center justify-between border-b border-travefy-gray-200 px-8">
           {TABS.map(({ id, icon: Icon }) => {
             const active = tab === id
             return (
@@ -184,11 +189,11 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
                 key={id}
                 onClick={() => setTab(id)}
                 className={clsx(
-                  '-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors',
+                  '-mb-px flex items-center gap-2 border-b-2 py-3.5 text-[15px] font-semibold transition-colors',
                   active ? 'border-travefy-blue text-travefy-blue' : 'border-transparent text-travefy-gray-500 hover:text-travefy-gray-800',
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-[18px] w-[18px]" />
                 {id}
               </button>
             )
@@ -196,76 +201,78 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 overflow-y-auto bg-travefy-gray-50/40 px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
           {tab === 'Commissions and Payouts' && (
-            <div className="rounded-lg border border-travefy-gray-200 bg-white p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-travefy-navy">Commission Splits</h3>
+            <div className="rounded-xl border border-travefy-gray-200 bg-white">
+              <div className="flex items-center justify-between border-b border-travefy-gray-100 px-6 py-4">
+                <h3 className="text-base font-semibold text-travefy-navy">Commission Splits</h3>
                 {editingSplit ? (
-                  <button onClick={applySplitChange} className="inline-flex items-center gap-1.5 rounded bg-travefy-blue px-3 py-1.5 text-sm font-semibold text-white hover:bg-travefy-blue-dark">
+                  <button onClick={applySplitChange} className="inline-flex items-center gap-1.5 rounded-md bg-travefy-blue px-3.5 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark">
                     <Check className="h-4 w-4" /> Done
                   </button>
                 ) : (
-                  <button onClick={startEdit} className="inline-flex items-center gap-1.5 rounded border border-travefy-gray-200 px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50">
+                  <button onClick={startEdit} className="inline-flex items-center gap-1.5 rounded-md border border-travefy-gray-200 px-3.5 py-2 text-sm font-semibold text-travefy-blue hover:bg-travefy-gray-50">
                     <Pencil className="h-3.5 w-3.5" /> Edit
                   </button>
                 )}
               </div>
 
-              {editingSplit ? (
-                <div className="mt-4">
-                  <label className={fieldLabel}>Select Advisor Split</label>
-                  <SplitCombobox options={generalSplits} value={draftSplitId} onChange={setDraftSplitId} onCreate={onCreateSplit} />
-                  <p className="mt-1 text-xs text-travefy-gray-500">Search, or type a name and “Add” to create a new split.</p>
+              <div className="p-6">
+                {editingSplit ? (
+                  <div>
+                    <label className={fieldLabel}>Select Advisor Split</label>
+                    <SplitCombobox options={generalSplits} value={draftSplitId} onChange={setDraftSplitId} onCreate={onCreateSplit} />
+                    <p className="mt-1 text-xs text-travefy-gray-500">Search, or type a name and “Add” to create a new split.</p>
 
-                  {history.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 gap-y-1.5 text-sm">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">History</span>
-                      <span className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">Set on</span>
-                      {history.map((h) => {
-                        const t = splits.find((s) => s.id === h.splitId)
-                        return (
-                          <Fragment key={h.id}>
-                            <span className="text-travefy-gray-700">{t?.name} {t ? `${t.percentage}%` : ''}</span>
-                            <span className="text-travefy-gray-700">{fmtSplitDate(h.effectiveDate)}</span>
-                          </Fragment>
-                        )
-                      })}
+                    {history.length > 0 && (
+                      <div className="mt-6 grid grid-cols-2 gap-y-2 text-sm">
+                        <span className={cardLabel}>History</span>
+                        <span className={cardLabel}>Set on</span>
+                        {history.map((h) => {
+                          const t = splits.find((s) => s.id === h.splitId)
+                          return (
+                            <Fragment key={h.id}>
+                              <span className="text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</span>
+                              <span className="text-travefy-navy">{fmtSplitDate(h.effectiveDate)}</span>
+                            </Fragment>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-y-8">
+                    <div>
+                      <p className={cardLabel}>Current Split</p>
+                      <p className="mt-1 text-base text-travefy-navy">{current ? formatSplit(currentTier) : 'No split assigned'}</p>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-4 grid grid-cols-2 gap-y-4 text-sm">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">Current Split</p>
-                    <p className="mt-0.5 text-travefy-navy">{current ? formatSplit(currentTier) : 'No split assigned'}</p>
+                    <div>
+                      <p className={cardLabel}>Since</p>
+                      <p className="mt-1 text-base text-travefy-navy">{current ? fmtSplitDate(current.effectiveDate) : '—'}</p>
+                    </div>
+                    {history[0] && (() => {
+                      const t = splits.find((s) => s.id === history[0].splitId)
+                      return (
+                        <>
+                          <div>
+                            <p className={cardLabel}>History</p>
+                            <p className="mt-1 text-base text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</p>
+                          </div>
+                          <div>
+                            <p className={cardLabel}>Date Set</p>
+                            <p className="mt-1 text-base text-travefy-navy">{fmtSplitDate(history[0].effectiveDate)}</p>
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">Since</p>
-                    <p className="mt-0.5 text-travefy-navy">{current ? fmtSplitDate(current.effectiveDate) : '—'}</p>
-                  </div>
-                  {history[0] && (() => {
-                    const t = splits.find((s) => s.id === history[0].splitId)
-                    return (
-                      <>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">History</p>
-                          <p className="mt-0.5 text-travefy-gray-700">{t?.name} {t ? `${t.percentage}%` : ''}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-travefy-gray-500">Date Set</p>
-                          <p className="mt-0.5 text-travefy-gray-700">{fmtSplitDate(history[0].effectiveDate)}</p>
-                        </div>
-                      </>
-                    )
-                  })()}
-                </div>
-              )}
+                )}
 
-              <p className="mt-4 border-t border-travefy-gray-100 pt-3 text-xs italic text-travefy-gray-500">
-                Commission split changes will apply to all commissions that have NOT yet been disbursed. Disbursed
-                commission splits are locked after payout.
-              </p>
+                <p className="mt-8 text-sm italic text-travefy-gray-500">
+                  Commission split changes will apply to all commissions that have NOT yet been disbursed. Disbursed
+                  commission splits are locked after payout.
+                </p>
+              </div>
             </div>
           )}
 
@@ -375,9 +382,9 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-travefy-gray-200 bg-travefy-gray-50 px-6 py-4">
+        <div className="flex items-center justify-between border-t border-travefy-gray-200 bg-travefy-gray-50 px-8 py-4">
           <button onClick={onClose} className="text-sm font-semibold text-travefy-blue hover:underline">Cancel</button>
-          <button onClick={handleSave} className="rounded bg-travefy-blue px-5 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark">Save and close</button>
+          <button onClick={handleSave} className="rounded-md bg-travefy-blue px-5 py-2 text-sm font-semibold text-white hover:bg-travefy-blue-dark">Save and close</button>
         </div>
       </div>
     </div>
