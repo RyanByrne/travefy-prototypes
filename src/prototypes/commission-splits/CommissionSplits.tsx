@@ -432,6 +432,15 @@ export function CommissionSplits() {
     setSplits((prev) => prev.filter((x) => x.id !== s.id))
     showToast(`Deleted "${s.name}"`)
   }
+  // Quick-create a split from the member drawer's combobox. Starts at 0% — its
+  // rate can be refined later from the Commission Splits view.
+  const createSplitFromName = (name: string): string => {
+    const id = `s-${Date.now()}`
+    const next: CommissionSplit = { id, name: name.trim() || 'Untitled Split', description: '', percentage: 0 }
+    setSplits((prev) => [...prev, next])
+    showToast(`Created "${next.name}" — set its rate in Commission Splits`)
+    return id
+  }
 
   // ── Team CRUD
   const saveMember = (next: TeamMember) => {
@@ -507,6 +516,7 @@ export function CommissionSplits() {
         splits={splits}
         onSave={saveMember}
         onApplySplit={applyMemberSplit}
+        onCreateSplit={createSplitFromName}
       />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />

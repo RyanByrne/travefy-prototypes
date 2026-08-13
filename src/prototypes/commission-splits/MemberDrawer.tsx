@@ -1,7 +1,8 @@
 import { clsx } from 'clsx'
-import { Building2, Check, CircleDollarSign, Copy, Landmark, Mail, MapPin, Pencil, Phone, Search, Shield, TrendingUp, User, X } from 'lucide-react'
+import { Building2, Check, CircleDollarSign, Copy, Landmark, Mail, MapPin, Pencil, Phone, Shield, TrendingUp, User, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 import { Avatar } from '../../shared/components'
+import { SplitCombobox } from './SplitCombobox'
 import {
   currentGeneralSplit,
   fmtMoney,
@@ -22,6 +23,8 @@ interface Props {
   onSave: (next: TeamMember) => void
   /** Apply a split change as its own action (persists, keeps modal open). */
   onApplySplit: (next: TeamMember, message?: string) => void
+  /** Create a new commission split from a typed name; returns its new id. */
+  onCreateSplit: (name: string) => string
 }
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -63,7 +66,7 @@ function ContactChip({ icon: Icon, value }: { icon: typeof Mail; value: string }
  * member's general assigned splits; changing it supersedes the current split and
  * logs the old one.
  */
-export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySplit }: Props) {
+export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySplit, onCreateSplit }: Props) {
   const [tab, setTab] = useState<Tab>('Commissions and Payouts')
   const [role, setRole] = useState<TeamMember['role']>('Member')
   const [entityType, setEntityType] = useState<TeamMember['entityType']>('Agent')
@@ -212,12 +215,8 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
               {editingSplit ? (
                 <div className="mt-4">
                   <label className={fieldLabel}>Select Advisor Split</label>
-                  <div className="relative">
-                    <select value={draftSplitId} onChange={(e) => setDraftSplitId(e.target.value)} className={clsx(inputCls, 'appearance-none pr-9')}>
-                      {generalSplits.map((s) => <option key={s.id} value={s.id}>{formatSplit(s)}</option>)}
-                    </select>
-                    <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-travefy-gray-400" />
-                  </div>
+                  <SplitCombobox options={generalSplits} value={draftSplitId} onChange={setDraftSplitId} onCreate={onCreateSplit} />
+                  <p className="mt-1 text-xs text-travefy-gray-500">Search, or type a name and “Add” to create a new split.</p>
 
                   {history.length > 0 && (
                     <div className="mt-4 grid grid-cols-2 gap-y-1.5 text-sm">
