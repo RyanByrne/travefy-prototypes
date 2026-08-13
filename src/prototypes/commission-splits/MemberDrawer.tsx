@@ -22,8 +22,8 @@ interface Props {
   onSave: (next: TeamMember) => void
   /** Apply a split change as its own action (persists, keeps modal open). */
   onApplySplit: (next: TeamMember, message?: string) => void
-  /** Create a new commission split from a typed name; returns its new id. */
-  onCreateSplit: (name: string) => string
+  /** Create a new commission split from a typed name + %; returns its new id. */
+  onCreateSplit: (name: string, percentage: number) => string
 }
 
 const todayISO = () => new Date().toISOString().slice(0, 10)

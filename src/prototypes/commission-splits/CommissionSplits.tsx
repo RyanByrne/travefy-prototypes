@@ -432,13 +432,12 @@ export function CommissionSplits() {
     setSplits((prev) => prev.filter((x) => x.id !== s.id))
     showToast(`Deleted "${s.name}"`)
   }
-  // Quick-create a split from the member drawer's combobox. Starts at 0% — its
-  // rate can be refined later from the Commission Splits view.
-  const createSplitFromName = (name: string): string => {
+  // Quick-create a split from the member drawer's combobox (name + %).
+  const createSplitFromName = (name: string, percentage: number): string => {
     const id = `s-${Date.now()}`
-    const next: CommissionSplit = { id, name: name.trim() || 'Untitled Split', description: '', percentage: 0 }
+    const next: CommissionSplit = { id, name: name.trim() || 'Untitled Split', description: '', percentage }
     setSplits((prev) => [...prev, next])
-    showToast(`Created "${next.name}" — set its rate in Commission Splits`)
+    showToast(`Created "${next.name}" (${percentage}%)`)
     return id
   }
 
