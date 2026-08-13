@@ -4,7 +4,8 @@ import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AccountIcon, AppNav, Avatar, SignOutIcon, Toast, type NavNode, type ToastMessage, type UserMenuItem } from '../../shared/components'
 import { PrototypeShell } from '../../shared/layouts/PrototypeShell'
-import { SplitDrawer, TeamMemberDrawer } from './Drawers'
+import { SplitDrawer } from './Drawers'
+import { MemberModal } from './MemberModal'
 import { fmtMoneyShort, formatSplit, initialSplits, initialTeam, tierProgressPercent, type CommissionSplit, type TeamMember } from './data'
 
 // ── Nav config (Compass IA) ────────────────────────────────────────────────────
@@ -499,7 +500,7 @@ export function CommissionSplits() {
         onSave={saveSplit}
       />
 
-      <TeamMemberDrawer
+      <MemberModal
         open={teamDrawer.open}
         onClose={() => setTeamDrawer({ open: false, member: null })}
         member={teamDrawer.member}
