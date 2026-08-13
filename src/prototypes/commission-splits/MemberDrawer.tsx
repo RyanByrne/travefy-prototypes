@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
-import { Building2, Check, CircleDollarSign, Copy, Landmark, Mail, MapPin, Pencil, Phone, Shield, TrendingUp, User, X } from 'lucide-react'
-import { Fragment, useEffect, useState } from 'react'
+import { Building2, Check, ChevronDown, CircleDollarSign, Copy, Landmark, Mail, MapPin, Pencil, Phone, Shield, TrendingUp, User, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { SplitCombobox } from './SplitCombobox'
 import {
   currentGeneralSplit,
@@ -80,6 +80,7 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
   // Commission Splits card view/edit state
   const [editingSplit, setEditingSplit] = useState(false)
   const [draftSplitId, setDraftSplitId] = useState('')
+  const [historyExpanded, setHistoryExpanded] = useState(false)
 
   useEffect(() => {
     if (open && member) {
@@ -91,6 +92,7 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
       setAccountNumber(member.bankAccountNumber ?? '')
       setRoutingNumber(member.bankRoutingNumber ?? '')
       setEditingSplit(false)
+      setHistoryExpanded(false)
     }
   }, [open, member])
 
@@ -223,49 +225,57 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
                     <label className={fieldLabel}>Select Advisor Split</label>
                     <SplitCombobox options={generalSplits} value={draftSplitId} onChange={setDraftSplitId} onCreate={onCreateSplit} />
                     <p className="mt-1 text-xs text-travefy-gray-500">Search, or type a name and “Add” to create a new split.</p>
-
-                    {history.length > 0 && (
-                      <div className="mt-6 grid grid-cols-2 gap-y-2 text-sm">
-                        <span className={cardLabel}>History</span>
-                        <span className={cardLabel}>Set on</span>
-                        {history.map((h) => {
-                          const t = splits.find((s) => s.id === h.splitId)
-                          return (
-                            <Fragment key={h.id}>
-                              <span className="text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</span>
-                              <span className="text-travefy-navy">{fmtSplitDate(h.effectiveDate)}</span>
-                            </Fragment>
-                          )
-                        })}
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-y-8">
-                    <div>
-                      <p className={cardLabel}>Current Split</p>
-                      <p className="mt-1 text-base text-travefy-navy">{current ? formatSplit(currentTier) : 'No split assigned'}</p>
+                  <>
+                    <div className="grid grid-cols-2 gap-y-8">
+                      <div>
+                        <p className={cardLabel}>Current Split</p>
+                        <p className="mt-1 text-base text-travefy-navy">{current ? formatSplit(currentTier) : 'No split assigned'}</p>
+                      </div>
+                      <div>
+                        <p className={cardLabel}>Since</p>
+                        <p className="mt-1 text-base text-travefy-navy">{current ? fmtSplitDate(current.effectiveDate) : '—'}</p>
+                      </div>
+                      {history[0] && (() => {
+                        const t = splits.find((s) => s.id === history[0].splitId)
+                        return (
+                          <>
+                            <div>
+                              <p className={cardLabel}>History</p>
+                              <p className="mt-1 text-base text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</p>
+                            </div>
+                            <div>
+                              <p className={cardLabel}>Date Set</p>
+                              <p className="mt-1 text-base text-travefy-navy">{fmtSplitDate(history[0].effectiveDate)}</p>
+                            </div>
+                          </>
+                        )
+                      })()}
                     </div>
-                    <div>
-                      <p className={cardLabel}>Since</p>
-                      <p className="mt-1 text-base text-travefy-navy">{current ? fmtSplitDate(current.effectiveDate) : '—'}</p>
-                    </div>
-                    {history[0] && (() => {
-                      const t = splits.find((s) => s.id === history[0].splitId)
-                      return (
-                        <>
-                          <div>
-                            <p className={cardLabel}>History</p>
-                            <p className="mt-1 text-base text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</p>
+
+                    {history.length > 1 && (
+                      <div className="mt-6">
+                        <button onClick={() => setHistoryExpanded((v) => !v)} className="flex items-center gap-1 text-sm font-semibold text-travefy-blue hover:underline">
+                          {historyExpanded ? 'Show less' : `Show ${history.length - 1} earlier`}
+                          <ChevronDown className={clsx('h-4 w-4 transition-transform', historyExpanded && 'rotate-180')} />
+                        </button>
+                        {historyExpanded && (
+                          <div className="mt-3 space-y-2 border-t border-travefy-gray-100 pt-3">
+                            {history.slice(1).map((h) => {
+                              const t = splits.find((s) => s.id === h.splitId)
+                              return (
+                                <div key={h.id} className="flex items-center justify-between text-sm">
+                                  <span className="text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</span>
+                                  <span className="text-travefy-gray-500">{fmtSplitDate(h.effectiveDate)}</span>
+                                </div>
+                              )
+                            })}
                           </div>
-                          <div>
-                            <p className={cardLabel}>Date Set</p>
-                            <p className="mt-1 text-base text-travefy-navy">{fmtSplitDate(history[0].effectiveDate)}</p>
-                          </div>
-                        </>
-                      )
-                    })()}
-                  </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <p className="mt-8 text-sm italic text-travefy-gray-500">
