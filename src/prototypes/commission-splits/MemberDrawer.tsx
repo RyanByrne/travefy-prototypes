@@ -242,7 +242,7 @@ export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySpl
                         return (
                           <>
                             <div>
-                              <p className={cardLabel}>History</p>
+                              <p className={cardLabel}>Last</p>
                               <p className="mt-1 text-base text-travefy-navy">{t?.name} {t ? `${t.percentage}%` : ''}</p>
                             </div>
                             <div>
