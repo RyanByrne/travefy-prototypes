@@ -56,13 +56,14 @@ function ContactChip({ icon: Icon, value }: { icon: typeof Mail; value: string }
 }
 
 /**
- * Member modal (Phase 1) — a centered, tabbed modal matching the High-Fidelity
- * design: profile header, Overview / Organization / Access / Commissions tabs,
- * and a Commission Splits card with a view ↔ edit pattern. The commission card
- * shows a single current split + history, derived from the member's general
- * assigned splits; changing it supersedes the current split and logs the old one.
+ * Member drawer (Phase 1) — a right-side, tabbed drawer matching the
+ * High-Fidelity design: profile header, Overview / Organization / Access /
+ * Commissions tabs, and a Commission Splits card with a view ↔ edit pattern. The
+ * commission card shows a single current split + history, derived from the
+ * member's general assigned splits; changing it supersedes the current split and
+ * logs the old one.
  */
-export function MemberModal({ open, onClose, member, splits, onSave, onApplySplit }: Props) {
+export function MemberDrawer({ open, onClose, member, splits, onSave, onApplySplit }: Props) {
   const [tab, setTab] = useState<Tab>('Commissions and Payouts')
   const [role, setRole] = useState<TeamMember['role']>('Member')
   const [entityType, setEntityType] = useState<TeamMember['entityType']>('Agent')
@@ -140,9 +141,9 @@ export function MemberModal({ open, onClose, member, splits, onSave, onApplySpli
   const handleSave = () => onSave({ ...member, ...baseEdits() })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-travefy-navy/40 backdrop-blur-[1px]" onClick={onClose} />
-      <div className="relative flex h-[86vh] max-h-[880px] w-full max-w-3xl flex-col rounded-lg bg-white shadow-xl">
+      <div className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-travefy-gray-100 px-6 py-3.5">
           <h2 className="text-sm font-semibold text-travefy-navy">Member</h2>
