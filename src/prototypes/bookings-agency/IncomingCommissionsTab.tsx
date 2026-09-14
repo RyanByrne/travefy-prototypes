@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { ChevronDown, Clock, DollarSign, Landmark, Search } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import { useState } from 'react'
 import {
   INCOMING_STATUS_LABEL,
@@ -12,26 +12,6 @@ interface Props {
   commissions: IncomingCommission[]
   /** Statuses that don't apply to this role's context (hidden from cards, filter and table). */
   hideStatuses?: IncomingStatus[]
-}
-
-// ── Stat card (matches CommissionsTab) ────────────────────────────────────────
-
-function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="bg-white border border-travefy-gray-200 rounded-lg px-6 py-5">
-      <div className="w-8 h-8 rounded-full bg-travefy-gray-100 flex items-center justify-center text-travefy-gray-500 mb-3">{icon}</div>
-      <p className="text-3xl font-semibold text-travefy-navy leading-none">{value}</p>
-      <p className="text-sm text-travefy-gray-600 mt-2">{label}</p>
-    </div>
-  )
-}
-
-// ── Per-status meta (icon for the stat cards) ─────────────────────────────────
-
-const STATUS_META: Record<IncomingStatus, { icon: React.ReactNode }> = {
-  'paid-by-supplier': { icon: <DollarSign className="w-4 h-4" /> },
-  'in-payout': { icon: <Landmark className="w-4 h-4" /> },
-  upcoming: { icon: <Clock className="w-4 h-4" /> },
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -78,8 +58,6 @@ function FilterChip({ options, selected, onSelect }: { options: IncomingStatus[]
 
 // ── Main (read-only) ──────────────────────────────────────────────────────────
 
-const fmtStat = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmtIncomingMoney(n))
-
 export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<IncomingStatus | null>(null)
@@ -87,8 +65,6 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props
   const ALL: IncomingStatus[] = ['paid-by-supplier', 'in-payout', 'upcoming']
   const visibleStatuses = ALL.filter((s) => !hideStatuses.includes(s))
   const inScope = commissions.filter((c) => visibleStatuses.includes(c.status))
-
-  const sumBy = (s: IncomingStatus) => inScope.filter((c) => c.status === s).reduce((t, c) => t + c.amount, 0)
 
   const filtered = inScope.filter((c) => {
     if (status && c.status !== status) return false
@@ -99,13 +75,6 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props
 
   return (
     <>
-      {/* Stat cards — one per in-scope status */}
-      <div className={clsx('grid grid-cols-1 gap-5', visibleStatuses.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
-        {visibleStatuses.map((st) => (
-          <StatCard key={st} icon={STATUS_META[st].icon} value={fmtStat(sumBy(st))} label={INCOMING_STATUS_LABEL[st]} />
-        ))}
-      </div>
-
       {/* Read-only note */}
       <div className="flex items-start gap-2 rounded-lg border border-travefy-blue/30 bg-travefy-blue-light/60 px-3 py-2.5 text-xs text-travefy-navy">
         <span>These are commissions coming to you from the host or agency above. This view is read-only — statuses update automatically as they’re reconciled and paid out.</span>
