@@ -278,7 +278,8 @@ export function BookingsAgency() {
 
   // Commissions tab + its match/reconcile flows
   const [commissions, setCommissions] = useState<CommissionLine[]>(initialCommissions)
-  // Advisors see incoming commissions here; agencies see the reconciliation table.
+  // Agency Commissions has two sub-views: reconciliation + incoming; advisors see incoming only.
+  const [commissionsSubtab, setCommissionsSubtab] = useState<'reconciliation' | 'incoming'>('reconciliation')
   const [incomingCommissions] = useState(initialIncomingCommissions)
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
@@ -656,23 +657,50 @@ export function BookingsAgency() {
               />
             ) : tab === 'Commissions' ? (
               role === 'advisor' ? (
-                // Advisors only receive commissions — the read-only Incoming view.
+                // Advisors only receive commissions — the read-only Incoming view (all statuses).
                 <IncomingCommissionsTab commissions={incomingCommissions} />
               ) : (
-                <CommissionsTab
-                  commissions={commissions}
-                  onReconcile={reconcileCommission}
-                  onUnreconcile={unreconcileCommission}
-                  onMarkUnclaimed={markCommissionUnclaimed}
-                  onSearchBooking={openCommissionSearch}
-                  onUnlink={unlinkCommission}
-                  onRemove={setRemoveCommissionId}
-                  onExport={() => setExportOpen(true)}
-                  onNewCommission={() => setNewCommissionOpen(true)}
-                  onOpenDrawer={setDrawerCommission}
-                  onViewPayout={viewInPayout}
-                  onToast={showToast}
-                />
+                <>
+                  {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
+                  <div className="flex items-center gap-1 border-b border-travefy-gray-200">
+                    {([
+                      ['reconciliation', 'Reconciliation'],
+                      ['incoming', 'Incoming'],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setCommissionsSubtab(key)}
+                        className={
+                          commissionsSubtab === key
+                            ? '-mb-px border-b-2 border-travefy-blue px-4 py-2.5 text-sm font-semibold text-travefy-blue'
+                            : '-mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-travefy-gray-500 hover:text-travefy-gray-800 transition-colors'
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {commissionsSubtab === 'reconciliation' ? (
+                    <CommissionsTab
+                      commissions={commissions}
+                      onReconcile={reconcileCommission}
+                      onUnreconcile={unreconcileCommission}
+                      onMarkUnclaimed={markCommissionUnclaimed}
+                      onSearchBooking={openCommissionSearch}
+                      onUnlink={unlinkCommission}
+                      onRemove={setRemoveCommissionId}
+                      onExport={() => setExportOpen(true)}
+                      onNewCommission={() => setNewCommissionOpen(true)}
+                      onOpenDrawer={setDrawerCommission}
+                      onViewPayout={viewInPayout}
+                      onToast={showToast}
+                    />
+                  ) : (
+                    // Agency incoming excludes "Upcoming" — there's no agency above them holding funds pre-payout.
+                    <IncomingCommissionsTab commissions={incomingCommissions} hideStatuses={['upcoming']} />
+                  )}
+                </>
               )
             ) : tab === 'Payments' ? (
               <IncomingTab

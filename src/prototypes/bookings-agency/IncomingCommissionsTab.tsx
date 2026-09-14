@@ -10,6 +10,8 @@ import {
 
 interface Props {
   commissions: IncomingCommission[]
+  /** Statuses that don't apply to this role's context (hidden from cards, filter and table). */
+  hideStatuses?: IncomingStatus[]
 }
 
 // ── Stat card (matches CommissionsTab) ────────────────────────────────────────
@@ -22,6 +24,14 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string
       <p className="text-sm text-travefy-gray-600 mt-2">{label}</p>
     </div>
   )
+}
+
+// ── Per-status meta (icon for the stat cards) ─────────────────────────────────
+
+const STATUS_META: Record<IncomingStatus, { icon: React.ReactNode }> = {
+  'paid-by-supplier': { icon: <DollarSign className="w-4 h-4" /> },
+  'in-payout': { icon: <Landmark className="w-4 h-4" /> },
+  upcoming: { icon: <Clock className="w-4 h-4" /> },
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -38,10 +48,9 @@ function StatusBadge({ status }: { status: IncomingStatus }) {
 
 // ── Status filter chip ────────────────────────────────────────────────────────
 
-function FilterChip({ selected, onSelect }: { selected: IncomingStatus | null; onSelect: (v: IncomingStatus | null) => void }) {
+function FilterChip({ options, selected, onSelect }: { options: IncomingStatus[]; selected: IncomingStatus | null; onSelect: (v: IncomingStatus | null) => void }) {
   const [open, setOpen] = useState(false)
   const active = selected != null
-  const options: IncomingStatus[] = ['paid-by-supplier', 'in-payout', 'upcoming']
   return (
     <div className="relative">
       <button
@@ -71,13 +80,17 @@ function FilterChip({ selected, onSelect }: { selected: IncomingStatus | null; o
 
 const fmtStat = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmtIncomingMoney(n))
 
-export function IncomingCommissionsTab({ commissions }: Props) {
+export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<IncomingStatus | null>(null)
 
-  const sumBy = (s: IncomingStatus) => commissions.filter((c) => c.status === s).reduce((t, c) => t + c.amount, 0)
+  const ALL: IncomingStatus[] = ['paid-by-supplier', 'in-payout', 'upcoming']
+  const visibleStatuses = ALL.filter((s) => !hideStatuses.includes(s))
+  const inScope = commissions.filter((c) => visibleStatuses.includes(c.status))
 
-  const filtered = commissions.filter((c) => {
+  const sumBy = (s: IncomingStatus) => inScope.filter((c) => c.status === s).reduce((t, c) => t + c.amount, 0)
+
+  const filtered = inScope.filter((c) => {
     if (status && c.status !== status) return false
     const q = search.trim().toLowerCase()
     if (!q) return true
@@ -86,11 +99,11 @@ export function IncomingCommissionsTab({ commissions }: Props) {
 
   return (
     <>
-      {/* Stat cards — one per incoming status */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <StatCard icon={<DollarSign className="w-4 h-4" />} value={fmtStat(sumBy('paid-by-supplier'))} label="Paid by supplier" />
-        <StatCard icon={<Landmark className="w-4 h-4" />} value={fmtStat(sumBy('in-payout'))} label="In payout" />
-        <StatCard icon={<Clock className="w-4 h-4" />} value={fmtStat(sumBy('upcoming'))} label="Upcoming" />
+      {/* Stat cards — one per in-scope status */}
+      <div className={clsx('grid grid-cols-1 gap-5', visibleStatuses.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
+        {visibleStatuses.map((st) => (
+          <StatCard key={st} icon={STATUS_META[st].icon} value={fmtStat(sumBy(st))} label={INCOMING_STATUS_LABEL[st]} />
+        ))}
       </div>
 
       {/* Read-only note */}
@@ -104,9 +117,9 @@ export function IncomingCommissionsTab({ commissions }: Props) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-travefy-gray-400" />
           <input type="text" placeholder="Search incoming commissions" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-travefy-gray-200 rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-travefy-blue/20 focus:border-travefy-blue" />
         </div>
-        <span className="text-sm text-travefy-gray-600">Showing <span className="font-semibold text-travefy-navy">{filtered.length}</span> of {commissions.length}</span>
+        <span className="text-sm text-travefy-gray-600">Showing <span className="font-semibold text-travefy-navy">{filtered.length}</span> of {inScope.length}</span>
         <div className="ml-auto">
-          <FilterChip selected={status} onSelect={setStatus} />
+          <FilterChip options={visibleStatuses} selected={status} onSelect={setStatus} />
         </div>
       </div>
 
