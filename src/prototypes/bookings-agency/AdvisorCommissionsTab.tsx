@@ -1,4 +1,5 @@
-import { ExternalLink, MoreHorizontal, Search } from 'lucide-react'
+import { clsx } from 'clsx'
+import { ChevronDown, ExternalLink, MoreHorizontal, Search } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../shared/components'
 import { fmtIncomingMoney } from './incomingCommissionsData'
@@ -9,6 +10,36 @@ interface Props {
   onView: (c: AdvisorCommission) => void
   onViewPayout: (c: AdvisorCommission) => void
   onToast?: (text: string) => void
+}
+
+// ── Filter chip ───────────────────────────────────────────────────────────────
+
+function FilterChip({ label, options, selected, onSelect }: { label: string; options: string[]; selected: string | null; onSelect: (v: string | null) => void }) {
+  const [open, setOpen] = useState(false)
+  const active = selected != null
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={clsx('flex items-center gap-2 px-3 py-1.5 border rounded text-sm font-semibold whitespace-nowrap transition-colors', active ? 'border-travefy-blue text-travefy-blue bg-travefy-blue-light' : 'border-travefy-gray-200 text-travefy-blue bg-white hover:bg-travefy-gray-50')}
+      >
+        {selected ?? label}
+        <ChevronDown className="w-4 h-4" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-10 z-20 w-56 max-h-72 overflow-auto rounded-lg border border-travefy-gray-200 bg-white py-1 text-sm shadow-lg">
+            <button onClick={() => { onSelect(null); setOpen(false) }} className="w-full px-3 py-2 text-left text-travefy-gray-700 hover:bg-travefy-gray-50">All {label.toLowerCase()}s</button>
+            <div className="my-1 border-t border-travefy-gray-100" />
+            {options.map((opt) => (
+              <button key={opt} onClick={() => { onSelect(opt); setOpen(false) }} className="w-full px-3 py-2 text-left text-travefy-gray-700 hover:bg-travefy-gray-50">{opt}</button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 // ── Row action menu (⋯ → View) ────────────────────────────────────────────────
@@ -43,11 +74,25 @@ function RowMenu({ onView }: { onView: () => void }) {
 
 export function AdvisorCommissionsTab({ commissions, onView, onViewPayout, onToast }: Props) {
   const [search, setSearch] = useState('')
+  const [showFilters, setShowFilters] = useState(true)
+  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null)
+  const [selectedPayout, setSelectedPayout] = useState<string | null>(null)
+  const [selectedSplit, setSelectedSplit] = useState<string | null>(null)
+
+  const suppliers = Array.from(new Set(commissions.map((c) => c.supplier))).sort()
+  const payouts = Array.from(new Set(commissions.map((c) => c.payout))).sort()
+  const splits = Array.from(new Set(commissions.map((c) => `${c.splitPercent}%`))).sort()
 
   const q = search.trim().toLowerCase()
-  const filtered = q
-    ? commissions.filter((c) => [c.bookingRef, c.supplier].some((f) => f.toLowerCase().includes(q)))
-    : commissions
+  const filtered = commissions.filter((c) => {
+    if (selectedSupplier && c.supplier !== selectedSupplier) return false
+    if (selectedPayout && c.payout !== selectedPayout) return false
+    if (selectedSplit && `${c.splitPercent}%` !== selectedSplit) return false
+    if (!q) return true
+    return [c.bookingRef, c.supplier].some((f) => f.toLowerCase().includes(q))
+  })
+
+  const resetFilters = () => { setSelectedSupplier(null); setSelectedPayout(null); setSelectedSplit(null); setSearch('') }
 
   return (
     <>
@@ -59,7 +104,18 @@ export function AdvisorCommissionsTab({ commissions, onView, onViewPayout, onToa
         </div>
         <button onClick={() => onToast?.(`${filtered.length} commission${filtered.length === 1 ? '' : 's'} match`)} className="px-4 py-2 rounded bg-travefy-blue text-white text-sm font-semibold hover:bg-travefy-blue-dark transition-colors">Search</button>
         <span className="text-sm text-travefy-gray-600">Showing <span className="font-semibold text-travefy-navy">{filtered.length}</span> of {commissions.length}</span>
+        <button onClick={() => setShowFilters((v) => !v)} className="ml-auto px-3 py-2 rounded bg-travefy-navy text-white text-sm font-semibold hover:bg-travefy-gray-800 transition-colors">{showFilters ? 'Hide Filters' : 'Show Filters'}</button>
       </div>
+
+      {/* Filter chips (no Status — advisor commissions are all Paid) */}
+      {showFilters && (
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <FilterChip label="Supplier" options={suppliers} selected={selectedSupplier} onSelect={setSelectedSupplier} />
+          <FilterChip label="Payout" options={payouts} selected={selectedPayout} onSelect={setSelectedPayout} />
+          <FilterChip label="Split" options={splits} selected={selectedSplit} onSelect={setSelectedSplit} />
+          <button onClick={resetFilters} className="px-3 py-1.5 text-sm font-semibold text-travefy-blue hover:underline">Reset Filters</button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white border border-travefy-gray-200 rounded-lg overflow-visible">
