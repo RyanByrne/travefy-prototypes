@@ -278,8 +278,7 @@ export function BookingsAgency() {
 
   // Commissions tab + its match/reconcile flows
   const [commissions, setCommissions] = useState<CommissionLine[]>(initialCommissions)
-  // Commissions has two sub-views: the reconciliation table + a read-only Incoming table.
-  const [commissionsSubtab, setCommissionsSubtab] = useState<'reconciliation' | 'incoming'>('reconciliation')
+  // Advisors see incoming commissions here; agencies see the reconciliation table.
   const [incomingCommissions] = useState(initialIncomingCommissions)
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
@@ -341,7 +340,7 @@ export function BookingsAgency() {
 
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
-  const visibleTabs = role === 'advisor' ? (['Bookings', 'Unclaimed'] as const) : TABS
+  const visibleTabs = role === 'advisor' ? (['Bookings', 'Commissions', 'Unclaimed', 'Payouts'] as const) : TABS
 
   // ── Unclaimed handlers ──────────────────────────────────────────────────────
   const handleUnclaimedRemove = (id: string) => {
@@ -635,7 +634,7 @@ export function BookingsAgency() {
                   const next = role === 'agency' ? 'advisor' : 'agency'
                   setRole(next)
                   // If switching to advisor while on an agency-only tab, fall back to Bookings
-                  if (next === 'advisor' && (tab === 'Commissions' || tab === 'Payments' || tab === 'Payouts')) setTab('Bookings')
+                  if (next === 'advisor' && tab === 'Payments') setTab('Bookings')
                   showToast(`Viewing as ${next === 'agency' ? 'Agency' : 'Advisor'}`)
                 }}
                 className="text-xs font-semibold text-travefy-blue hover:underline"
@@ -656,46 +655,25 @@ export function BookingsAgency() {
                 onToast={showToast}
               />
             ) : tab === 'Commissions' ? (
-              <>
-                {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
-                <div className="flex items-center gap-1 border-b border-travefy-gray-200">
-                  {([
-                    ['reconciliation', 'Reconciliation'],
-                    ['incoming', 'Incoming'],
-                  ] as const).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => setCommissionsSubtab(key)}
-                      className={
-                        commissionsSubtab === key
-                          ? '-mb-px border-b-2 border-travefy-blue px-4 py-2.5 text-sm font-semibold text-travefy-blue'
-                          : '-mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-travefy-gray-500 hover:text-travefy-gray-800 transition-colors'
-                      }
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                {commissionsSubtab === 'reconciliation' ? (
-                  <CommissionsTab
-                    commissions={commissions}
-                    onReconcile={reconcileCommission}
-                    onUnreconcile={unreconcileCommission}
-                    onMarkUnclaimed={markCommissionUnclaimed}
-                    onSearchBooking={openCommissionSearch}
-                    onUnlink={unlinkCommission}
-                    onRemove={setRemoveCommissionId}
-                    onExport={() => setExportOpen(true)}
-                    onNewCommission={() => setNewCommissionOpen(true)}
-                    onOpenDrawer={setDrawerCommission}
-                    onViewPayout={viewInPayout}
-                    onToast={showToast}
-                  />
-                ) : (
-                  <IncomingCommissionsTab commissions={incomingCommissions} />
-                )}
-              </>
+              role === 'advisor' ? (
+                // Advisors only receive commissions — the read-only Incoming view.
+                <IncomingCommissionsTab commissions={incomingCommissions} />
+              ) : (
+                <CommissionsTab
+                  commissions={commissions}
+                  onReconcile={reconcileCommission}
+                  onUnreconcile={unreconcileCommission}
+                  onMarkUnclaimed={markCommissionUnclaimed}
+                  onSearchBooking={openCommissionSearch}
+                  onUnlink={unlinkCommission}
+                  onRemove={setRemoveCommissionId}
+                  onExport={() => setExportOpen(true)}
+                  onNewCommission={() => setNewCommissionOpen(true)}
+                  onOpenDrawer={setDrawerCommission}
+                  onViewPayout={viewInPayout}
+                  onToast={showToast}
+                />
+              )
             ) : tab === 'Payments' ? (
               <IncomingTab
                 payments={incomingPayments}
@@ -705,15 +683,23 @@ export function BookingsAgency() {
                 onToast={showToast}
               />
             ) : tab === 'Payouts' ? (
-              <PayoutsTab
-                payouts={payouts}
-                onNewPayout={handleNewPayout}
-                onOpenPayout={handleOpenPayout}
-                onArchivePayout={archivePayout}
-                onRemovePayout={removePayout}
-                onExport={openChecksExport}
-                onToast={showToast}
-              />
+              role === 'advisor' ? (
+                // Advisor payouts (their paid commissions grouped by payout) — placeholder for now.
+                <div className="rounded-lg border border-dashed border-travefy-gray-300 bg-white px-6 py-16 text-center">
+                  <p className="text-sm font-semibold text-travefy-navy">Your payouts</p>
+                  <p className="mt-1 text-sm text-travefy-gray-500">Paid commissions grouped by payout will appear here.</p>
+                </div>
+              ) : (
+                <PayoutsTab
+                  payouts={payouts}
+                  onNewPayout={handleNewPayout}
+                  onOpenPayout={handleOpenPayout}
+                  onArchivePayout={archivePayout}
+                  onRemovePayout={removePayout}
+                  onExport={openChecksExport}
+                  onToast={showToast}
+                />
+              )
             ) : (
               <>
             {/* Stat cards */}
