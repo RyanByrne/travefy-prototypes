@@ -33,6 +33,8 @@ import { samplePaymentStatement, type MatchedAdvisorBooking, type StatementRow }
 import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
+import { IncomingCommissionsTab } from './IncomingCommissionsTab'
+import { initialIncomingCommissions } from './incomingCommissionsData'
 import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { NewCommissionDrawer } from './NewCommissionDrawer'
 import { CommissionDrawer } from './CommissionDrawer'
@@ -276,6 +278,9 @@ export function BookingsAgency() {
 
   // Commissions tab + its match/reconcile flows
   const [commissions, setCommissions] = useState<CommissionLine[]>(initialCommissions)
+  // Commissions has two sub-views: the reconciliation table + a read-only Incoming table.
+  const [commissionsSubtab, setCommissionsSubtab] = useState<'reconciliation' | 'incoming'>('reconciliation')
+  const [incomingCommissions] = useState(initialIncomingCommissions)
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
@@ -651,20 +656,46 @@ export function BookingsAgency() {
                 onToast={showToast}
               />
             ) : tab === 'Commissions' ? (
-              <CommissionsTab
-                commissions={commissions}
-                onReconcile={reconcileCommission}
-                onUnreconcile={unreconcileCommission}
-                onMarkUnclaimed={markCommissionUnclaimed}
-                onSearchBooking={openCommissionSearch}
-                onUnlink={unlinkCommission}
-                onRemove={setRemoveCommissionId}
-                onExport={() => setExportOpen(true)}
-                onNewCommission={() => setNewCommissionOpen(true)}
-                onOpenDrawer={setDrawerCommission}
-                onViewPayout={viewInPayout}
-                onToast={showToast}
-              />
+              <>
+                {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
+                <div className="flex items-center gap-1 border-b border-travefy-gray-200">
+                  {([
+                    ['reconciliation', 'Reconciliation'],
+                    ['incoming', 'Incoming'],
+                  ] as const).map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => setCommissionsSubtab(key)}
+                      className={
+                        commissionsSubtab === key
+                          ? '-mb-px border-b-2 border-travefy-blue px-4 py-2.5 text-sm font-semibold text-travefy-blue'
+                          : '-mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-travefy-gray-500 hover:text-travefy-gray-800 transition-colors'
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {commissionsSubtab === 'reconciliation' ? (
+                  <CommissionsTab
+                    commissions={commissions}
+                    onReconcile={reconcileCommission}
+                    onUnreconcile={unreconcileCommission}
+                    onMarkUnclaimed={markCommissionUnclaimed}
+                    onSearchBooking={openCommissionSearch}
+                    onUnlink={unlinkCommission}
+                    onRemove={setRemoveCommissionId}
+                    onExport={() => setExportOpen(true)}
+                    onNewCommission={() => setNewCommissionOpen(true)}
+                    onOpenDrawer={setDrawerCommission}
+                    onViewPayout={viewInPayout}
+                    onToast={showToast}
+                  />
+                ) : (
+                  <IncomingCommissionsTab commissions={incomingCommissions} />
+                )}
+              </>
             ) : tab === 'Payments' ? (
               <IncomingTab
                 payments={incomingPayments}
