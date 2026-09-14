@@ -71,7 +71,7 @@ export function AdvisorCommissionsTab({ commissions, onView, onViewPayout, onToa
                 <th className="px-4 py-3 text-left">Supplier</th>
                 <th className="px-4 py-3 text-left">Split</th>
                 <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Expected</th>
+                <th className="px-4 py-3 text-left">Received</th>
                 <th className="px-4 py-3 text-left">Payout</th>
                 <th className="px-4 py-3 text-left">Amount</th>
                 <th className="px-4 py-3 text-left">Action</th>
