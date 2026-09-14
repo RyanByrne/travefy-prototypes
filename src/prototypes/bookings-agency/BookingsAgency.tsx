@@ -664,7 +664,7 @@ export function BookingsAgency() {
                   {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
                   <div className="flex items-center gap-1 border-b border-travefy-gray-200">
                     {([
-                      ['reconciliation', 'Reconciliation'],
+                      ['reconciliation', 'Received'],
                       ['incoming', 'Incoming'],
                     ] as const).map(([key, label]) => (
                       <button
