@@ -3,12 +3,12 @@ import {
   advisorShare,
   agencyShare,
   fmtIncomingMoney,
-  type IncomingCommission,
+  type ViewCommissionData,
 } from './incomingCommissionsData'
 
 interface Props {
   open: boolean
-  commission: IncomingCommission | null
+  commission: ViewCommissionData | null
   onClose: () => void
 }
 

@@ -35,7 +35,9 @@ import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
 import { IncomingCommissionsTab } from './IncomingCommissionsTab'
 import { IncomingCommissionDrawer } from './IncomingCommissionDrawer'
-import { initialIncomingCommissions, type IncomingCommission } from './incomingCommissionsData'
+import { initialIncomingCommissions, type ViewCommissionData } from './incomingCommissionsData'
+import { AdvisorCommissionsTab } from './AdvisorCommissionsTab'
+import { initialAdvisorCommissions } from './advisorCommissionsData'
 import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { NewCommissionDrawer } from './NewCommissionDrawer'
 import { CommissionDrawer } from './CommissionDrawer'
@@ -282,7 +284,8 @@ export function BookingsAgency() {
   // Agency Commissions has two sub-views: reconciliation + incoming; advisors see incoming only.
   const [commissionsSubtab, setCommissionsSubtab] = useState<'reconciliation' | 'incoming'>('reconciliation')
   const [incomingCommissions] = useState(initialIncomingCommissions)
-  const [viewIncoming, setViewIncoming] = useState<IncomingCommission | null>(null)
+  const [advisorCommissions] = useState(initialAdvisorCommissions)
+  const [viewCommission, setViewCommission] = useState<ViewCommissionData | null>(null)
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
@@ -659,8 +662,38 @@ export function BookingsAgency() {
               />
             ) : tab === 'Commissions' ? (
               role === 'advisor' ? (
-                // Advisors only receive commissions — the read-only Incoming view (all statuses).
-                <IncomingCommissionsTab commissions={incomingCommissions} onView={setViewIncoming} />
+                <>
+                  {/* Sub-tabs: the advisor's received/paid commissions + incoming */}
+                  <div className="flex items-center gap-1 border-b border-travefy-gray-200">
+                    {([
+                      ['reconciliation', 'Received'],
+                      ['incoming', 'Incoming'],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setCommissionsSubtab(key)}
+                        className={
+                          commissionsSubtab === key
+                            ? '-mb-px border-b-2 border-travefy-blue px-4 py-2.5 text-sm font-semibold text-travefy-blue'
+                            : '-mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-travefy-gray-500 hover:text-travefy-gray-800 transition-colors'
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {commissionsSubtab === 'reconciliation' ? (
+                    <AdvisorCommissionsTab
+                      commissions={advisorCommissions}
+                      onView={setViewCommission}
+                      onViewPayout={(c) => { setTab('Payouts'); showToast(`Viewing ${c.bookingRef} in Payouts`) }}
+                      onToast={showToast}
+                    />
+                  ) : (
+                    <IncomingCommissionsTab commissions={incomingCommissions} onView={setViewCommission} />
+                  )}
+                </>
               ) : (
                 <>
                   {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
@@ -700,7 +733,7 @@ export function BookingsAgency() {
                     />
                   ) : (
                     // Agency incoming excludes "Upcoming" — there's no agency above them holding funds pre-payout.
-                    <IncomingCommissionsTab commissions={incomingCommissions} hideStatuses={['upcoming']} onView={setViewIncoming} />
+                    <IncomingCommissionsTab commissions={incomingCommissions} hideStatuses={['upcoming']} onView={setViewCommission} />
                   )}
                 </>
               )
@@ -981,7 +1014,7 @@ export function BookingsAgency() {
         onCreate={createCommissionLine}
       />
 
-      <IncomingCommissionDrawer open={viewIncoming != null} commission={viewIncoming} onClose={() => setViewIncoming(null)} />
+      <IncomingCommissionDrawer open={viewCommission != null} commission={viewCommission} onClose={() => setViewCommission(null)} />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>

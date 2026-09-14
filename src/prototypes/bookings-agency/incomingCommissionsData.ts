@@ -23,24 +23,29 @@ export interface CommissionUpdate {
   date: string
 }
 
-export interface IncomingCommission {
-  id: string
+/** The fields the read-only View Commission drawer renders. Shared by the
+ *  incoming list and the advisor commissions list so both reuse the drawer. */
+export interface ViewCommissionData {
   bookingRef: string
   /** 'Commission' (tied to a booking) or 'Adjustment'. */
   type: string
   supplier: string
-  traveler: string
-  travelDate: string
   /** Total commission received for this booking (gross, before the split). */
   amount: number
   /** Advisor split tier name + the advisor's share %. */
   splitName: string
   splitPercent: number
+  /** Distribution chain provenance, oldest first. */
+  updates: CommissionUpdate[]
+}
+
+export interface IncomingCommission extends ViewCommissionData {
+  id: string
+  traveler: string
+  travelDate: string
   status: IncomingStatus
   /** Expected payout date (or "—" when not yet scheduled). */
   expected: string
-  /** Distribution chain provenance, oldest first. */
-  updates: CommissionUpdate[]
 }
 
 export const INCOMING_STATUS_LABEL: Record<IncomingStatus, string> = {
