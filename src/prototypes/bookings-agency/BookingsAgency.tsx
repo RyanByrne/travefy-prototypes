@@ -34,7 +34,8 @@ import { UnclaimedTab } from './UnclaimedTab'
 import { initialUnclaimedItems, type UnclaimedItem } from './unclaimedData'
 import { CommissionsTab } from './CommissionsTab'
 import { IncomingCommissionsTab } from './IncomingCommissionsTab'
-import { initialIncomingCommissions } from './incomingCommissionsData'
+import { IncomingCommissionDrawer } from './IncomingCommissionDrawer'
+import { initialIncomingCommissions, type IncomingCommission } from './incomingCommissionsData'
 import { initialCommissions, type CommissionLine, type SearchBookingCard } from './commissionsData'
 import { NewCommissionDrawer } from './NewCommissionDrawer'
 import { CommissionDrawer } from './CommissionDrawer'
@@ -281,6 +282,7 @@ export function BookingsAgency() {
   // Agency Commissions has two sub-views: reconciliation + incoming; advisors see incoming only.
   const [commissionsSubtab, setCommissionsSubtab] = useState<'reconciliation' | 'incoming'>('reconciliation')
   const [incomingCommissions] = useState(initialIncomingCommissions)
+  const [viewIncoming, setViewIncoming] = useState<IncomingCommission | null>(null)
   const [searchTarget, setSearchTarget] = useState<{ source: 'commission' | 'unclaimed'; id: string; ref: string } | null>(null)
   const [removeCommissionId, setRemoveCommissionId] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
@@ -341,7 +343,7 @@ export function BookingsAgency() {
 
   const statusOptions = ['Reconciled', 'Expected', 'Disbursed'] as const
 
-  const visibleTabs = role === 'advisor' ? (['Bookings', 'Commissions', 'Unclaimed', 'Payouts'] as const) : TABS
+  const visibleTabs = role === 'advisor' ? (['Bookings', 'Commissions', 'Payouts'] as const) : TABS
 
   // ── Unclaimed handlers ──────────────────────────────────────────────────────
   const handleUnclaimedRemove = (id: string) => {
@@ -635,7 +637,7 @@ export function BookingsAgency() {
                   const next = role === 'agency' ? 'advisor' : 'agency'
                   setRole(next)
                   // If switching to advisor while on an agency-only tab, fall back to Bookings
-                  if (next === 'advisor' && tab === 'Payments') setTab('Bookings')
+                  if (next === 'advisor' && (tab === 'Payments' || tab === 'Unclaimed')) setTab('Bookings')
                   showToast(`Viewing as ${next === 'agency' ? 'Agency' : 'Advisor'}`)
                 }}
                 className="text-xs font-semibold text-travefy-blue hover:underline"
@@ -658,7 +660,7 @@ export function BookingsAgency() {
             ) : tab === 'Commissions' ? (
               role === 'advisor' ? (
                 // Advisors only receive commissions — the read-only Incoming view (all statuses).
-                <IncomingCommissionsTab commissions={incomingCommissions} />
+                <IncomingCommissionsTab commissions={incomingCommissions} onView={setViewIncoming} />
               ) : (
                 <>
                   {/* Sub-tabs: reconciliation (main) vs read-only incoming commissions */}
@@ -698,7 +700,7 @@ export function BookingsAgency() {
                     />
                   ) : (
                     // Agency incoming excludes "Upcoming" — there's no agency above them holding funds pre-payout.
-                    <IncomingCommissionsTab commissions={incomingCommissions} hideStatuses={['upcoming']} />
+                    <IncomingCommissionsTab commissions={incomingCommissions} hideStatuses={['upcoming']} onView={setViewIncoming} />
                   )}
                 </>
               )
@@ -978,6 +980,8 @@ export function BookingsAgency() {
         onClose={() => setNewCommissionOpen(false)}
         onCreate={createCommissionLine}
       />
+
+      <IncomingCommissionDrawer open={viewIncoming != null} commission={viewIncoming} onClose={() => setViewIncoming(null)} />
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
     </PrototypeShell>

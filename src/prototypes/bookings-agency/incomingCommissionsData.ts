@@ -12,17 +12,35 @@
  */
 export type IncomingStatus = 'paid-by-supplier' | 'in-payout' | 'upcoming'
 
+/** One hop in the distribution chain — money handed from one party to the next
+ *  on its way down to this recipient. */
+export interface CommissionUpdate {
+  from: string
+  to: string
+  amount: number
+  /** Split applied at this hop (the origin hop may have none). */
+  percent?: number
+  date: string
+}
+
 export interface IncomingCommission {
   id: string
   bookingRef: string
+  /** 'Commission' (tied to a booking) or 'Adjustment'. */
+  type: string
   supplier: string
   traveler: string
   travelDate: string
-  /** This agent/agency's share of the commission (what they'll receive). */
+  /** Total commission received for this booking (gross, before the split). */
   amount: number
+  /** Advisor split tier name + the advisor's share %. */
+  splitName: string
+  splitPercent: number
   status: IncomingStatus
   /** Expected payout date (or "—" when not yet scheduled). */
   expected: string
+  /** Distribution chain provenance, oldest first. */
+  updates: CommissionUpdate[]
 }
 
 export const INCOMING_STATUS_LABEL: Record<IncomingStatus, string> = {
@@ -31,16 +49,50 @@ export const INCOMING_STATUS_LABEL: Record<IncomingStatus, string> = {
   upcoming: 'Upcoming',
 }
 
-export const fmtIncomingMoney = (n: number) =>
-  `${n < 0 ? '-' : ''}$${Number.isInteger(Math.abs(n)) ? Math.abs(n) : Math.abs(n).toFixed(2)}`
+/** "$240" / "$4,032.58" — thousands separators, decimals only when present. */
+export const fmtIncomingMoney = (n: number) => {
+  const abs = Math.abs(n)
+  const body = Number.isInteger(abs)
+    ? abs.toLocaleString('en-US')
+    : abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return `${n < 0 ? '-' : ''}$${body}`
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100
+/** Advisor's share of a received commission at a given split %. */
+export const advisorShare = (amount: number, splitPercent: number) => round2(amount * (splitPercent / 100))
+/** Agency's share (the remainder). */
+export const agencyShare = (amount: number, splitPercent: number) => round2(amount - advisorShare(amount, splitPercent))
 
 export const initialIncomingCommissions: IncomingCommission[] = [
-  { id: 'ic1', bookingRef: 'RC-2294013', supplier: 'Royal Carribean',        traveler: 'Leo Hawthorne',   travelDate: 'Dec 1, 2025',  amount: 489.60, status: 'paid-by-supplier', expected: 'Sep 19, 2026' },
-  { id: 'ic2', bookingRef: 'NCL-882341', supplier: 'Norwegian Cruise Line',  traveler: 'Mia Kensington',  travelDate: 'Jan 14, 2026', amount: 992.00, status: 'in-payout',        expected: 'Sep 18, 2026' },
-  { id: 'ic3', bookingRef: 'HYT-55089',  supplier: 'Hyatt',                  traveler: 'Jasper Quinn',    travelDate: 'Feb 2, 2026',  amount: 109.73, status: 'paid-by-supplier', expected: 'Sep 19, 2026' },
-  { id: 'ic4', bookingRef: 'MAR-77120',  supplier: 'Marriott',               traveler: 'Ava Sinclair',    travelDate: 'Mar 8, 2026',  amount: 240.00, status: 'in-payout',        expected: 'Sep 18, 2026' },
-  { id: 'ic5', bookingRef: 'VTR-5521',   supplier: 'Viator',                 traveler: 'Noah Fletcher',   travelDate: 'Mar 22, 2026', amount: 24.50,  status: 'upcoming',         expected: '—' },
-  { id: 'ic6', bookingRef: 'GAdv-882',   supplier: 'G Adventures',           traveler: 'Ivy Bennett',     travelDate: 'Apr 3, 2026',  amount: 186.00, status: 'upcoming',         expected: '—' },
-  { id: 'ic7', bookingRef: 'HLT-9912',   supplier: 'Hilton',                 traveler: 'Ethan Brooks',    travelDate: 'Apr 19, 2026', amount: 212.63, status: 'paid-by-supplier', expected: 'Sep 19, 2026' },
-  { id: 'ic8', bookingRef: 'PC-40881',   supplier: 'Princess Cruises',       traveler: 'Sophie Turner',   travelDate: 'May 5, 2026',  amount: 640.00, status: 'upcoming',         expected: '—' },
+  { id: 'ic1', bookingRef: 'RC-2294013', type: 'Commission', supplier: 'Royal Carribean',       traveler: 'Leo Hawthorne',  travelDate: 'Dec 1, 2025',  amount: 489.60, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+    { from: 'Royal Carribean', to: 'Wonderland Inc', amount: 489.60, date: 'Sep 12, 2026' },
+    { from: 'Wonderland Inc',  to: 'James May',      amount: 318.24, percent: 65, date: 'Sep 14, 2026' },
+  ] },
+  { id: 'ic2', bookingRef: 'NCL-882341', type: 'Commission', supplier: 'Norwegian Cruise Line', traveler: 'Mia Kensington', travelDate: 'Jan 14, 2026', amount: 992.00, splitName: 'Tier 1',    splitPercent: 70, status: 'in-payout',        expected: 'Sep 18, 2026', updates: [
+    { from: 'Norwegian Cruise Line', to: 'Wonderland Inc', amount: 992.00, date: 'Sep 11, 2026' },
+    { from: 'Wonderland Inc',        to: 'James May',      amount: 694.40, percent: 70, date: 'Sep 13, 2026' },
+  ] },
+  { id: 'ic3', bookingRef: 'HYT-55089',  type: 'Commission', supplier: 'Hyatt',                 traveler: 'Jasper Quinn',   travelDate: 'Feb 2, 2026',  amount: 109.73, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+    { from: 'Hyatt',          to: 'Wonderland Inc', amount: 109.73, date: 'Sep 12, 2026' },
+    { from: 'Wonderland Inc', to: 'James May',      amount: 71.32,  percent: 65, date: 'Sep 14, 2026' },
+  ] },
+  { id: 'ic4', bookingRef: 'MAR-77120',  type: 'Commission', supplier: 'Marriott',              traveler: 'Ava Sinclair',   travelDate: 'Mar 8, 2026',  amount: 240.00, splitName: 'New Agent', splitPercent: 65, status: 'in-payout',        expected: 'Sep 18, 2026', updates: [
+    { from: 'ALG Vacations',  to: 'Outside Agents',  amount: 240.00, date: 'Sep 12, 2026' },
+    { from: 'Outside Agents', to: 'Wonderland Inc',  amount: 216.00, percent: 90, date: 'Sep 13, 2026' },
+    { from: 'Wonderland Inc', to: 'James May',       amount: 156.00, percent: 65, date: 'Sep 14, 2026' },
+  ] },
+  { id: 'ic5', bookingRef: 'VTR-5521',   type: 'Commission', supplier: 'Viator',                traveler: 'Noah Fletcher',  travelDate: 'Mar 22, 2026', amount: 24.50,  splitName: 'Default',   splitPercent: 60, status: 'upcoming',         expected: '—', updates: [
+    { from: 'Viator', to: 'Wonderland Inc', amount: 24.50, date: 'Sep 12, 2026' },
+  ] },
+  { id: 'ic6', bookingRef: 'GAdv-882',   type: 'Commission', supplier: 'G Adventures',          traveler: 'Ivy Bennett',    travelDate: 'Apr 3, 2026',  amount: 186.00, splitName: 'Tier 1',    splitPercent: 70, status: 'upcoming',         expected: '—', updates: [
+    { from: 'G Adventures', to: 'Wonderland Inc', amount: 186.00, date: 'Sep 12, 2026' },
+  ] },
+  { id: 'ic7', bookingRef: 'HLT-9912',   type: 'Commission', supplier: 'Hilton',                traveler: 'Ethan Brooks',   travelDate: 'Apr 19, 2026', amount: 212.63, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+    { from: 'Hilton',         to: 'Wonderland Inc', amount: 212.63, date: 'Sep 12, 2026' },
+    { from: 'Wonderland Inc', to: 'James May',      amount: 138.21, percent: 65, date: 'Sep 14, 2026' },
+  ] },
+  { id: 'ic8', bookingRef: 'PC-40881',   type: 'Commission', supplier: 'Princess Cruises',      traveler: 'Sophie Turner',  travelDate: 'May 5, 2026',  amount: 640.00, splitName: 'Veteran',   splitPercent: 90, status: 'upcoming',         expected: '—', updates: [
+    { from: 'Princess Cruises', to: 'Wonderland Inc', amount: 640.00, date: 'Sep 12, 2026' },
+  ] },
 ]

@@ -12,6 +12,8 @@ interface Props {
   commissions: IncomingCommission[]
   /** Statuses that don't apply to this role's context (hidden from cards, filter and table). */
   hideStatuses?: IncomingStatus[]
+  /** Open the read-only View Commission drawer. */
+  onView?: (c: IncomingCommission) => void
 }
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -59,7 +61,7 @@ function FilterChip({ options, selected, onSelect }: { options: IncomingStatus[]
 
 // ── Main (read-only) ──────────────────────────────────────────────────────────
 
-export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props) {
+export function IncomingCommissionsTab({ commissions, hideStatuses = [], onView }: Props) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<IncomingStatus | null>(null)
 
@@ -110,7 +112,7 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [] }: Props
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
+                <tr key={c.id} onClick={() => onView?.(c)} className="cursor-pointer border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-travefy-navy">{c.bookingRef}</td>
                   <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
                   <td className="px-4 py-3 text-travefy-gray-700">{c.traveler}</td>
