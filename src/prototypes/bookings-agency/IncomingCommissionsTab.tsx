@@ -17,12 +17,13 @@ interface Props {
 // ── Status badge ──────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: IncomingStatus }) {
+  // Grey variations: darkest (received) -> lightest (furthest out).
   const cls =
     status === 'paid-by-supplier'
-      ? 'border-travefy-success-border bg-travefy-success-bg text-travefy-success-dark'
+      ? 'border-travefy-gray-700 bg-travefy-gray-700 text-white'
       : status === 'in-payout'
-        ? 'border-travefy-primary-border bg-travefy-blue-light text-travefy-primary-text'
-        : 'border-travefy-warning-border bg-travefy-warning-bg text-travefy-warning-dark'
+        ? 'border-travefy-gray-300 bg-travefy-gray-100 text-travefy-gray-700'
+        : 'border-travefy-gray-200 bg-white text-travefy-gray-500'
   return <span className={clsx('inline-flex items-center whitespace-nowrap rounded border px-2.5 py-1 text-xs font-semibold', cls)}>{INCOMING_STATUS_LABEL[status]}</span>
 }
 
