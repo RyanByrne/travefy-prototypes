@@ -19,7 +19,7 @@ const NAV_MENU: NavNode[] = [
     columns: [
       { heading: 'CRM', items: [{ label: 'Contacts' }, { label: 'Tasks & Automations' }, { label: 'Bookings' }, { label: 'Fees' }] },
       { heading: 'Marketing', items: [{ label: 'Campaigns' }, { label: 'Pages' }, { label: 'Profile' }] },
-      { heading: 'Agency', items: [{ label: 'Team' }, { label: 'Commission Splits' }, { label: 'Suppliers' }] },
+      { heading: 'Agency', items: [{ label: 'Members' }, { label: 'Commission Splits' }, { label: 'Suppliers' }] },
     ],
   },
   {
@@ -409,7 +409,7 @@ export function CommissionSplits() {
   //    "Bookings" jumps over to the bookings-agency prototype.
   const handleNavSelect = (label: string) => {
     if (label === 'Commission Splits') { setView('splits'); showToast('Commission Splits') }
-    else if (label === 'Team') { setView('team'); showToast('Team') }
+    else if (label === 'Members') { setView('team'); showToast('Members') }
     else if (label === 'Bookings') { navigate('/bookings-agency') }
     else showToast(label)
   }

@@ -59,7 +59,7 @@ const NAV_MENU: NavNode[] = [
     columns: [
       { heading: 'CRM', items: [{ label: 'Contacts' }, { label: 'Tasks & Automations' }, { label: 'Bookings' }, { label: 'Fees' }] },
       { heading: 'Marketing', items: [{ label: 'Campaigns' }, { label: 'Pages' }, { label: 'Profile' }] },
-      { heading: 'Agency', items: [{ label: 'Team' }, { label: 'Commission Splits' }, { label: 'Suppliers' }] },
+      { heading: 'Agency', items: [{ label: 'Members' }, { label: 'Commission Splits' }, { label: 'Suppliers' }] },
     ],
   },
   {
@@ -309,7 +309,7 @@ export function BookingsAgency() {
       return
     }
     if (label === 'Commission Splits') { navigate('/commission-splits'); return }
-    if (label === 'Team') { navigate('/commission-splits?view=team'); return }
+    if (label === 'Members') { navigate('/commission-splits?view=team'); return }
     showToast(label)
   }
 
