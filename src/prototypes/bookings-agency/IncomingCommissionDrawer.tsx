@@ -49,6 +49,18 @@ export function IncomingCommissionDrawer({ open, commission, onClose }: Props) {
               <p className={label}>Supplier</p>
               <p className={value}>{c.supplier}</p>
             </div>
+            {c.statementRef && (
+              <div>
+                <p className={label}>Statement Reference</p>
+                <p className={value}>{c.statementRef}</p>
+              </div>
+            )}
+            {c.payoutRef && (
+              <div>
+                <p className={label}>Payout Reference</p>
+                <p className={value}>{c.payoutRef}</p>
+              </div>
+            )}
             <div>
               <p className={label}>Total Received</p>
               <p className={value}>{fmtIncomingMoney(c.amount)}</p>

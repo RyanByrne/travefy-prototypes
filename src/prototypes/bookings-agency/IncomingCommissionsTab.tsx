@@ -103,6 +103,7 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [], onView 
               <tr className="border-b border-travefy-gray-100 text-xs font-semibold uppercase tracking-wide text-travefy-gray-600">
                 <th className="px-4 py-3 text-left">Booking</th>
                 <th className="px-4 py-3 text-left">Supplier</th>
+                <th className="px-4 py-3 text-left">Reference</th>
                 <th className="px-4 py-3 text-left">Traveler</th>
                 <th className="px-4 py-3 text-left">Travel Date</th>
                 <th className="px-4 py-3 text-right">Amount</th>
@@ -115,6 +116,16 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [], onView 
                 <tr key={c.id} onClick={() => onView?.(c)} className="cursor-pointer border-b border-travefy-gray-100 hover:bg-travefy-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-travefy-navy">{c.bookingRef}</td>
                   <td className="px-4 py-3 text-travefy-blue">{c.supplier}</td>
+                  <td className="px-4 py-3">
+                    {c.statementRef || c.payoutRef ? (
+                      <span className="flex flex-col gap-0.5 text-xs">
+                        {c.statementRef && <span className="text-travefy-gray-700"><span className="text-travefy-gray-400">Statement</span> {c.statementRef}</span>}
+                        {c.payoutRef && <span className="text-travefy-gray-700"><span className="text-travefy-gray-400">Payout</span> {c.payoutRef}</span>}
+                      </span>
+                    ) : (
+                      <span className="text-travefy-gray-400">--</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-travefy-gray-700">{c.traveler}</td>
                   <td className="px-4 py-3 text-travefy-gray-700">{c.travelDate}</td>
                   <td className="px-4 py-3 text-right font-semibold text-travefy-navy">{fmtIncomingMoney(c.amount)}</td>
@@ -124,7 +135,7 @@ export function IncomingCommissionsTab({ commissions, hideStatuses = [], onView 
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-travefy-gray-500 text-sm">No incoming commissions match the current filters.</td>
+                  <td colSpan={8} className="px-4 py-12 text-center text-travefy-gray-500 text-sm">No incoming commissions match the current filters.</td>
                 </tr>
               )}
             </tbody>

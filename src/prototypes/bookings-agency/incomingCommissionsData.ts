@@ -37,6 +37,10 @@ export interface ViewCommissionData {
   splitPercent: number
   /** Distribution chain provenance, oldest first. */
   updates: CommissionUpdate[]
+  /** Supplier statement reference (present when it came from a supplier). */
+  statementRef?: string
+  /** Host / agency payout reference (present once it's in a payout above you). */
+  payoutRef?: string
 }
 
 export interface IncomingCommission extends ViewCommissionData {
@@ -70,19 +74,19 @@ export const advisorShare = (amount: number, splitPercent: number) => round2(amo
 export const agencyShare = (amount: number, splitPercent: number) => round2(amount - advisorShare(amount, splitPercent))
 
 export const initialIncomingCommissions: IncomingCommission[] = [
-  { id: 'ic1', bookingRef: 'RC-2294013', type: 'Commission', supplier: 'Royal Carribean',       traveler: 'Leo Hawthorne',  travelDate: 'Dec 1, 2025',  amount: 489.60, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+  { id: 'ic1', bookingRef: 'RC-2294013', type: 'Commission', supplier: 'Royal Carribean',       traveler: 'Leo Hawthorne',  travelDate: 'Dec 1, 2025',  amount: 489.60, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', statementRef: 'FFFK232', updates: [
     { from: 'Royal Carribean', to: 'Wonderland Inc', amount: 489.60, date: 'Sep 12, 2026' },
     { from: 'Wonderland Inc',  to: 'James May',      amount: 318.24, percent: 65, date: 'Sep 14, 2026' },
   ] },
-  { id: 'ic2', bookingRef: 'NCL-882341', type: 'Commission', supplier: 'Norwegian Cruise Line', traveler: 'Mia Kensington', travelDate: 'Jan 14, 2026', amount: 992.00, splitName: 'Tier 1',    splitPercent: 70, status: 'in-payout',        expected: 'Sep 18, 2026', updates: [
+  { id: 'ic2', bookingRef: 'NCL-882341', type: 'Commission', supplier: 'Norwegian Cruise Line', traveler: 'Mia Kensington', travelDate: 'Jan 14, 2026', amount: 992.00, splitName: 'Tier 1',    splitPercent: 70, status: 'in-payout',        expected: 'Sep 18, 2026', statementRef: 'NCL4410', payoutRef: 'PO-2026-0918', updates: [
     { from: 'Norwegian Cruise Line', to: 'Wonderland Inc', amount: 992.00, date: 'Sep 11, 2026' },
     { from: 'Wonderland Inc',        to: 'James May',      amount: 694.40, percent: 70, date: 'Sep 13, 2026' },
   ] },
-  { id: 'ic3', bookingRef: 'HYT-55089',  type: 'Commission', supplier: 'Hyatt',                 traveler: 'Jasper Quinn',   travelDate: 'Feb 2, 2026',  amount: 109.73, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+  { id: 'ic3', bookingRef: 'HYT-55089',  type: 'Commission', supplier: 'Hyatt',                 traveler: 'Jasper Quinn',   travelDate: 'Feb 2, 2026',  amount: 109.73, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', statementRef: 'HYT7781', updates: [
     { from: 'Hyatt',          to: 'Wonderland Inc', amount: 109.73, date: 'Sep 12, 2026' },
     { from: 'Wonderland Inc', to: 'James May',      amount: 71.32,  percent: 65, date: 'Sep 14, 2026' },
   ] },
-  { id: 'ic4', bookingRef: 'MAR-77120',  type: 'Commission', supplier: 'Marriott',              traveler: 'Ava Sinclair',   travelDate: 'Mar 8, 2026',  amount: 240.00, splitName: 'New Agent', splitPercent: 65, status: 'in-payout',        expected: 'Sep 18, 2026', updates: [
+  { id: 'ic4', bookingRef: 'MAR-77120',  type: 'Commission', supplier: 'Marriott',              traveler: 'Ava Sinclair',   travelDate: 'Mar 8, 2026',  amount: 240.00, splitName: 'New Agent', splitPercent: 65, status: 'in-payout',        expected: 'Sep 18, 2026', statementRef: 'MAR2207', payoutRef: 'PO-2026-0918', updates: [
     { from: 'ALG Vacations',  to: 'Outside Agents',  amount: 240.00, date: 'Sep 12, 2026' },
     { from: 'Outside Agents', to: 'Wonderland Inc',  amount: 216.00, percent: 90, date: 'Sep 13, 2026' },
     { from: 'Wonderland Inc', to: 'James May',       amount: 156.00, percent: 65, date: 'Sep 14, 2026' },
@@ -93,7 +97,7 @@ export const initialIncomingCommissions: IncomingCommission[] = [
   { id: 'ic6', bookingRef: 'GAdv-882',   type: 'Commission', supplier: 'G Adventures',          traveler: 'Ivy Bennett',    travelDate: 'Apr 3, 2026',  amount: 186.00, splitName: 'Tier 1',    splitPercent: 70, status: 'upcoming',         expected: '—', updates: [
     { from: 'G Adventures', to: 'Wonderland Inc', amount: 186.00, date: 'Sep 12, 2026' },
   ] },
-  { id: 'ic7', bookingRef: 'HLT-9912',   type: 'Commission', supplier: 'Hilton',                traveler: 'Ethan Brooks',   travelDate: 'Apr 19, 2026', amount: 212.63, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', updates: [
+  { id: 'ic7', bookingRef: 'HLT-9912',   type: 'Commission', supplier: 'Hilton',                traveler: 'Ethan Brooks',   travelDate: 'Apr 19, 2026', amount: 212.63, splitName: 'New Agent', splitPercent: 65, status: 'paid-by-supplier', expected: 'Sep 19, 2026', statementRef: 'HLT7781', updates: [
     { from: 'Hilton',         to: 'Wonderland Inc', amount: 212.63, date: 'Sep 12, 2026' },
     { from: 'Wonderland Inc', to: 'James May',      amount: 138.21, percent: 65, date: 'Sep 14, 2026' },
   ] },
