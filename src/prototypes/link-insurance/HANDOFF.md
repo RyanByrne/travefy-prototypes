@@ -11,7 +11,7 @@
 - [x] 34227:79155 - Traveler itinerary: quotes shown (details on profile) - 1728x803px ✅ `screens/Node34227_79155.tsx`
 - [x] 34227:78641 - Advisor: Setup (provider, Preview, e-sig, trip cost) - 1728x1198px ✅ `screens/Node34227_78641.tsx`
 - [x] 34227:78843 - Advisor: Traveler responses table - 1600x1204px ✅ `screens/Node34227_78843.tsx`
-- [ ] 34227:78999 - Modal: Add policy for Jack Hawthorne - 561x1062px
+- [x] 34227:78999 - Modal: Add policy for Jack Hawthorne - 561x1062px ✅ `screens/Node34227_78999.tsx`
 - [ ] 34237:3169 - Modal: View policy for Lucy Nelson - 561x972px
 
 **Remaining Nodes (do after high-priority):**
