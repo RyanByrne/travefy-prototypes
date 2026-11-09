@@ -111,13 +111,13 @@ export function Node34227_79415() {
                       </div>
 
                       {/* Insurance offer - pre-quote */}
-                      <div className="flex flex-col items-start overflow-hidden pb-2 pt-4 px-[19px] w-full">
+                      <div className="flex flex-col items-center overflow-hidden pb-2 pt-4 w-full">
                         <div className="bg-white border border-gray-200 flex flex-col items-start overflow-hidden rounded-lg w-[632px]">
                           {/* Provider row */}
                           <div className="border-b border-gray-100 flex gap-3 items-center overflow-hidden pb-3.5 pt-4 px-5 w-full">
                             <div className="bg-[#003781] h-[34px] rounded-sm w-1" />
                             <div className="border-[#003781] border-[1.5px] border-dashed flex h-8 items-center justify-center overflow-hidden px-2 rounded-md w-[110px]">
-                              <p className="text-xs font-semibold text-[#003781] tracking-wider">PROVIDER LOGO</p>
+                              <p className="text-xs font-semibold text-[#003781] tracking-wider whitespace-nowrap">PROVIDER LOGO</p>
                             </div>
                             <div className="flex-1 flex flex-col gap-0.5 items-start leading-relaxed overflow-hidden">
                               <div className="flex gap-1.5 items-center overflow-hidden">

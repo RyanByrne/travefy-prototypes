@@ -50,7 +50,7 @@ export function TripsList() {
           </div>
         </div>
         
-        {/* Filter tags */}
+        {/* Filter tags - Archived Status, Type, Date, Order, Status, Label, Reset Filters */}
         <div className="flex flex-wrap gap-2.5 items-start shrink-0 w-full">
           <div className="bg-primary-600 border border-primary-600 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
             <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-white whitespace-nowrap">
@@ -59,6 +59,51 @@ export function TripsList() {
             <div className="relative shrink-0 size-3">
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/1b02e636-9211-490a-86c7-dff823279480.svg`} />
             </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 h-[33px] items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Type
+            </p>
+            <div className="relative shrink-0 size-3">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/2fa33ad9-c173-4cf1-a28d-6c97b1d08020.svg`} />
+            </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Date
+            </p>
+            <div className="relative shrink-0 size-3">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/2fa33ad9-c173-4cf1-a28d-6c97b1d08020.svg`} />
+            </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Order
+            </p>
+            <div className="relative shrink-0 size-3">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/2fa33ad9-c173-4cf1-a28d-6c97b1d08020.svg`} />
+            </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Status
+            </p>
+            <div className="relative shrink-0 size-3">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/2fa33ad9-c173-4cf1-a28d-6c97b1d08020.svg`} />
+            </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Label
+            </p>
+            <div className="relative shrink-0 size-3">
+              <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/2fa33ad9-c173-4cf1-a28d-6c97b1d08020.svg`} />
+            </div>
+          </div>
+          <div className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-1.5 rounded shrink-0">
+            <p className="font-semibold leading-relaxed not-italic shrink-0 text-sm text-primary-600 whitespace-nowrap">
+              Reset Filters
+            </p>
           </div>
         </div>
       </div>
