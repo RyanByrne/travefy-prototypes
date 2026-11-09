@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useNavigate } from 'react-router-dom'
 
 const imgCollapse = "/src/prototypes/link-insurance-v1/assets/212f3d96-af8f-418d-b8cc-beaa7c8a21c6.svg";

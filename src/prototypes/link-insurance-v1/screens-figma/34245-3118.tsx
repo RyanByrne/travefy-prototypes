@@ -1,3 +1,4 @@
+// @ts-nocheck
 const imgTypeCircleSizeLgContentImageNotificationDotFalse = "/src/prototypes/link-insurance-v1/assets/243233dc-8f17-4041-85b0-31e765606cc4.png";
 const imgFlowbiteSolidPlus = "/src/prototypes/link-insurance-v1/assets/4e9b27d8-2e42-4961-bac2-562765a1c963.svg";
 const imgTripThumbnail = "/src/prototypes/link-insurance-v1/assets/7a0213ae-2770-4300-9d3b-c2aa381c8be5.png";

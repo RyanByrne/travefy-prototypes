@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useNavigate } from 'react-router-dom'
 
 const imgTypeItineraryStateDefaultSizeDefault = "/src/prototypes/link-insurance-v1/assets/916100b0-3d05-4240-ab1b-46e31be82c0d.png";

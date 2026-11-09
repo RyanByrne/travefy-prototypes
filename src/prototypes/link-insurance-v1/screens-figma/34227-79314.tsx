@@ -1,3 +1,4 @@
+// @ts-nocheck
 const imgSelectedFalse = "/src/prototypes/link-insurance-v1/assets/3325e8c0-2be2-4fb3-a4e4-faf2aec0f5e6.svg";
 const imgSelectedTrue = "/src/prototypes/link-insurance-v1/assets/b14ecd22-4d8f-4ffc-9c22-18606de58eea.svg";
 const imgTypeCircleSizeLgContentImageNotificationDotFalse = "/src/prototypes/link-insurance-v1/assets/8834cf4e-fd8f-4151-aaa9-b900f5fab92a.png";

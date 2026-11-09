@@ -20,8 +20,9 @@ import Screen34237_3169 from './screens-figma/34237-3169'
 
 export function LinkInsuranceV1() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/screen/34227-79415" replace />} />
+    <div className="h-screen w-screen overflow-hidden">
+      <Routes>
+        <Route path="/" element={<Navigate to="/screen/34227-79415" replace />} />
       
       <Route path="/screen/34160-3830" element={<Screen34160_3830 />} />
       <Route path="/screen/34227-79415" element={<Screen34227_79415 />} />
@@ -41,6 +42,7 @@ export function LinkInsuranceV1() {
       <Route path="/screen/34237-2862" element={<Screen34237_2862 />} />
       <Route path="/screen/34237-3007" element={<Screen34237_3007 />} />
       <Route path="/screen/34237-3169" element={<Screen34237_3169 />} />
-    </Routes>
+      </Routes>
+    </div>
   )
 }

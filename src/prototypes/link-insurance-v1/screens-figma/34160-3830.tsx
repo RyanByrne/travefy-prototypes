@@ -287,13 +287,13 @@ export default function AllCardStates() {
     { state: "Quotes" },
     { state: "Pre-quote" },
     { state: "Accepted collapsed" },
+    { state: "Purchased collapsed" },
     { state: "Declined collapsed" },
-    { state: "Pre-quote condensed" },
-    { state: "Purchased collapsed" }
+    { state: "Pre-quote condensed" }
   ];
   
   return (
-    <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col gap-[32px] items-start p-[40px] relative min-h-screen">
+    <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col gap-[32px] items-center p-[40px] relative min-h-screen">
       {states.map((props, index) => (
         <InsuranceOfferCard key={index} {...props} />
       ))}

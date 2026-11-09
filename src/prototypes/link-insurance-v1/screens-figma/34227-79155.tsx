@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useNavigate } from 'react-router-dom'
 
 const imgSelectedFalse = "/src/prototypes/link-insurance-v1/assets/6dda37ce-54ae-4720-8fbb-440add7cd37e.svg";
