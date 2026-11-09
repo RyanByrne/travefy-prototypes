@@ -1,5 +1,51 @@
 # Link Insurance v1 Prototype - Handoff
 
+## FIDELITY REBUILD IN PROGRESS
+
+**Status:** Setup complete, component rebuild in progress  
+**Figma Reference:** h6nksbINce9t4Cg0xVFczu, page "Quote & Pay" (34135:7088)
+
+### Completed:
+- ✅ Tailwind config updated with exact Figma tokens (Proxima Nova, primary #2a79a6, blue-gray neutrals, 4px spacing scale)
+- ✅ All 16 Figma nodes' assets copied to `public/figma-assets/`
+- ✅ Design tokens documented from `tokens.json`
+- ✅ Badge colors: Accepted #E5EDFF/#42389D, Purchased #DEF7EC/#14673F
+
+### Rebuild Required (16 nodes):
+Each component below needs pixel-perfect reconstruction from reference-code.tsx + screenshot.png:
+
+**Traveler Side:**
+1. `34160-3830` - Offer card component set (all 7 states)
+2. `34227-79415` - Before quote (pre-quote offer card in itinerary)
+3. `34227-79234` - Logged out condensed offer
+4. `34227-79155` - Quotes shown (plan radio list) ⭐ PRIORITY
+5. `34227-79452` - Confirm your details modal
+6. `34227-79473` - Edit your details modal
+7. `34227-79314` - Multi-provider before accept
+8. `34245-3118` - One accepted (others locked/muted)
+9. `34227-79275` - Proposal view
+
+**Advisor Side:**
+10. `34227-78641` - Setup tab (provider, Preview, e-sig, trip cost) ⭐ PRIORITY
+11. `34233-2724` - Preview as traveler
+12. `34227-78843` - Responses table ⭐ PRIORITY
+13. `34227-78999` - Add policy modal
+14. `34237-2862` - Provider combobox (open, with + Add new)
+15. `34237-3007` - Provider + Add new form state
+16. `34237-3169` - View policy modal (read-only)
+
+### Key Visual Specifications:
+- Font: Proxima Nova (weights 400/500/600/700)
+- Spacing: 4px scale (1=4px, 2=8px, 3=12px, 4=16px, 5=20px, 6=24px, 8=32px)
+- Border radius: 4px controls, 8px containers
+- Shadows: Dual-layer soft shadows (md: 0 2px 4px -2px + 0 4px 6px -1px, lg: 0 4px 6px + 0 10px 15px -3px)
+- Provider logo: Dashed border placeholder
+- Selected plan: primary/50-100 fill with 3px blue left accent
+- Chevrons: Use exact SVGs from assets (not Lucide icons)
+- Typography: Exact line-heights from tokens (1.5 base, 1.43 sm, 1.25 tight)
+
+# Link Insurance v1 Prototype - Handoff
+
 ## What's Built
 
 ### Routes
