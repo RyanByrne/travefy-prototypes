@@ -12,7 +12,9 @@
 - [x] 34227:78641 - Advisor: Setup (provider, Preview, e-sig, trip cost) - 1728x1198px ✅ `screens/Node34227_78641.tsx`
 - [x] 34227:78843 - Advisor: Traveler responses table - 1600x1204px ✅ `screens/Node34227_78843.tsx`
 - [x] 34227:78999 - Modal: Add policy for Jack Hawthorne - 561x1062px ✅ `screens/Node34227_78999.tsx`
-- [ ] 34237:3169 - Modal: View policy for Lucy Nelson - 561x972px
+- [x] 34237:3169 - Modal: View policy for Lucy Nelson - 561x972px ✅ `screens/Node34237_3169.tsx`
+
+**✅ HIGH-PRIORITY NODES COMPLETE (5/5)**
 
 **Remaining Nodes (do after high-priority):**
 - [ ] 34227:79415 - Traveler: before quote (pre-quote offer card in itinerary) - 1728x1011px
