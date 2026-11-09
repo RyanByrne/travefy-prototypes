@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 const imgSelectedFalse = "/src/prototypes/link-insurance-v1/assets/6dda37ce-54ae-4720-8fbb-440add7cd37e.svg";
 const imgSelectedTrue = "/src/prototypes/link-insurance-v1/assets/345f46f0-e86b-4870-9d8c-fd1a61675f82.svg";
 const imgTypeCircleSizeLgContentImageNotificationDotFalse = "/src/prototypes/link-insurance-v1/assets/66b466b8-6d48-4433-891f-c1ee805e5939.png";
@@ -112,6 +114,7 @@ function WebItineraryNavItem({ className, state = "Default", type = "Exact Day" 
 }
 
 export default function TravelerItineraryQuotesShownDetailsOnProfile() {
+  const navigate = useNavigate()
   return (
     <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col items-start relative size-full" data-node-id="34227:79155" data-name="Traveler itinerary: quotes shown (details on profile)">
       <div className="bg-[var(--white,white)] content-stretch flex flex-col gap-[var(--0,0px)] items-start pl-[var(--32,128px)] pr-[var(--14,56px)] py-[var(--0,0px)] relative shrink-0 w-full" data-node-id="34227:79156" data-name="Navbar (application)">
@@ -401,12 +404,12 @@ export default function TravelerItineraryQuotesShownDetailsOnProfile() {
                             <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] leading-[1.5] min-w-px not-italic relative text-[12px] text-[color:var(--blue-gray\/500,#678390)]" data-node-id="I34227:79178;34160:3750">
                               Editing your details gets new quotes. Your decision is saved with your name and the time.
                             </p>
-                            <div className="border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="I34227:79178;34160:3751" data-name="Button - Decline">
+                            <div className="border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0 cursor-pointer" data-node-id="I34227:79178;34160:3751" data-name="Button - Decline" onClick={() => navigate('/link-insurance-v1/screen/34227-79275')}>
                               <div className="[word-break:break-word] flex flex-col font-['Inter:Semibold'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--primary\/600,#2a79a6)] whitespace-nowrap" data-node-id="I34227:79178;34160:3751;29:127807">
                                 <p className="leading-[1.43]">Decline</p>
                               </div>
                             </div>
-                            <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="I34227:79178;34160:3759" data-name="Button - Primary">
+                            <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0 cursor-pointer" data-node-id="I34227:79178;34160:3759" data-name="Button - Primary" onClick={() => navigate('/link-insurance-v1/screen/34227-79314')}>
                               <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[1.43] not-italic relative shrink-0 text-[14px] text-[color:var(--white,white)] whitespace-nowrap" data-node-id="I34227:79178;34160:3759;27:127543">
                                 Continue with Prime, $72
                               </p>

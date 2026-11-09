@@ -13,6 +13,8 @@ const imgLine2 = "/src/prototypes/link-insurance-v1/assets/73c92303-6436-437e-a5
 const imgLine1 = "/src/prototypes/link-insurance-v1/assets/5b4352ce-a98c-420a-a0ae-f8e563af0d0c.svg";
 const imgLine3 = "/src/prototypes/link-insurance-v1/assets/d949f10f-7760-4819-af5c-ccc7ac8088c5.svg";
 
+import { useNavigate } from 'react-router-dom'
+
 type InsuranceOfferCardProps = {
   className?: string;
   showCollapseChevron?: boolean;
@@ -20,6 +22,7 @@ type InsuranceOfferCardProps = {
 };
 
 function InsuranceOfferCard({ className, showCollapseChevron = true, state = "Pre-quote" }: InsuranceOfferCardProps) {
+  const navigate = useNavigate()
   return (
     <div className={className || "bg-[var(--white,white)] border border-[var(--blue-gray\\/200,#d1dae0)] border-solid content-stretch flex flex-col items-start overflow-clip relative rounded-[8px] w-[632px]"} data-node-id="34160:3767">
       <div className="border-[var(--blue-gray\/100,#e1e7ec)] border-b border-solid content-stretch flex gap-[12px] items-center overflow-clip pb-[14px] pt-[16px] px-[20px] relative shrink-0 w-full" data-node-id="34160:3768" data-name="Provider row">
@@ -68,12 +71,12 @@ function InsuranceOfferCard({ className, showCollapseChevron = true, state = "Pr
         <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] leading-[1.5] min-w-px not-italic relative text-[12px] text-[color:var(--blue-gray\/500,#678390)]" data-node-id="34160:3786">
           Your decision is saved with your name and the time.
         </p>
-        <div className="border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34160:3787" data-name="Button - Decline">
+        <div className="border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0 cursor-pointer" data-node-id="34160:3787" data-name="Button - Decline" onClick={() => navigate('/link-insurance-v1/screen/34227-79275')}>
           <div className="[word-break:break-word] flex flex-col font-['Inter:Semibold'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--primary\/600,#2a79a6)] whitespace-nowrap" data-node-id="I34160:3787;29:127807">
             <p className="leading-[1.43]">Decline</p>
           </div>
         </div>
-        <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34160:3793" data-name="Button - Primary">
+        <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0 cursor-pointer" data-node-id="34160:3793" data-name="Button - Primary" onClick={() => navigate('/link-insurance-v1/screen/34227-79452')}>
           <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[1.43] not-italic relative shrink-0 text-[14px] text-[color:var(--white,white)] whitespace-nowrap" data-node-id="I34160:3793;27:127543">
             Get a quote
           </p>
