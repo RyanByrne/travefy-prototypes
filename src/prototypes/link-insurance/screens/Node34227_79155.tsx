@@ -127,9 +127,8 @@ export function Node34227_79155() {
                               <p className="text-xs text-blue-gray-600 w-full">Travel with confidence, wherever you go.</p>
                             </div>
                             <div className="flex gap-3 items-center overflow-hidden">
-                              <p className="text-sm font-semibold text-primary-600 leading-tight">Sample policy</p>
                               <div className="bg-primary-100 flex h-5 items-center justify-center px-2.5 py-0.5 rounded-full">
-                                <p className="text-xs font-semibold text-primary-800">Choose a plan</p>
+                                <p className="text-xs font-semibold text-primary-800 leading-relaxed">Choose a plan</p>
                               </div>
                               <img src={`${ASSETS}/f0af18af-185b-4274-b4ce-5a75ef9aca6e.svg`} alt="" className="w-4 h-4" />
                             </div>
