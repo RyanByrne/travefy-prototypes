@@ -73,20 +73,20 @@ export function AddPolicyModal({ open, onClose, travelerName, acceptedQuote, onS
 
   return (
     <Modal open={open} onClose={onClose} size="lg">
-      <div className="flex items-start justify-between pb-4 border-b border-travefy-gray-200">
+      <div className="flex items-start justify-between pb-4 border-b border-gray-200">
         <div>
-          <h2 className="text-xl font-semibold text-travefy-navy">Add policy for {travelerName}</h2>
+          <h2 className="text-xl font-semibold text-blue-gray-900">Add policy for {travelerName}</h2>
           {acceptedQuote && (
-            <div className="mt-3 p-3 bg-travefy-gray-50 rounded text-sm">
-              <p className="font-medium text-travefy-gray-900 mb-1">
+            <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
+              <p className="font-medium text-blue-gray-900 mb-1">
                 Accepted quote: {acceptedQuote.provider} {acceptedQuote.plan}, ${acceptedQuote.price}, on {acceptedQuote.date}
               </p>
-              <p className="text-travefy-gray-600">
+              <p className="text-blue-gray-600">
                 Quotes are regenerated at purchase, so enter the premium you actually paid.
               </p>
             </div>
           )}
-          <div className="mt-3 p-3 bg-travefy-blue-light border border-travefy-blue/20 rounded text-sm text-travefy-navy">
+          <div className="mt-3 p-3 bg-primary-50 border border-primary-200 rounded text-sm text-blue-gray-900">
             <p className="font-medium mb-1">
               {acceptedQuote?.provider.includes('Allianz') 
                 ? `${travelerName} accepted this offer and chose "My advisor will buy on my behalf."`
@@ -95,14 +95,14 @@ export function AddPolicyModal({ open, onClose, travelerName, acceptedQuote, onS
             </p>
           </div>
         </div>
-        <button onClick={onClose} className="text-travefy-gray-400 hover:text-travefy-gray-600">
+        <button onClick={onClose} className="text-blue-gray-400 hover:text-blue-gray-600">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
         <div>
-          <label className="block text-sm font-medium text-travefy-gray-700 mb-1.5">Provider</label>
+          <label className="block text-sm font-semibold text-blue-gray-900 mb-2 leading-tight">Provider</label>
           {showNewProvider ? (
             <div className="space-y-3">
               <Input
