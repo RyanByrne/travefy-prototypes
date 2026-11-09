@@ -21,7 +21,7 @@
 - [x] 34227:79234 - Traveler: Logged out (CTA only) - 1728x1211px ✅ `screens/Node34227_79234.tsx`
 - [ ] 34227:79314 - Traveler: Multi-provider before accept - 1728x1413px
 - [ ] 34245:3118 - Traveler: One accepted (others locked/muted) - 1728x1076px
-- [ ] 34233:2724 - Modal: Preview as traveler - 490x309px
+- [x] 34233:2724 - Modal: Preview as traveler - 490x309px ✅ `screens/Node34233_2724.tsx`
 - [ ] 34237:2862 - Modal: Add policy, provider list open - 561x1062px
 - [ ] 34237:3007 - Modal: Add policy, + Add new provider - 561x1062px
 - [x] 34227:79452 - Modal: Confirm your details - 490x309px ✅ `screens/Node34227_79452.tsx`
