@@ -28,43 +28,43 @@ export function AdvisorView() {
   const luczyPolicy = MOCK_RESPONSES.find((r) => r.travelerName === 'Lucy Nelson')!
 
   return (
-    <div className="min-h-screen bg-travefy-gray-50 flex flex-col">
-      <div className="bg-white border-b border-travefy-gray-200 px-6 py-4 shrink-0">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="bg-white border-b border-gray-200 px-6 py-3 shrink-0">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-xl font-semibold text-travefy-navy">Adventure in the Rockies: A Journey through the mountains</h1>
+              <h1 className="text-xl font-semibold text-blue-gray-900">Adventure in the Rockies: A Journey through the mountains</h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 text-xs font-semibold bg-travefy-blue-light text-travefy-blue border border-travefy-blue/40 rounded">Luxury ✦</span>
+                <span className="px-2 py-0.5 text-xs font-semibold bg-primary-100 text-primary-700 border border-primary-300 rounded">Luxury ✦</span>
                 <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300 rounded">Europe ✦</span>
                 <span className="px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 border border-red-300 rounded">Adults Only ✦</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button className="text-sm text-travefy-blue hover:underline font-semibold">No Platform</button>
-              <button className="text-sm text-travefy-blue hover:underline font-semibold">Brand</button>
-              <button className="text-sm text-travefy-blue hover:underline font-semibold">No Status</button>
+              <button className="text-sm text-primary-600 hover:underline font-semibold">No Platform</button>
+              <button className="text-sm text-primary-600 hover:underline font-semibold">Brand</button>
+              <button className="text-sm text-primary-600 hover:underline font-semibold">No Status</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white border-b border-travefy-gray-200 shrink-0">
+      <div className="bg-white border-b border-gray-200 shrink-0">
         <div className="max-w-7xl mx-auto px-6">
           <nav className="flex gap-1">
-            <button className="px-4 py-3 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 border-b-2 border-transparent">
+            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
               Trip Activity
             </button>
-            <button className="px-4 py-3 text-sm font-semibold bg-travefy-blue text-white rounded-t border-b-2 border-travefy-blue">
+            <button className="px-4 py-2.5 text-sm font-semibold bg-primary-600 text-white rounded-t border-b-2 border-primary-600">
               Travel Protection
             </button>
-            <button className="px-4 py-3 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 border-b-2 border-transparent">
+            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
               People
             </button>
-            <button className="px-4 py-3 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 border-b-2 border-transparent">
+            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
               Tasks and Automations
             </button>
-            <button className="px-4 py-3 text-sm font-semibold text-travefy-gray-600 hover:text-travefy-gray-900 border-b-2 border-transparent">
+            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
               Notes
             </button>
           </nav>
@@ -73,16 +73,16 @@ export function AdvisorView() {
 
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto p-6">
-          <div className="bg-white rounded-lg border border-travefy-gray-200 overflow-hidden">
-            <div className="border-b border-travefy-gray-100">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-md">
+            <div className="border-b border-gray-100">
               <div className="flex">
                 <button
                   onClick={() => setActiveTab('settings')}
                   className={clsx(
                     'px-6 py-3 text-sm font-semibold border-b-2 transition-colors',
                     activeTab === 'settings'
-                      ? 'border-travefy-blue text-travefy-blue'
-                      : 'border-transparent text-travefy-gray-600 hover:text-travefy-gray-900'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-blue-gray-600 hover:text-blue-gray-900'
                   )}
                 >
                   Settings
@@ -92,8 +92,8 @@ export function AdvisorView() {
                   className={clsx(
                     'px-6 py-3 text-sm font-semibold border-b-2 transition-colors',
                     activeTab === 'responses'
-                      ? 'border-travefy-blue text-travefy-blue'
-                      : 'border-transparent text-travefy-gray-600 hover:text-travefy-gray-900'
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-blue-gray-600 hover:text-blue-gray-900'
                   )}
                 >
                   Responses
