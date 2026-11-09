@@ -4,12 +4,13 @@
 import { NavbarApplication } from '../chrome/NavbarApplication'
 import { TripsList } from '../chrome/TripsList'
 import { TripMenu } from '../chrome/TripMenu'
+import { TripHeader } from '../chrome/TripHeader'
 
 const ASSETS = '/figma-assets/34227-78641'
 
 export function Node34227_78641() {
   return (
-    <div className="bg-blue-gray-50 flex flex-col w-[1728px] h-[1198px]">
+    <div className="bg-blue-gray-50 flex flex-col w-[1400px] h-[971px]">
       <NavbarApplication />
 
       {/* Main content with sidebars and settings panel */}
@@ -17,9 +18,18 @@ export function Node34227_78641() {
         <TripsList />
         <TripMenu />
 
-        {/* Main content: Travel Protection Settings panel */}
-        <div className="flex-1 flex flex-col bg-white overflow-hidden">
-          {/* Panel header */}
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Trip header */}
+          <div className="flex items-center min-h-0 pt-4 px-4 w-full">
+            <div className="flex flex-1 flex-col gap-4 h-full items-center min-w-0">
+              <TripHeader />
+            </div>
+          </div>
+          
+          {/* Travel Protection Settings panel */}
+          <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            {/* Panel header */}
           <div className="border-b border-gray-200 px-5 py-4 shrink-0">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-blue-gray-900 leading-relaxed">Travel Protection</h1>
@@ -213,6 +223,7 @@ export function Node34227_78641() {
               {/* Sticky footer placeholder */}
               <div className="flex h-[60px] items-center justify-end py-2 w-full" />
             </div>
+          </div>
           </div>
         </div>
       </div>

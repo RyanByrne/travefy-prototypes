@@ -4,12 +4,13 @@
 import { NavbarApplication } from '../chrome/NavbarApplication'
 import { TripsList } from '../chrome/TripsList'
 import { TripMenu } from '../chrome/TripMenu'
+import { TripHeader } from '../chrome/TripHeader'
 
 const ASSETS = '/figma-assets/34227-78843'
 
 export function Node34227_78843() {
   return (
-    <div className="bg-blue-gray-50 flex flex-col w-[1600px] h-[1204px]">
+    <div className="bg-blue-gray-50 flex flex-col w-[1400px] h-[882px]">
       <NavbarApplication />
 
       {/* Main content with sidebars and table */}
@@ -17,9 +18,18 @@ export function Node34227_78843() {
         <TripsList />
         <TripMenu />
 
-        {/* Main content: Travel Protection panel */}
-        <div className="flex-1 flex flex-col bg-white overflow-hidden">
-          {/* Panel header */}
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Trip header */}
+          <div className="flex items-center min-h-0 pt-4 px-4 w-full">
+            <div className="flex flex-1 flex-col gap-4 h-full items-center min-w-0">
+              <TripHeader />
+            </div>
+          </div>
+          
+          {/* Travel Protection panel */}
+          <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            {/* Panel header */}
           <div className="border-b border-gray-200 px-5 py-4 shrink-0">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold text-blue-gray-900 leading-relaxed">Travel Protection</h1>
@@ -267,6 +277,7 @@ export function Node34227_78843() {
                 Add policy shows only on Accepted travelers, in that traveler's row. Purchased through the Allianz integration pulls the policy details in automatically, so there is no manual add, only View policy. Only Purchased means covered. History is kept: a changed answer adds a new entry and never overwrites the old one.
               </p>
             </div>
+          </div>
           </div>
         </div>
       </div>

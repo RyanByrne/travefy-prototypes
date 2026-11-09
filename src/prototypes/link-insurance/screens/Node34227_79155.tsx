@@ -5,7 +5,7 @@ const ASSETS = '/figma-assets/34227-79155'
 
 export function Node34227_79155() {
   return (
-    <div className="bg-gray-50 flex flex-col items-center w-[1728px] h-[803px]">
+    <div className="bg-gray-50 flex flex-col items-center w-[1400px] h-[982px]">
       {/* Navbar */}
       <div className="bg-white w-full shrink-0">
         <div className="flex items-center justify-between px-6 py-1.5">
@@ -89,41 +89,69 @@ export function Node34227_79155() {
             </div>
 
             {/* Insurance offer card */}
-            <div className="flex flex-col items-start py-3.5 w-full">
-              {/* Provider header */}
-              <div className="flex flex-col items-start px-4 pb-3 w-full">
-                <div className="border-2 border-dashed border-gray-300 flex items-center justify-center h-12 w-full rounded mb-2">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PROVIDER LOGO</p>
-                </div>
-                <div className="flex items-center justify-between w-full">
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <p className="text-sm font-semibold text-black">Allianz Travel</p>
-                      <p className="text-xs font-normal text-blue-gray-500">(example)</p>
+            <div className="flex flex-col gap-3 items-start overflow-hidden pb-2 pt-4 px-[19px] shrink-0 w-full">
+              <div className="bg-white border border-gray-200 flex flex-col items-start overflow-hidden rounded-lg shrink-0 w-full">
+                {/* Provider row - accent | logo | name/tagline | status pill + chevron */}
+                <div className="border-b border-gray-100 flex gap-3 items-center overflow-hidden pb-3.5 pt-4 px-5 shrink-0 w-full">
+                  {/* Blue accent bar */}
+                  <div className="bg-[#003781] h-[34px] rounded-sm shrink-0 w-1" />
+                  
+                  {/* Dashed PROVIDER LOGO box */}
+                  <div className="border-[#003781] border-[1.5px] border-dashed flex h-8 items-center justify-center overflow-hidden px-2 rounded-md shrink-0 w-[110px]">
+                    <p className="font-semibold leading-relaxed not-italic shrink-0 text-[#003781] text-xs tracking-wide whitespace-nowrap">
+                      PROVIDER LOGO
+                    </p>
+                  </div>
+                  
+                  {/* Provider name and tagline */}
+                  <div className="flex flex-1 flex-col gap-0.5 items-start leading-relaxed min-w-0 not-italic overflow-hidden">
+                    <div className="flex gap-1.5 items-center overflow-hidden shrink-0 whitespace-nowrap">
+                      <p className="font-bold shrink-0 text-base text-blue-gray-900">
+                        Allianz Travel
+                      </p>
+                      <p className="font-normal shrink-0 text-xs text-blue-gray-500">
+                        (example)
+                      </p>
                     </div>
-                    <p className="text-xs text-blue-gray-600">Comprehensive travel protection</p>
+                    <p className="font-normal min-w-full shrink-0 text-xs text-blue-gray-600 w-min">
+                      Travel with confidence, wherever you go.
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 border border-green-400 inline-flex items-center justify-center px-2.5 py-0.5 rounded-3xl">
-                      <p className="text-xs font-normal text-green-800 leading-relaxed">Active</p>
+                  
+                  {/* Status pill and chevron */}
+                  <div className="flex gap-3 items-center overflow-hidden shrink-0">
+                    <div className="bg-primary-100 flex h-5 items-center justify-center px-2.5 py-0.5 rounded-full shrink-0">
+                      <p className="font-semibold leading-relaxed not-italic shrink-0 text-xs text-primary-800 text-center whitespace-nowrap">
+                        Choose a plan
+                      </p>
                     </div>
-                    <img src={`${ASSETS}/f0af18af-185b-4274-b4ce-5a75ef9aca6e.svg`} alt="" className="w-4 h-4" />
+                    <div className="relative shrink-0 size-4">
+                      <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/01a22a6e-b89e-46d7-9e34-dab96896f67c.svg`} />
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Header */}
-              <div className="flex flex-col items-start px-4 pb-3 w-full">
-                <div className="flex items-center gap-2 pb-1">
-                  <div className="bg-primary-100 flex items-center justify-center px-2.5 py-0.5 rounded-full">
-                    <p className="text-xs font-semibold text-primary-800 leading-relaxed">Choose a plan</p>
+                
+                {/* Body - Add travel protection? */}
+                <div className="flex flex-col gap-3 items-start overflow-hidden px-5 py-3.5 shrink-0 w-full">
+                  <p className="font-bold leading-relaxed not-italic shrink-0 text-base text-blue-gray-900 whitespace-nowrap">
+                    Add travel protection?
+                  </p>
+                  
+                  {/* Your details line */}
+                  <div className="flex flex-wrap gap-x-1.5 gap-y-0.5 items-start leading-relaxed not-italic overflow-hidden shrink-0 text-xs w-full">
+                    <p className="font-normal shrink-0 text-blue-gray-500 whitespace-nowrap">
+                      Your details:
+                    </p>
+                    <p className="font-semibold shrink-0 text-blue-gray-900 whitespace-nowrap">
+                      Elisa Denton | DOB Mar 3, 1986 | Colorado | Trip cost $8,400
+                    </p>
+                    <button className="font-semibold shrink-0 text-primary-600 whitespace-nowrap">
+                      Edit
+                    </button>
                   </div>
-                </div>
-                <p className="text-base font-semibold text-blue-gray-900 w-full">Travel Protection</p>
-              </div>
-
-              {/* Plans */}
-              <div className="border border-gray-200 flex flex-col overflow-hidden rounded-lg mx-4 mb-3 w-[calc(100%-32px)]">
+                  
+                  {/* Plans */}
+                  <div className="flex flex-col items-start shrink-0 w-full">
                 {/* OneTrip Basic */}
                 <div className="bg-white flex gap-3 items-center px-4 py-3 w-full">
                   <div className="relative shrink-0 size-[18px]">
@@ -172,21 +200,23 @@ export function Node34227_79155() {
                   </div>
                   <p className="font-bold leading-relaxed text-xl text-blue-gray-900 text-right whitespace-nowrap shrink-0">$118</p>
                 </div>
-              </div>
+                  </div>
 
-              {/* Footer */}
-              <div className="flex flex-col gap-2 px-4 w-full">
-                <div className="flex items-center justify-between w-full">
-                  <button className="text-sm font-normal text-primary-600">Compare coverage ▾</button>
-                  <p className="text-xs font-normal text-blue-gray-500">Prices may change slightly before purchase.</p>
-                </div>
-                <div className="flex items-center gap-2 w-full">
-                  <button className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-2 rounded">
-                    <p className="text-sm font-semibold text-primary-600 leading-tight">Decline</p>
-                  </button>
-                  <button className="bg-primary-600 flex-1 flex gap-2 items-center justify-center px-4 py-2 rounded">
-                    <p className="text-sm font-semibold text-white leading-tight">Continue with Prime, $72</p>
-                  </button>
+                  {/* Footer */}
+                  <div className="flex flex-col gap-2 shrink-0 w-full">
+                    <div className="flex items-center justify-between w-full">
+                      <button className="text-sm font-normal text-primary-600">Compare coverage ▾</button>
+                      <p className="text-xs font-normal text-blue-gray-500">Prices may change slightly before purchase.</p>
+                    </div>
+                    <div className="flex items-center gap-2 w-full">
+                      <button className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-2 rounded">
+                        <p className="text-sm font-semibold text-primary-600 leading-tight">Decline</p>
+                      </button>
+                      <button className="bg-primary-600 flex-1 flex gap-2 items-center justify-center px-4 py-2 rounded">
+                        <p className="text-sm font-semibold text-white leading-tight">Continue with Prime, $72</p>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
