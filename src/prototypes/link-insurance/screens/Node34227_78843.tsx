@@ -10,7 +10,7 @@ const ASSETS = '/figma-assets/34227-78843'
 
 export function Node34227_78843() {
   return (
-    <div className="bg-blue-gray-50 flex flex-col w-[1400px] h-[882px]">
+    <div className="bg-blue-gray-50 flex flex-col w-full h-full">
       <NavbarApplication />
 
       {/* Main content with sidebars and table */}
