@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 const imgTypeItineraryStateDefaultSizeDefault = "/src/prototypes/link-insurance-v1/assets/d8831b75-4284-4ac5-96f7-4f03d0947f00.png";
 const imgVisibility = "/src/prototypes/link-insurance-v1/assets/cdc0754f-cf30-4cf8-921d-9641b58524e1.svg";
 const imgRectangle1 = "/src/prototypes/link-insurance-v1/assets/61b9d5a3-5acd-4f75-8231-bb59a07c0f7a.svg";
@@ -228,6 +230,7 @@ function NavbarApplication({ className, breakpoints = "Desktop", darkMode = "Fal
 }
 
 export default function AdvisorTravelerResponses() {
+  const navigate = useNavigate()
   return (
     <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col items-start relative size-full" data-node-id="34227:78843" data-name="Advisor: traveler responses">
       <NavbarApplication className="bg-[var(--primary\/400,#45bbff)] content-stretch flex flex-col gap-[var(--0,0px)] items-start p-[var(--0,0px)] relative shrink-0 w-full" />
@@ -927,7 +930,7 @@ export default function AdvisorTravelerResponses() {
                             </div>
                           </div>
                           <div className="content-stretch flex items-center justify-end overflow-clip relative shrink-0 w-[134px]" data-node-id="34232:2388" data-name="Action">
-                            <button className="bg-[var(--primary\/400,#45bbff)] content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34232:2397" data-name="Add policy button">
+                            <button className="bg-[var(--primary\/400,#45bbff)] content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34232:2397" data-name="Add policy button" onClick={() => navigate('/link-insurance-v1/screen/34227-78999')}>
                               <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[12px] not-italic relative shrink-0 text-[12px] text-[color:var(--white,white)] text-left whitespace-nowrap" data-node-id="I34232:2397;15023:2885">
                                 Add policy
                               </p>
@@ -958,7 +961,7 @@ export default function AdvisorTravelerResponses() {
                             </div>
                           </div>
                           <div className="content-stretch flex items-center justify-end overflow-clip relative shrink-0 w-[134px]" data-node-id="34232:2408" data-name="Action">
-                            <button className="border border-[var(--gray\/200,#d9dee0)] border-solid content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center overflow-clip px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34232:2416" data-name="Add policy button">
+                            <button className="border border-[var(--gray\/200,#d9dee0)] border-solid content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center overflow-clip px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34232:2416" data-name="Add policy button" onClick={() => navigate('/link-insurance-v1/screen/34227-78999')}>
                               <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[12px] not-italic relative shrink-0 text-[12px] text-[color:var(--primary\/400,#45bbff)] text-left whitespace-nowrap" data-node-id="I34232:2416;27:127997">
                                 Add policy
                               </p>

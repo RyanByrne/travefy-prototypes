@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 const imgCollapse = "/src/prototypes/link-insurance-v1/assets/212f3d96-af8f-418d-b8cc-beaa7c8a21c6.svg";
 const imgTypeCircleSizeLgContentImageNotificationDotFalse = "/src/prototypes/link-insurance-v1/assets/11587b97-24f8-4155-b276-f85b93af2ad9.png";
 const imgHero = "/src/prototypes/link-insurance-v1/assets/bdcfb24b-a625-41ec-992c-d903559c8ecf.png";
@@ -96,6 +98,7 @@ function Avatar({ className, content = "Image", notificationDot = "False", size 
 }
 
 export default function AdvisorPreviewAsTravelerInsuranceCardOnItinerary() {
+  const navigate = useNavigate()
   return (
     <div className="bg-[var(--blue-gray\/100,#e1e7ec)] relative size-full" data-node-id="34233:2724" data-name="Advisor: Preview as traveler (insurance card on itinerary)">
       <div className="-translate-x-1/2 -translate-y-1/2 absolute contents left-[calc(50%-30.5px)] top-[calc(50%+27.5px)]" data-node-id="34233:2725">
@@ -143,7 +146,7 @@ export default function AdvisorPreviewAsTravelerInsuranceCardOnItinerary() {
             <div className="border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex gap-[var(--2,8px)] h-[44px] items-center justify-center px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-[var(--rounded,4px)] shrink-0" data-node-id="34233:2739" data-name="Button">
               <p className="[word-break:break-word] font-['Inter:Regular'] leading-[1.5] not-italic relative shrink-0 text-[16px] text-[color:var(--primary\/600,#2a79a6)] whitespace-nowrap" data-node-id="I34233:2739;29:127803">{`Send Test `}</p>
             </div>
-            <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--5,20px)] py-[var(--2․5,10px)] relative rounded-[var(--rounded,4px)] shrink-0" data-node-id="34233:2740" data-name="Button">
+            <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--5,20px)] py-[var(--2․5,10px)] relative rounded-[var(--rounded,4px)] shrink-0 cursor-pointer" data-node-id="34233:2740" data-name="Button" onClick={() => navigate('/link-insurance-v1/screen/34227-78843')}>
               <p className="[word-break:break-word] font-['Inter:Regular'] leading-[1.5] not-italic relative shrink-0 text-[16px] text-[color:var(--white,white)] whitespace-nowrap" data-node-id="I34233:2740;27:127539">
                 Close Preview
               </p>

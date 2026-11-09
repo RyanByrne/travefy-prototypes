@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 const imgTypeItineraryStateDefaultSizeDefault = "/src/prototypes/link-insurance-v1/assets/916100b0-3d05-4240-ab1b-46e31be82c0d.png";
 const imgVisibility = "/src/prototypes/link-insurance-v1/assets/442076c9-bd4f-40ad-8e75-31684eff516a.svg";
 const imgRectangle1 = "/src/prototypes/link-insurance-v1/assets/750c7f1e-98c5-4d42-ab32-1eccad5e1ce7.svg";
@@ -264,6 +266,7 @@ function NavbarApplication({ className, breakpoints = "Desktop", darkMode = "Fal
 }
 
 export default function AdvisorInsuranceOfferSetup() {
+  const navigate = useNavigate()
   return (
     <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col items-start relative size-full" data-node-id="34227:78641" data-name="Advisor: insurance offer setup">
       <NavbarApplication className="bg-[var(--primary\/400,#45bbff)] content-stretch flex flex-col gap-[var(--0,0px)] items-start p-[var(--0,0px)] relative shrink-0 w-full" />
@@ -849,7 +852,7 @@ export default function AdvisorInsuranceOfferSetup() {
                       <div className="flex flex-row items-center self-stretch" data-node-id="34227:78690">
                         <div className="content-stretch flex gap-[var(--1,4px)] h-full items-start relative shrink-0" data-name="buttons">
                           <div className="content-stretch flex gap-[4px] items-center relative shrink-0" data-node-id="34227:78691">
-                            <a className="border border-[var(--gray\/200,#d9dee0)] border-solid content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center overflow-clip px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34238:2815" data-name="Preview button">
+                            <a className="border border-[var(--gray\/200,#d9dee0)] border-solid content-stretch cursor-pointer flex gap-[var(--2,8px)] h-[28px] items-center justify-center overflow-clip px-[var(--3,12px)] py-[var(--2,8px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="34238:2815" data-name="Preview button" onClick={() => navigate('/link-insurance-v1/screen/34233-2724')}>
                               <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[12px] not-italic relative shrink-0 text-[12px] text-[color:var(--primary\/400,#45bbff)] text-left whitespace-nowrap" data-node-id="I34238:2815;27:127997">
                                 Preview
                               </p>
