@@ -6,6 +6,7 @@ import { ExamplePrototype } from './prototypes/example-prototype/ExamplePrototyp
 import { EmailMarketing } from './prototypes/email-marketing/EmailMarketing'
 import { MarketingCampaigns } from './prototypes/marketing-campaigns/MarketingCampaigns'
 import { Trips } from './prototypes/trips/Trips'
+import { LinkInsuranceV1 } from './prototypes/link-insurance-v1/LinkInsuranceV1'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/commission-splits/*" element={<CommissionSplits />} />
       <Route path="/bookings-agency/*" element={<BookingsAgency />} />
       <Route path="/trips/*" element={<Trips />} />
+      <Route path="/link-insurance-v1/*" element={<LinkInsuranceV1 />} />
     </Routes>
   )
 }
