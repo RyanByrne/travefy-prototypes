@@ -74,53 +74,95 @@
 
 /* Design tokens — sourced from FannyPack Figma design system */
 @theme {
-  /* Primary action (Figma: primary/600, primary/700, primary/100) */
+  /* Primary palette (Travefy blue) */
+  --color-primary-50: #eff9ff;
+  --color-primary-100: #daf1ff;
+  --color-primary-400: #45bbff;
+  --color-primary-500: #3a9ed8;
+  --color-primary-600: #2a79a6;
+  --color-primary-700: #1b6793;
+  --color-primary-800: #1b5079;
+
+  /* Blue-gray neutrals (Travefy design system) */
+  --color-blue-gray-50: #f4f7fb;
+  --color-blue-gray-100: #e1e7ec;
+  --color-blue-gray-200: #d1dae0;
+  --color-blue-gray-300: #b9c7ce;
+  --color-blue-gray-400: #869faa;
+  --color-blue-gray-500: #678390;
+  --color-blue-gray-600: #4f666d;
+  --color-blue-gray-700: #425a63;
+  --color-blue-gray-800: #375059;
+  --color-blue-gray-900: #223e47;
+
+  /* Gray aliases (same as blue-gray for compatibility) */
+  --color-gray-50: #f4f7fb;
+  --color-gray-100: #e1e7ec;
+  --color-gray-200: #d1dae0;
+  --color-gray-300: #b9c7ce;
+  --color-gray-400: #869faa;
+  --color-gray-500: #678390;
+  --color-gray-600: #738086;
+  --color-gray-800: #375059;
+  --color-gray-900: #223e47;
+
+  /* Semantic colors */
+  --color-indigo-100: #e5edff;
+  --color-indigo-400: #8da2fb;
+  --color-indigo-500: #6875f5;
+  --color-indigo-800: #42389d;
+
+  --color-green-100: #def7ec;
+  --color-green-400: #37d083;
+  --color-green-800: #14673f;
+
+  --color-red-100: #fde7e7;
+  --color-red-400: #ff5c5c;
+  --color-red-600: #b84040;
+  --color-red-700: #ac2a2a;
+  --color-red-800: #a01414;
+
+  --color-grandis-100: #ffeed5;
+  --color-grandis-400: #e2a03d;
+  --color-grandis-600: #ab6427;
+  --color-grandis-800: #83381d;
+
+  /* Aliases for consistency */
+  --color-travefy-navy: #223e47;
   --color-travefy-blue: #2a79a6;
   --color-travefy-blue-dark: #1b6793;
   --color-travefy-blue-light: #daf1ff;
 
-  /* Dark text / headings (Figma: blue gray/900) */
-  --color-travefy-navy: #223e47;
-
-  /* Blue-gray neutral scale (Figma: blue gray/*) */
-  --color-travefy-gray-50: #f4f7fb;
-  --color-travefy-gray-100: #e1e7ec;
-  --color-travefy-gray-200: #d1dae0;
-  --color-travefy-gray-300: #b9c7ce;
-  --color-travefy-gray-400: #96a7ae;
-  --color-travefy-gray-500: #72868d;
-  --color-travefy-gray-600: #4f666d;
-  --color-travefy-gray-700: #435b63;
-  --color-travefy-gray-800: #375059;
-  --color-travefy-gray-900: #223e47;
-
-  /* Semantic status colors — sourced from low-fi Figma designs */
-  /* Success (green palette — used for "Sent" badge) */
-  --color-travefy-success: #156747;
-  --color-travefy-success-bg: #def7ec;     /* green/100 */
-  --color-travefy-success-border: #37d083; /* green/400 */
-  --color-travefy-success-dark: #14673f;   /* green/800 */
-  /* Warning (grandis/amber palette — used for "Scheduled" badge) */
-  --color-travefy-warning: #c63508;
-  --color-travefy-warning-bg: #ffeed5;     /* grandis/100 */
-  --color-travefy-warning-border: #e2a03d; /* grandis/400 */
-  --color-travefy-warning-dark: #83381d;   /* grandis/800 */
-  /* Danger (red palette) */
-  --color-travefy-danger: #ac2a2a;         /* red/700 */
-  --color-travefy-danger-bg: #fde7e7;      /* red/100 */
-  --color-travefy-danger-border: #f47070;  /* red/400 approx */
-  --color-travefy-danger-dark: #a01414;    /* red/800 */
-  /* Indigo palette (for "Accepted" state) */
-  --color-travefy-indigo: #4f46e5;         /* indigo/600 */
-  --color-travefy-indigo-bg: #e0e7ff;      /* indigo/100 */
-  --color-travefy-indigo-border: #818cf8;  /* indigo/400 */
-  --color-travefy-indigo-dark: #3730a3;    /* indigo/800 */
-  /* Primary badge tokens (used for "Draft" badge) */
-  --color-travefy-primary-border: #45bbff; /* primary/400 */
-  --color-travefy-primary-text: #1b5079;   /* primary/800 */
-
   /* Font */
   --font-sans: 'Proxima Nova', system-ui, -apple-system, sans-serif;
+
+  /* Spacing (4px base scale) */
+  --spacing-0\.5: 2px;
+  --spacing-1: 4px;
+  --spacing-1\.5: 6px;
+  --spacing-2: 8px;
+  --spacing-2\.5: 10px;
+  --spacing-3: 12px;
+  --spacing-3\.5: 14px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-3xl: 24px;
+  --radius-full: 100px;
 }
 
 /* Base resets */
