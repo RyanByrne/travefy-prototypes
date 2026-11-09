@@ -7,22 +7,22 @@ import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
 
 const SCREENS = [
-  { id: '34227-79155', width: 1728, height: 803 },
-  { id: '34227-78641', width: 1728, height: 1198 },
-  { id: '34227-78843', width: 1600, height: 1204 },
+  { id: '34227-79155', width: 1400, height: 982 },
+  { id: '34227-78641', width: 1400, height: 971 },
+  { id: '34227-78843', width: 1400, height: 882 },
   { id: '34227-78999', width: 561, height: 1062 },
   { id: '34237-3169', width: 561, height: 972 },
-  { id: '34227-79415', width: 1728, height: 1011 },
-  { id: '34227-79234', width: 1728, height: 1211 },
+  { id: '34227-79415', width: 1400, height: 820 },
+  { id: '34227-79234', width: 1400, height: 651 },
   { id: '34227-79452', width: 490, height: 309 },
   { id: '34227-79473', width: 490, height: 756 },
-  { id: '34233-2724', width: 1200, height: 490 },
-  { id: '34160-3830', width: 632, height: 340 },
+  { id: '34233-2724', width: 1400, height: 1054 },
+  { id: '34160-3830', width: 674, height: 1156 },
   { id: '34237-2862', width: 561, height: 1062 },
-  { id: '34237-3007', width: 561, height: 1238 },
-  { id: '34227-79314', width: 1728, height: 1413 },
-  { id: '34245-3118', width: 1728, height: 1076 },
-  { id: '34227-79275', width: 1728, height: 1088 },
+  { id: '34237-3007', width: 544, height: 1200 },
+  { id: '34227-79314', width: 1400, height: 1145 },
+  { id: '34245-3118', width: 1400, height: 872 },
+  { id: '34227-79275', width: 1400, height: 820 },
 ]
 
 const BASE_URL = 'http://localhost:5173'
