@@ -15,6 +15,20 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'link-insurance',
+    title: 'Link insurance v1',
+    description: 'Travel insurance offer flow: traveler itinerary cards (quote, accept, decline, purchase states), advisor setup and responses table, Add/View policy modals. Built from High-Fidelity Figma (Quote & Pay page, Advisor + Traveler flow sections).',
+    status: 'draft',
+    date: '2026-11-09',
+  },
+  {
+    slug: 'bookings-agency',
+    title: 'Bookings Agency',
+    description: 'Agency dashboard: Bookings · Commissions · Unclaimed · Payments · Payouts. New Commissions reconciliation tab (match / reconcile / mark-unclaimed, mismatch tooltips, Export & Remove) and a redesigned Unclaimed tab with Review Match → Match/Confirm flow and card-based Search-for-booking matching.',
+    status: 'draft',
+    date: '2026-07-14',
+  },
+  {
     slug: 'commission-splits',
     title: 'Commission Splits',
     description: 'Create custom commission split tiers (name, percentage, description) and assign them to team members. Includes Splits + Team views under Business Hub → Agency.',
@@ -27,34 +41,6 @@ const prototypes: Prototype[] = [
     description: 'Campaigns list with a multi-step launch wizard (audience query builder → compose → sending options → confirm) and a campaign results drawer. Lives under Business Hub → Marketing → Campaigns.',
     status: 'draft',
     date: '2026-05-27',
-  },
-  {
-    slug: 'bookings-agency',
-    title: 'Bookings Agency',
-    description: 'Agency dashboard: Bookings · Commissions · Unclaimed · Payments · Payouts. New Commissions reconciliation tab (match / reconcile / mark-unclaimed, mismatch tooltips, Export & Remove) and a redesigned Unclaimed tab with Review Match → Match/Confirm flow and card-based Search-for-booking matching.',
-    status: 'draft',
-    date: '2026-07-14',
-  },
-  {
-    slug: 'trips',
-    title: 'Trips Dashboard',
-    description: 'Trips list view with folder filters, sortable columns, status badges, tag pills, and avatar stacks — built from the Low-Fidelity Figma file.',
-    status: 'draft',
-    date: '2026-03-04',
-  },
-  {
-    slug: 'email-marketing',
-    title: 'Email Marketing',
-    description: 'Contacts tab expansion — Lists, Campaigns dashboard, and a campaign editor with drag-and-drop designer.',
-    status: 'draft',
-    date: '2026-03-03',
-  },
-  {
-    slug: 'example-prototype',
-    title: 'Example Prototype',
-    description: 'A starter prototype showing the basic structure. Duplicate this folder to create new prototypes.',
-    status: 'draft',
-    date: '2026-03-03',
   },
 ]
 
