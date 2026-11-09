@@ -2,37 +2,41 @@
 
 ## FIDELITY REBUILD IN PROGRESS
 
-**Status:** Setup complete, component rebuild in progress  
+**Status:** Node-by-node pixel-perfect rebuild from Figma reference code  
 **Figma Reference:** h6nksbINce9t4Cg0xVFczu, page "Quote & Pay" (34135:7088)
 
-### Completed:
+### Rebuild Checklist (16 nodes)
+
+**High-Priority Nodes (do first):**
+- [ ] 34227:79155 - Traveler itinerary: quotes shown (details on profile) - 1728x803px
+- [ ] 34227:78641 - Advisor: Setup (provider, Preview, e-sig, trip cost) - 1728x1198px
+- [ ] 34227:78843 - Advisor: Traveler responses table - 1600x1204px
+- [ ] 34227:78999 - Modal: Add policy for Jack Hawthorne - 561x1062px
+- [ ] 34237:3169 - Modal: View policy for Lucy Nelson - 561x972px
+
+**Remaining Nodes (do after high-priority):**
+- [ ] 34227:79415 - Traveler: before quote (pre-quote offer card in itinerary) - 1728x1011px
+- [ ] 34227:79234 - Traveler: Logged out (CTA only) - 1728x1211px
+- [ ] 34227:79314 - Traveler: Multi-provider before accept - 1728x1413px
+- [ ] 34245:3118 - Traveler: One accepted (others locked/muted) - 1728x1076px
+- [ ] 34233:2724 - Modal: Preview as traveler - 490x309px
+- [ ] 34237:2862 - Modal: Add policy, provider list open - 561x1062px
+- [ ] 34237:3007 - Modal: Add policy, + Add new provider - 561x1062px
+- [ ] 34227:79452 - Modal: Confirm your details - 490x756px
+- [ ] 34227:79473 - Modal: Edit your details - 490x756px
+- [ ] 34227:79275 - Traveler: Proposal view - 1728x1088px
+- [ ] 34160:3830 - Offer card component set (all 7 states) - ✅ DONE (InsuranceCardFigma)
+
+**Comparison Screenshots:**  
+Location: `docs/link-insurance-compare/`  
+Format: `{node-id}-comparison.png` (Figma left, build right)
+
+### Completed Setup:
 - ✅ Tailwind config updated with exact Figma tokens (Proxima Nova, primary #2a79a6, blue-gray neutrals, 4px spacing scale)
 - ✅ All 16 Figma nodes' assets copied to `public/figma-assets/`
 - ✅ Design tokens documented from `tokens.json`
 - ✅ Badge colors: Accepted #E5EDFF/#42389D, Purchased #DEF7EC/#14673F
-
-### Rebuild Required (16 nodes):
-Each component below needs pixel-perfect reconstruction from reference-code.tsx + screenshot.png:
-
-**Traveler Side:**
-1. `34160-3830` - Offer card component set (all 7 states)
-2. `34227-79415` - Before quote (pre-quote offer card in itinerary)
-3. `34227-79234` - Logged out condensed offer
-4. `34227-79155` - Quotes shown (plan radio list) ⭐ PRIORITY
-5. `34227-79452` - Confirm your details modal
-6. `34227-79473` - Edit your details modal
-7. `34227-79314` - Multi-provider before accept
-8. `34245-3118` - One accepted (others locked/muted)
-9. `34227-79275` - Proposal view
-
-**Advisor Side:**
-10. `34227-78641` - Setup tab (provider, Preview, e-sig, trip cost) ⭐ PRIORITY
-11. `34233-2724` - Preview as traveler
-12. `34227-78843` - Responses table ⭐ PRIORITY
-13. `34227-78999` - Add policy modal
-14. `34237-2862` - Provider combobox (open, with + Add new)
-15. `34237-3007` - Provider + Add new form state
-16. `34237-3169` - View policy modal (read-only)
+- ✅ InsuranceCardFigma component (34160:3830) with all 7 states
 
 ### Key Visual Specifications:
 - Font: Proxima Nova (weights 400/500/600/700)
