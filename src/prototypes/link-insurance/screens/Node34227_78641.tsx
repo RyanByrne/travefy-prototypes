@@ -1,194 +1,187 @@
-// Node 34227:78641 - Advisor: Setup (provider, Preview, e-sig, trip cost) - 1728x1198px
-// Pixel-perfect rebuild from Figma reference code
+// Node 34227:78641 - Advisor: Settings - 1600x1204px
+// Full Travefy app chrome with settings panel
+
+import { NavbarApplication } from '../chrome/NavbarApplication'
+import { TripsList } from '../chrome/TripsList'
+import { TripMenu } from '../chrome/TripMenu'
 
 const ASSETS = '/figma-assets/34227-78641'
 
 export function Node34227_78641() {
   return (
-    <div className="bg-gray-50 flex flex-col min-h-screen">
-      {/* Travefy Navbar */}
-      <div className="bg-[#45bbff] flex flex-col">
-        <div className="flex items-center py-2">
-          <div className="flex-1 flex items-center gap-8 px-4">
-            <div className="flex items-center gap-5 w-16">
-              <img src={`${ASSETS}/96c565fa-2e84-4abb-a888-9935a382d457.svg`} alt="" className="w-6 h-6" />
-            </div>
-            <div className="flex-1 flex items-center gap-2">
-              <div className="bg-[#3a9ed8] flex items-center justify-center px-3 py-1.5 rounded">
-                <p className="text-base text-white">Compass</p>
+    <div className="bg-gray-50 flex flex-col w-[1600px] h-[1204px]">
+      <NavbarApplication />
+
+      {/* Main content with sidebars and settings panel */}
+      <div className="flex flex-1 overflow-hidden">
+        <TripsList />
+        <TripMenu />
+
+        {/* Main content: Travel Protection Settings panel */}
+        <div className="flex-1 flex flex-col bg-white overflow-hidden">
+          {/* Panel header */}
+          <div className="border-b border-gray-200 px-5 py-4 shrink-0">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-semibold text-blue-gray-900 leading-relaxed">Travel Protection</h1>
+              <div className="relative shrink-0 size-4">
+                <img alt="" className="absolute block inset-0 max-w-none size-full" src={`${ASSETS}/ba3d59b3-2c15-4aa8-9c20-ea25cb9c4a59.svg`} />
               </div>
-              <div className="bg-[#45bbff] flex items-center justify-center px-3 py-1.5 rounded">
-                <p className="text-base text-white">Trips</p>
-              </div>
-              <div className="bg-[#45bbff] flex items-center justify-center px-3 py-1.5 rounded">
-                <p className="text-base text-white">Travelers</p>
-              </div>
             </div>
-            <div className="flex items-center gap-3.5">
-              <img src={`${ASSETS}/ed362e29-0b28-402d-8509-aa8405d55136.png`} alt="" className="w-8 h-8 rounded-full" />
-            </div>
+            <p className="text-base font-normal leading-4 overflow-hidden text-blue-gray-600 text-ellipsis whitespace-nowrap">Insurance</p>
           </div>
-        </div>
-      </div>
 
-      {/* Trip header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-semibold text-blue-gray-900">Adventure in the Rockies: A Journey through the mountains</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 text-xs font-semibold bg-primary-100 text-primary-700 border border-primary-300 rounded">Luxury ✦</span>
-                <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300 rounded">Europe ✦</span>
-                <span className="px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 border border-red-300 rounded">Adults Only ✦</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="text-sm text-primary-600 hover:underline font-semibold">No Platform</button>
-              <button className="text-sm text-primary-600 hover:underline font-semibold">Brand</button>
-              <button className="text-sm text-primary-600 hover:underline font-semibold">No Status</button>
-            </div>
+          {/* Tabs */}
+          <div className="border-b border-gray-200 flex shrink-0">
+            <button className="px-4 py-3 text-base font-semibold text-primary-600 border-b-2 border-primary-600">
+              Settings
+            </button>
+            <button className="px-4 py-3 text-base font-semibold text-blue-gray-600 hover:text-primary-600 border-b-2 border-transparent">
+              Responses
+            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Trip tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex gap-1">
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Trip Activity
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold bg-primary-600 text-white rounded-t border-b-2 border-primary-600">
-              Travel Protection
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              People
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Tasks and Automations
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Notes
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-md">
-            {/* Settings/Responses tabs */}
-            <div className="border-b border-gray-100">
-              <div className="flex">
-                <button className="px-6 py-3 text-sm font-semibold border-b-2 border-primary-600 text-primary-600">
-                  Settings
-                </button>
-                <button className="px-6 py-3 text-sm font-semibold border-b-2 border-transparent text-blue-gray-600 hover:text-blue-gray-900">
-                  Responses
-                </button>
-              </div>
-            </div>
-
-            {/* Settings tab content */}
-            <div className="p-6 space-y-6">
-              {/* Provider + Preview row */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-blue-gray-900 mb-2 leading-tight">Provider</label>
-                  <div className="relative">
-                    <div className="w-full px-3 py-2.5 border border-gray-200 rounded text-sm bg-white flex items-center justify-between">
-                      <span className="text-blue-gray-900">Allianz Travel</span>
-                      <img src={`${ASSETS}/180f8d6c-6a86-4dbe-93bf-ba8921a15c1d.svg`} alt="" className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-blue-gray-500 mt-1.5">
-                    Pick + Add new at the bottom of the list for a provider without a linked account.
-                  </p>
-                </div>
-                <div className="flex items-end">
-                  <button className="px-4 py-2.5 text-sm border border-gray-200 text-blue-gray-900 rounded hover:bg-gray-50 font-semibold leading-tight">
-                    Preview
-                  </button>
-                </div>
-              </div>
-
-              {/* E-signature */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-semibold text-blue-gray-900 leading-tight">E-signature required</label>
-                  <button className="flex items-start gap-2">
-                    <div className="h-5 w-10 relative">
-                      <div className="absolute inset-0 rounded-full bg-primary-600" />
-                      <div className="absolute bg-white rounded-full w-4 h-4 top-0.5 right-0.5" />
-                    </div>
-                  </button>
-                </div>
-                <p className="text-xs text-blue-gray-500">
-                  When on, travelers e-sign their decision. When off, they approve the proposal without a signature step.
-                </p>
-              </div>
-
-              {/* Trip cost */}
-              <div>
-                <label className="block text-sm font-semibold text-blue-gray-900 mb-2 leading-tight">Trip cost (for quote calculation)</label>
-                <input
-                  type="number"
-                  defaultValue="8400"
-                  placeholder="8400"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded text-sm text-blue-gray-700 bg-white"
-                />
-                <p className="text-xs text-blue-gray-500 mt-1.5">
-                  This cost is used to calculate quotes. Travelers can edit their own cost when getting a quote.
-                </p>
-              </div>
-
-              {/* Travelers section */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-blue-gray-900">Travelers on this trip</h3>
-                  <button className="text-sm font-semibold text-primary-600 hover:underline">
-                    Edit travelers
-                  </button>
-                </div>
+          {/* Settings content - scrollable */}
+          <div className="flex-1 overflow-auto p-5">
+            <div className="max-w-4xl mx-auto space-y-8">
+              {/* Provider section */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-blue-gray-900">Insurance Provider</h2>
                 
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-xs font-semibold text-blue-gray-700 uppercase tracking-wide">Name</th>
-                        <th className="text-left py-3 px-4 text-xs font-semibold text-blue-gray-700 uppercase tracking-wide">Email</th>
-                        <th className="text-left py-3 px-4 text-xs font-semibold text-blue-gray-700 uppercase tracking-wide">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white">
-                      {[
-                        { name: 'Elisa Denton', email: 'elisa@example.com', role: 'Traveler' },
-                        { name: 'Jack Hawthorne', email: 'jack@example.com', role: 'Traveler' },
-                        { name: 'Tom Rivera', email: 'tom@example.com', role: 'Traveler' }
-                      ].map((traveler, idx) => (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3.5 px-4">
-                            <p className="text-sm text-blue-gray-900 leading-tight">{traveler.name}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="text-sm text-blue-gray-700 leading-tight">{traveler.email}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="text-sm text-blue-gray-700 leading-tight">{traveler.role}</p>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3">
+                    <input type="radio" name="provider" className="mt-1" checked readOnly />
+                    <div>
+                      <div className="font-semibold text-blue-gray-900">Allianz Travel Insurance</div>
+                      <div className="text-sm text-blue-gray-600">Comprehensive coverage with 24/7 support</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-start gap-3">
+                    <input type="radio" name="provider" className="mt-1" />
+                    <div>
+                      <div className="font-semibold text-blue-gray-900">Travel Guard</div>
+                      <div className="text-sm text-blue-gray-600">Flexible plans for any budget</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-start gap-3">
+                    <input type="radio" name="provider" className="mt-1" />
+                    <div>
+                      <div className="font-semibold text-blue-gray-900">World Nomads</div>
+                      <div className="text-sm text-blue-gray-600">Adventure travel specialists</div>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              {/* Save button */}
-              <div className="flex justify-end pt-4">
-                <button className="px-6 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded hover:bg-primary-700 leading-tight">
-                  Save settings
+              {/* Default coverage section */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-blue-gray-900">Default Coverage Options</h2>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Trip cancellation/interruption</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Medical emergency coverage</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Lost or delayed baggage</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" />
+                    <span className="text-blue-gray-900">Cancel for any reason (CFAR)</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" />
+                    <span className="text-blue-gray-900">Adventure sports coverage</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Commission settings */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-blue-gray-900">Commission Settings</h2>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-gray-900 mb-1">Commission Rate</label>
+                    <div className="flex items-center gap-2">
+                      <input type="number" value="15" className="border border-gray-300 rounded px-3 py-2 w-20 text-center" />
+                      <span className="text-blue-gray-900">%</span>
+                    </div>
+                    <p className="text-sm text-blue-gray-600 mt-1">Your earnings from each policy sale</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-gray-900 mb-1">Payment Terms</label>
+                    <select className="border border-gray-300 rounded px-3 py-2 w-full max-w-xs">
+                      <option>Net 30 days</option>
+                      <option>Net 60 days</option>
+                      <option>Net 90 days</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification settings */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-blue-gray-900">Notifications</h2>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Email me when a traveler accepts an offer</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Email me when a policy is purchased</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" />
+                    <span className="text-blue-gray-900">Send me weekly summary reports</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Traveler options */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-blue-gray-900">Traveler Options</h2>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Allow travelers to compare plans</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked readOnly />
+                    <span className="text-blue-gray-900">Show cost breakdowns</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" />
+                    <span className="text-blue-gray-900">Require travelers to provide declination reason</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-4">
+                <button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded font-semibold">
+                  Save Changes
+                </button>
+                <button className="border border-gray-300 hover:bg-gray-50 text-blue-gray-900 px-6 py-2.5 rounded font-semibold">
+                  Cancel
                 </button>
               </div>
             </div>

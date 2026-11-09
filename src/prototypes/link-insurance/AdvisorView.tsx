@@ -3,6 +3,9 @@ import { useState } from 'react'
 import { Badge, Combobox, Input, Toggle } from '../../shared/components'
 import { AddPolicyModal, ViewPolicyModal } from './Modals'
 import { MOCK_RESPONSES, ALL_PROVIDERS_FOR_COMBOBOX } from './data'
+import { NavbarApplication } from './chrome/NavbarApplication'
+import { TripsList } from './chrome/TripsList'
+import { TripMenu } from './chrome/TripMenu'
 
 type Tab = 'settings' | 'responses'
 
@@ -29,77 +32,47 @@ export function AdvisorView() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-6 py-3 shrink-0">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-xl font-semibold text-blue-gray-900">Adventure in the Rockies: A Journey through the mountains</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="px-2 py-0.5 text-xs font-semibold bg-primary-100 text-primary-700 border border-primary-300 rounded">Luxury ✦</span>
-                <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300 rounded">Europe ✦</span>
-                <span className="px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 border border-red-300 rounded">Adults Only ✦</span>
-              </div>
+      <NavbarApplication />
+      
+      <div className="flex flex-1 overflow-hidden">
+        <TripsList />
+        <TripMenu />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="bg-white border-b border-gray-200 px-5 py-4 shrink-0">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-semibold text-blue-gray-900 leading-relaxed">Travel Protection</h1>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="text-sm text-primary-600 hover:underline font-semibold">No Platform</button>
-              <button className="text-sm text-primary-600 hover:underline font-semibold">Brand</button>
-              <button className="text-sm text-primary-600 hover:underline font-semibold">No Status</button>
-            </div>
+            <p className="text-base font-normal leading-4 overflow-hidden text-blue-gray-600 text-ellipsis whitespace-nowrap">Insurance</p>
           </div>
-        </div>
-      </div>
+          
+          <div className="border-b border-gray-200 flex shrink-0">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={clsx(
+                'px-4 py-3 text-base font-semibold border-b-2',
+                activeTab === 'settings'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-blue-gray-600 hover:text-primary-600'
+              )}
+            >
+              Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('responses')}
+              className={clsx(
+                'px-4 py-3 text-base font-semibold border-b-2',
+                activeTab === 'responses'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-blue-gray-600 hover:text-primary-600'
+              )}
+            >
+              Responses
+            </button>
+          </div>
 
-      <div className="bg-white border-b border-gray-200 shrink-0">
-        <div className="max-w-7xl mx-auto px-6">
-          <nav className="flex gap-1">
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Trip Activity
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold bg-primary-600 text-white rounded-t border-b-2 border-primary-600">
-              Travel Protection
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              People
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Tasks and Automations
-            </button>
-            <button className="px-4 py-2.5 text-sm font-semibold text-blue-gray-600 hover:text-blue-gray-900 border-b-2 border-transparent">
-              Notes
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-md">
-            <div className="border-b border-gray-100">
-              <div className="flex">
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={clsx(
-                    'px-6 py-3 text-sm font-semibold border-b-2 transition-colors',
-                    activeTab === 'settings'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-blue-gray-600 hover:text-blue-gray-900'
-                  )}
-                >
-                  Settings
-                </button>
-                <button
-                  onClick={() => setActiveTab('responses')}
-                  className={clsx(
-                    'px-6 py-3 text-sm font-semibold border-b-2 transition-colors',
-                    activeTab === 'responses'
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-blue-gray-600 hover:text-blue-gray-900'
-                  )}
-                >
-                  Responses
-                </button>
-              </div>
-            </div>
+          <div className="flex-1 overflow-auto p-5">
+          <div>
 
             {activeTab === 'settings' && (
               <div className="p-6 space-y-6">
@@ -332,6 +305,7 @@ export function AdvisorView() {
           </div>
         </div>
       </div>
+    </div>
 
       {showAddPolicy && selectedTraveler && (
         <AddPolicyModal
