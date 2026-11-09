@@ -19,19 +19,46 @@
 **Remaining Nodes (do after high-priority):**
 - [x] 34227:79415 - Traveler: before quote (pre-quote offer card in itinerary) - 1728x1011px ✅ `screens/Node34227_79415.tsx`
 - [x] 34227:79234 - Traveler: Logged out (CTA only) - 1728x1211px ✅ `screens/Node34227_79234.tsx`
-- [ ] 34227:79314 - Traveler: Multi-provider before accept - 1728x1413px
-- [ ] 34245:3118 - Traveler: One accepted (others locked/muted) - 1728x1076px
-- [x] 34233:2724 - Modal: Preview as traveler - 490x309px ✅ `screens/Node34233_2724.tsx`
-- [ ] 34237:2862 - Modal: Add policy, provider list open - 561x1062px
-- [ ] 34237:3007 - Modal: Add policy, + Add new provider - 561x1062px
+- [x] 34227:79314 - Traveler: Multi-provider before accept - 1728x1413px ✅ `screens/Node34227_79314.tsx`
+- [x] 34245:3118 - Traveler: One accepted (others locked/muted) - 1728x1076px ✅ `screens/Node34245_3118.tsx`
+- [x] 34233:2724 - Modal: Preview as traveler - 1200x490px ✅ `screens/Node34233_2724.tsx`
+- [x] 34237:2862 - Modal: Add policy, provider list open - 561x1062px ✅ `screens/Node34237_2862.tsx`
+- [x] 34237:3007 - Modal: Add policy, + Add new provider - 561x1238px ✅ `screens/Node34237_3007.tsx`
 - [x] 34227:79452 - Modal: Confirm your details - 490x309px ✅ `screens/Node34227_79452.tsx`
 - [x] 34227:79473 - Modal: Edit your details - 490x756px ✅ `screens/Node34227_79473.tsx`
-- [ ] 34227:79275 - Traveler: Proposal view - 1728x1088px
-- [x] 34160:3830 - Offer card component set (all 7 states) - ✅ DONE (InsuranceCardFigma component)
+- [x] 34227:79275 - Traveler: Proposal view - 1728x1088px ✅ `screens/Node34227_79275.tsx`
+- [x] 34160:3830 - Offer card component set - 632x340px ✅ `screens/Node34160_3830.tsx`
 
-**Comparison Screenshots:**  
+**✅ ALL 16 NODES COMPLETE (16/16)**
+
+**Visual Verification:**  
+All 16 screens have been captured at their exact Figma dimensions and compared side-by-side with Figma reference screenshots.
+
+**Screenshot Comparisons:**  
 Location: `docs/link-insurance-compare/`  
-Format: `{node-id}-comparison.png` (Figma left, build right)
+Format: `{node-id}.png` (Figma left | 4px divider | build right)  
+Automated with Playwright + Sharp
+
+Files generated:
+- `34227-79155.png` - Traveler itinerary: quotes shown
+- `34227-78641.png` - Advisor: Setup
+- `34227-78843.png` - Advisor: Responses table
+- `34227-78999.png` - Add policy modal
+- `34237-3169.png` - View policy modal
+- `34227-79415.png` - Traveler: before quote
+- `34227-79234.png` - Traveler: logged out
+- `34227-79452.png` - Confirm details modal
+- `34227-79473.png` - Edit details modal
+- `34233-2724.png` - Preview as traveler modal
+- `34160-3830.png` - Insurance card component
+- `34237-2862.png` - Add policy: provider list open
+- `34237-3007.png` - Add policy: + Add new provider
+- `34227-79314.png` - Traveler: multi-provider
+- `34245-3118.png` - Traveler: one accepted
+- `34227-79275.png` - Traveler: proposal view
+
+**Screen Harness:**  
+Each screen is accessible at `/link-insurance/screen/{node-id}` for isolated testing and screenshot capture at exact Figma dimensions.
 
 ### Completed Setup:
 - ✅ Tailwind config updated with exact Figma tokens (Proxima Nova, primary #2a79a6, blue-gray neutrals, 4px spacing scale)
