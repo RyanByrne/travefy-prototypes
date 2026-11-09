@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="material_rounded-PhoneAndroidRounded" clip-path="url(#clip0_0_953)">
+<path id="Vector" d="M9.8 -4.76837e-07H4.2C3.038 -4.76837e-07 2.1 0.852727 2.1 1.90909V12.0909C2.1 13.1473 3.038 14 4.2 14H9.8C10.962 14 11.9 13.1473 11.9 12.0909V1.90909C11.9 0.852727 10.962 -4.76837e-07 9.8 -4.76837e-07ZM8.05 12.7273H5.95C5.754 12.7273 5.6 12.5873 5.6 12.4091C5.6 12.2309 5.754 12.0909 5.95 12.0909H8.05C8.246 12.0909 8.4 12.2309 8.4 12.4091C8.4 12.5873 8.246 12.7273 8.05 12.7273ZM10.5 10.8182H3.5V1.90909H10.5V10.8182Z" fill="#4F666D"/>
+</g>
+<defs>
+<clipPath id="clip0_0_953">
+<rect width="14" height="14" fill="white"/>
+</clipPath>
+</defs>
+</svg>
