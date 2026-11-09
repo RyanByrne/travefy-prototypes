@@ -69,7 +69,7 @@ type InsuranceOfferCardProps = {
   state?: "Quotes" | "Pre-quote" | "Accepted collapsed" | "Declined collapsed" | "Pre-quote condensed" | "Purchased collapsed";
 };
 
-export default function InsuranceOfferCard({ className, showCollapseChevron = true, showYourDetails = true, state = "Quotes" }: InsuranceOfferCardProps) {
+function InsuranceOfferCard({ className, showCollapseChevron = true, showYourDetails = true, state = "Quotes" }: InsuranceOfferCardProps) {
   const isAcceptedCollapsed = state === "Accepted collapsed";
   const isAcceptedCollapsedOrPurchasedCollapsed = ["Accepted collapsed", "Purchased collapsed"].includes(state);
   const isAcceptedCollapsedOrPurchasedCollapsedOrDeclinedCollapsed = ["Accepted collapsed", "Purchased collapsed", "Declined collapsed"].includes(state);
@@ -278,6 +278,25 @@ export default function InsuranceOfferCard({ className, showCollapseChevron = tr
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+export default function AllCardStates() {
+  const states: Array<{ state: "Quotes" | "Pre-quote" | "Accepted collapsed" | "Declined collapsed" | "Pre-quote condensed" | "Purchased collapsed"; showYourDetails?: boolean; showCollapseChevron?: boolean }> = [
+    { state: "Quotes" },
+    { state: "Pre-quote" },
+    { state: "Accepted collapsed" },
+    { state: "Declined collapsed" },
+    { state: "Pre-quote condensed" },
+    { state: "Purchased collapsed" }
+  ];
+  
+  return (
+    <div className="bg-[var(--blue-gray\/50,#f4f7fb)] content-stretch flex flex-col gap-[32px] items-start p-[40px] relative min-h-screen">
+      {states.map((props, index) => (
+        <InsuranceOfferCard key={index} {...props} />
+      ))}
     </div>
   );
 }
