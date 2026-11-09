@@ -15,6 +15,13 @@ interface Prototype {
  */
 const prototypes: Prototype[] = [
   {
+    slug: 'link-insurance-v1',
+    title: 'Link Insurance v1',
+    description: 'Travel insurance offer flow for travelers (get quote, choose plan, accept/decline) and advisor management (setup, preview, responses table). Pixel-accurate to Figma.',
+    status: 'draft',
+    date: '2026-11-09',
+  },
+  {
     slug: 'commission-splits',
     title: 'Commission Splits',
     description: 'Create custom commission split tiers (name, percentage, description) and assign them to team members. Includes Splits + Team views under Business Hub → Agency.',
