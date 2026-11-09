@@ -1,42 +1,52 @@
-import { InsuranceCard } from './InsuranceCard'
+import { InsuranceCardFigma } from './InsuranceCardFigma'
 import { MOCK_PROVIDERS, MOCK_PLANS } from './data'
 
 export function StatesView() {
   const allianzProvider = MOCK_PROVIDERS.find((p) => p.id === 'allianz')!
 
   return (
-    <div className="min-h-screen bg-travefy-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-travefy-navy mb-6">Insurance Card States</h1>
-        <p className="text-sm text-travefy-gray-600 mb-8">
+        <h1 className="text-2xl font-bold text-blue-gray-900 mb-6">Insurance Card States (v1)</h1>
+        <p className="text-sm text-blue-gray-600 mb-8">
           All states of the insurance offer card, side by side for review.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Pre-quote</h3>
-            <InsuranceCard
-              provider={allianzProvider}
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Pre-quote</h3>
+            <InsuranceCardFigma
               state="pre-quote"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
               travelerName="Elisa Denton"
             />
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Pre-quote condensed</h3>
-            <InsuranceCard
-              provider={allianzProvider}
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Pre-quote condensed</h3>
+            <InsuranceCardFigma
               state="pre-quote-condensed"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
               travelerName="Elisa Denton"
             />
           </div>
 
           <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Quotes shown</h3>
-            <InsuranceCard
-              provider={allianzProvider}
-              plans={MOCK_PLANS.allianz}
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Quotes shown</h3>
+            <InsuranceCardFigma
               state="quotes"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
+              plans={MOCK_PLANS.allianz.map(p => ({
+                id: p.id,
+                name: p.name,
+                cancellation: `Cancellation up to $${p.cancellationLimit.toLocaleString()}`,
+                medical: `Medical $${p.medicalLimit.toLocaleString()}`,
+                baggage: p.baggageLimit ? `Baggage $${p.baggageLimit.toLocaleString()}` : undefined,
+                price: p.price
+              }))}
               selectedPlanId="onetrip-prime"
               onSelectPlan={() => {}}
               travelerName="Elisa Denton"
@@ -45,10 +55,11 @@ export function StatesView() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Accepted collapsed</h3>
-            <InsuranceCard
-              provider={allianzProvider}
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Accepted collapsed</h3>
+            <InsuranceCardFigma
               state="accepted-collapsed"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
               travelerName="Elisa Denton"
               acceptedPlan="OneTrip Prime"
               acceptedPrice={72}
@@ -57,41 +68,28 @@ export function StatesView() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Declined collapsed</h3>
-            <InsuranceCard
-              provider={allianzProvider}
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Declined collapsed</h3>
+            <InsuranceCardFigma
               state="declined-collapsed"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
               travelerName="Elisa Denton"
-              acceptedDate="May 11"
+              acceptedDate="May 11, 14:02"
             />
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Purchased collapsed</h3>
-            <InsuranceCard
-              provider={allianzProvider}
+          <div className="lg:col-span-2">
+            <h3 className="text-sm font-semibold text-blue-gray-700 uppercase tracking-wide mb-3">Purchased collapsed</h3>
+            <InsuranceCardFigma
               state="purchased-collapsed"
-              policyNumber="ALZ-48213"
+              providerName={allianzProvider.name}
+              providerTagline={allianzProvider.tagline}
+              travelerName="Elisa Denton"
               acceptedPlan="OneTrip Prime"
-              coverageStart="Jun 2, 2026"
-              coverageEnd="Jun 14, 2026"
-            />
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Logged out (CTA only)</h3>
-            <InsuranceCard
-              provider={allianzProvider}
-              state="logged-out"
-            />
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold text-travefy-gray-700 uppercase tracking-wide mb-3">Locked (one accepted)</h3>
-            <InsuranceCard
-              provider={allianzProvider}
-              state="pre-quote-condensed"
-              locked={true}
+              acceptedPrice={72}
+              policyNumber="ALZ-48213"
+              coverageStart="Jun 2"
+              coverageEnd="Jun 14"
             />
           </div>
         </div>
