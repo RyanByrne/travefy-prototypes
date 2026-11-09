@@ -12,7 +12,7 @@ export function Node34160_3830() {
         <div className="border-b border-gray-100 flex gap-3 items-center overflow-hidden pb-3.5 pt-4 px-5 w-full">
           <div className="bg-[#003781] h-[34px] rounded-sm w-1" />
           <div className="border-[#003781] border-[1.5px] border-dashed flex h-8 items-center justify-center overflow-hidden px-2 rounded-md w-[110px]">
-            <p className="text-xs font-semibold text-[#003781] tracking-wider">PROVIDER LOGO</p>
+            <p className="text-xs font-semibold text-[#003781] tracking-wider whitespace-nowrap">PROVIDER LOGO</p>
           </div>
           <div className="flex-1 flex flex-col gap-0.5 items-start leading-relaxed overflow-hidden">
             <div className="flex gap-1.5 items-center overflow-hidden">
@@ -103,7 +103,7 @@ export function Node34160_3830() {
         <div className="border-b border-gray-100 flex gap-3 items-center overflow-hidden pb-3.5 pt-4 px-5 w-full">
           <div className="bg-[#003781] h-[34px] rounded-sm w-1" />
           <div className="border-[#003781] border-[1.5px] border-dashed flex h-8 items-center justify-center overflow-hidden px-2 rounded-md w-[110px]">
-            <p className="text-xs font-semibold text-[#003781] tracking-wider">PROVIDER LOGO</p>
+            <p className="text-xs font-semibold text-[#003781] tracking-wider whitespace-nowrap">PROVIDER LOGO</p>
           </div>
           <div className="flex-1 flex flex-col gap-0.5 items-start leading-relaxed overflow-hidden">
             <div className="flex gap-1.5 items-center overflow-hidden">
@@ -208,14 +208,14 @@ export function Node34160_3830() {
           <div className="border-[#003781] border-[1.5px] border-dashed flex h-[26px] items-center justify-center px-2 rounded w-[46px]">
             <p className="text-xs font-semibold text-[#003781] tracking-wide">LOGO</p>
           </div>
-          <div className="flex-1 flex flex-col gap-0.5">
-            <p className="text-sm font-bold text-blue-gray-900 leading-tight w-[275px]">Allianz Travel (example) · Travel protection</p>
-            <p className="text-xs text-blue-gray-600">Your advisor shared an offer for this trip.</p>
+          <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+            <p className="text-sm font-bold text-blue-gray-900 leading-tight whitespace-nowrap overflow-hidden">Allianz Travel (example) · Travel protection</p>
+            <p className="text-xs text-blue-gray-600 whitespace-nowrap">Your advisor shared an offer for this trip.</p>
           </div>
-          <button className="px-0 py-1 text-xs font-semibold text-primary-600">
+          <button className="px-0 py-1 text-xs font-semibold text-primary-600 whitespace-nowrap shrink-0">
             Decline
           </button>
-          <button className="bg-primary-600 px-3 py-2 rounded text-xs font-semibold text-white">
+          <button className="bg-primary-600 px-3 py-2 rounded text-xs font-semibold text-white whitespace-nowrap shrink-0">
             Log in to get a quote
           </button>
           <img src={`${ASSETS}/635f7b6f-e171-4c41-a3e1-68b30b534748.svg`} alt="Expand" className="w-4 h-4" />
