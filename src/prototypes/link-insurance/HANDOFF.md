@@ -18,7 +18,7 @@
 
 **Remaining Nodes (do after high-priority):**
 - [x] 34227:79415 - Traveler: before quote (pre-quote offer card in itinerary) - 1728x1011px ✅ `screens/Node34227_79415.tsx`
-- [ ] 34227:79234 - Traveler: Logged out (CTA only) - 1728x1211px
+- [x] 34227:79234 - Traveler: Logged out (CTA only) - 1728x1211px ✅ `screens/Node34227_79234.tsx`
 - [ ] 34227:79314 - Traveler: Multi-provider before accept - 1728x1413px
 - [ ] 34245:3118 - Traveler: One accepted (others locked/muted) - 1728x1076px
 - [ ] 34233:2724 - Modal: Preview as traveler - 490x309px
