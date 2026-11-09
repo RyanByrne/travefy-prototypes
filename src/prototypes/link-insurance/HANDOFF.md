@@ -27,7 +27,7 @@
 - [x] 34227:79452 - Modal: Confirm your details - 490x309px ✅ `screens/Node34227_79452.tsx`
 - [x] 34227:79473 - Modal: Edit your details - 490x756px ✅ `screens/Node34227_79473.tsx`
 - [ ] 34227:79275 - Traveler: Proposal view - 1728x1088px
-- [ ] 34160:3830 - Offer card component set (all 7 states) - ✅ DONE (InsuranceCardFigma)
+- [x] 34160:3830 - Offer card component set (all 7 states) - ✅ DONE (InsuranceCardFigma component)
 
 **Comparison Screenshots:**  
 Location: `docs/link-insurance-compare/`  
