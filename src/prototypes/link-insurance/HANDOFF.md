@@ -24,8 +24,8 @@
 - [ ] 34233:2724 - Modal: Preview as traveler - 490x309px
 - [ ] 34237:2862 - Modal: Add policy, provider list open - 561x1062px
 - [ ] 34237:3007 - Modal: Add policy, + Add new provider - 561x1062px
-- [ ] 34227:79452 - Modal: Confirm your details - 490x756px
-- [ ] 34227:79473 - Modal: Edit your details - 490x756px
+- [x] 34227:79452 - Modal: Confirm your details - 490x309px ✅ `screens/Node34227_79452.tsx`
+- [x] 34227:79473 - Modal: Edit your details - 490x756px ✅ `screens/Node34227_79473.tsx`
 - [ ] 34227:79275 - Traveler: Proposal view - 1728x1088px
 - [ ] 34160:3830 - Offer card component set (all 7 states) - ✅ DONE (InsuranceCardFigma)
 
