@@ -8,7 +8,7 @@
 ### Rebuild Checklist (16 nodes)
 
 **High-Priority Nodes (do first):**
-- [ ] 34227:79155 - Traveler itinerary: quotes shown (details on profile) - 1728x803px
+- [x] 34227:79155 - Traveler itinerary: quotes shown (details on profile) - 1728x803px ✅ `screens/Node34227_79155.tsx`
 - [ ] 34227:78641 - Advisor: Setup (provider, Preview, e-sig, trip cost) - 1728x1198px
 - [ ] 34227:78843 - Advisor: Traveler responses table - 1600x1204px
 - [ ] 34227:78999 - Modal: Add policy for Jack Hawthorne - 561x1062px
