@@ -6,7 +6,7 @@ const ASSETS = '/figma-assets/34227-78999'
 export function Node34227_78999() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900/50 p-4">
-      <div className="bg-white border border-gray-200 flex flex-col rounded w-[561px] max-h-[90vh] overflow-auto">
+      <div className="bg-white border border-gray-200 flex flex-col rounded w-[561px] h-[1062px] overflow-hidden">
         {/* Modal Header */}
         <div className="bg-gray-50 border-b border-gray-200 flex items-center justify-between px-4 py-2 rounded-t">
           <h2 className="flex-1 text-lg font-semibold text-blue-gray-900 leading-relaxed overflow-hidden text-ellipsis whitespace-nowrap">
@@ -17,8 +17,8 @@ export function Node34227_78999() {
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="flex flex-col gap-4 p-5">
+      {/* Modal Body */}
+      <div className="flex flex-col gap-4 p-5 overflow-y-auto flex-1">
           {/* Explanation */}
           <p className="text-sm text-blue-gray-800 leading-tight">
             Jack accepted this offer and chose "My advisor will buy on my behalf". Buy the policy with the provider, then add it here for Jack only. Each traveler gets their own policy record.
@@ -149,8 +149,8 @@ export function Node34227_78999() {
                 />
               </div>
             </div>
-            <button className="border border-gray-200 flex items-center justify-center px-4 py-2 rounded h-9 shrink-0">
-              <p className="text-sm font-semibold text-primary-400 leading-tight">Upload PDF</p>
+            <button className="border border-primary-600 flex items-center justify-center px-4 py-2 rounded h-9 shrink-0">
+              <p className="text-sm font-semibold text-primary-600 leading-tight">Upload PDF</p>
             </button>
           </div>
 
@@ -160,8 +160,8 @@ export function Node34227_78999() {
           </p>
         </div>
 
-        {/* Modal Footer */}
-        <div className="bg-gray-50 border-t border-gray-200 flex items-center p-4 rounded-b">
+      {/* Modal Footer */}
+      <div className="bg-gray-50 border-t border-gray-200 flex items-center p-4 rounded-b shrink-0">
           <div className="flex-1 flex items-center gap-4">
             <button className="flex-1 px-4 py-2 border border-gray-200 text-sm font-semibold text-blue-gray-900 rounded hover:bg-gray-100 leading-tight">
               Cancel
