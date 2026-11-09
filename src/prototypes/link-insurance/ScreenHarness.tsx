@@ -17,11 +17,11 @@ import { Node34227_79314 } from './screens/Node34227_79314'
 import { Node34245_3118 } from './screens/Node34245_3118'
 import { Node34227_79275 } from './screens/Node34227_79275'
 
-// Map node IDs to components and dimensions (from actual Figma screenshot.png exports)
+// Map node IDs to components and true Figma frame dimensions (not export dimensions)
 const SCREENS: Record<string, { Component: React.FC; width: number; height: number }> = {
-  '34227-79155': { Component: Node34227_79155, width: 1400, height: 982 },
-  '34227-78641': { Component: Node34227_78641, width: 1400, height: 971 },
-  '34227-78843': { Component: Node34227_78843, width: 1400, height: 882 },
+  '34227-79155': { Component: Node34227_79155, width: 1728, height: 1211 },
+  '34227-78641': { Component: Node34227_78641, width: 1728, height: 1198 },
+  '34227-78843': { Component: Node34227_78843, width: 1728, height: 1088 },
   '34227-78999': { Component: Node34227_78999, width: 561, height: 1062 },
   '34237-3169': { Component: Node34237_3169, width: 561, height: 972 },
   '34227-79415': { Component: Node34227_79415, width: 1400, height: 820 },

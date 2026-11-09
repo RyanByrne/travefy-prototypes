@@ -7,22 +7,22 @@ import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
 
 const SCREENS = [
-  { id: '34227-79155', width: 1400, height: 982 },
-  { id: '34227-78641', width: 1400, height: 971 },
-  { id: '34227-78843', width: 1400, height: 882 },
-  { id: '34227-78999', width: 561, height: 1062 },
-  { id: '34237-3169', width: 561, height: 972 },
-  { id: '34227-79415', width: 1400, height: 820 },
-  { id: '34227-79234', width: 1400, height: 651 },
-  { id: '34227-79452', width: 490, height: 309 },
-  { id: '34227-79473', width: 490, height: 756 },
-  { id: '34233-2724', width: 1400, height: 1054 },
-  { id: '34160-3830', width: 674, height: 1156 },
-  { id: '34237-2862', width: 561, height: 1062 },
-  { id: '34237-3007', width: 544, height: 1200 },
-  { id: '34227-79314', width: 1400, height: 1145 },
-  { id: '34245-3118', width: 1400, height: 872 },
-  { id: '34227-79275', width: 1400, height: 820 },
+  { id: '34227-79155', frameWidth: 1728, frameHeight: 1211, exportWidth: 1400, exportHeight: 982 },
+  { id: '34227-78641', frameWidth: 1728, frameHeight: 1198, exportWidth: 1400, exportHeight: 971 },
+  { id: '34227-78843', frameWidth: 1728, frameHeight: 1088, exportWidth: 1400, exportHeight: 882 },
+  { id: '34227-78999', frameWidth: 561, frameHeight: 1062, exportWidth: 561, exportHeight: 1062 },
+  { id: '34237-3169', frameWidth: 561, frameHeight: 972, exportWidth: 561, exportHeight: 972 },
+  { id: '34227-79415', frameWidth: 1400, frameHeight: 820, exportWidth: 1400, exportHeight: 820 },
+  { id: '34227-79234', frameWidth: 1400, frameHeight: 651, exportWidth: 1400, exportHeight: 651 },
+  { id: '34227-79452', frameWidth: 490, frameHeight: 309, exportWidth: 490, exportHeight: 309 },
+  { id: '34227-79473', frameWidth: 490, frameHeight: 756, exportWidth: 490, exportHeight: 756 },
+  { id: '34233-2724', frameWidth: 1400, frameHeight: 1054, exportWidth: 1400, exportHeight: 1054 },
+  { id: '34160-3830', frameWidth: 674, frameHeight: 1156, exportWidth: 674, exportHeight: 1156 },
+  { id: '34237-2862', frameWidth: 561, frameHeight: 1062, exportWidth: 561, exportHeight: 1062 },
+  { id: '34237-3007', frameWidth: 544, frameHeight: 1200, exportWidth: 544, exportHeight: 1200 },
+  { id: '34227-79314', frameWidth: 1400, frameHeight: 1145, exportWidth: 1400, exportHeight: 1145 },
+  { id: '34245-3118', frameWidth: 1400, frameHeight: 872, exportWidth: 1400, exportHeight: 872 },
+  { id: '34227-79275', frameWidth: 1400, frameHeight: 820, exportWidth: 1400, exportHeight: 820 },
 ]
 
 const BASE_URL = 'http://localhost:5173'
@@ -44,11 +44,11 @@ async function main() {
   let failCount = 0
 
   for (const screen of SCREENS) {
-    console.log(`\nProcessing ${screen.id} (${screen.width}x${screen.height})...`)
+    console.log(`\nProcessing ${screen.id} (frame: ${screen.frameWidth}x${screen.frameHeight}, export: ${screen.exportWidth}x${screen.exportHeight})...`)
     
     try {
-      // Set viewport to exact Figma dimensions
-      await page.setViewportSize({ width: screen.width, height: screen.height })
+      // Set viewport to true Figma frame dimensions
+      await page.setViewportSize({ width: screen.frameWidth, height: screen.frameHeight })
       
       // Navigate to screen harness
       const url = `${BASE_URL}/link-insurance/screen/${screen.id}`
@@ -58,14 +58,14 @@ async function main() {
       // Wait a bit for fonts/styles to settle
       await page.waitForTimeout(1000)
       
-      // Screenshot the build
+      // Screenshot the build at true frame dimensions
       const buildScreenshotPath = join(TEMP_DIR, `${screen.id}-build.png`)
       await page.screenshot({ 
         path: buildScreenshotPath,
         fullPage: false,
         animations: 'disabled'
       })
-      console.log(`  ✓ Build screenshot saved`)
+      console.log(`  ✓ Build screenshot captured at ${screen.frameWidth}x${screen.frameHeight}`)
       
       // Load Figma reference screenshot
       const figmaScreenshotPath = join(UPLOAD_DIR, screen.id, 'screenshot.png')
@@ -77,16 +77,25 @@ async function main() {
       
       // Load both images
       const figmaImg = sharp(figmaScreenshotPath)
-      const buildImg = sharp(buildScreenshotPath)
+      let buildImg = sharp(buildScreenshotPath)
       
       // Get metadata to verify dimensions
       const figmaMeta = await figmaImg.metadata()
       const buildMeta = await buildImg.metadata()
       
-      console.log(`  Figma: ${figmaMeta.width}x${figmaMeta.height}, Build: ${buildMeta.width}x${buildMeta.height}`)
+      console.log(`  Figma: ${figmaMeta.width}x${figmaMeta.height}, Build (raw): ${buildMeta.width}x${buildMeta.height}`)
       
-      // Normalize heights (use max height)
-      const maxHeight = Math.max(figmaMeta.height || 0, buildMeta.height || 0)
+      // Resize build to match export dimensions (downscale from frame dimensions)
+      if (buildMeta.width !== screen.exportWidth || buildMeta.height !== screen.exportHeight) {
+        console.log(`  Resizing build from ${buildMeta.width}x${buildMeta.height} to ${screen.exportWidth}x${screen.exportHeight}`)
+        buildImg = buildImg.resize(screen.exportWidth, screen.exportHeight, {
+          fit: 'fill',
+          kernel: 'lanczos3'
+        })
+      }
+      
+      // Normalize heights (use max height between Figma and resized build)
+      const maxHeight = Math.max(figmaMeta.height || 0, screen.exportHeight)
       
       // Resize images to same height if needed, padding with white
       const figmaResized = await figmaImg
@@ -97,7 +106,7 @@ async function main() {
         .toBuffer()
       
       const buildResized = await buildImg
-        .resize(buildMeta.width, maxHeight, {
+        .resize(screen.exportWidth, maxHeight, {
           fit: 'contain',
           background: { r: 255, g: 255, b: 255, alpha: 1 }
         })
