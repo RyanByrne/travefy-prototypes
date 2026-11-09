@@ -1,5 +1,5 @@
-// Node 34227:79155 - Traveler itinerary: quotes shown (details on profile) - 1728x803px
-// Fixed scaling to match Figma layout (376px sidebar, 600px main content)
+// Node 34227:79155 - Traveler itinerary: quotes shown - 1728x803px
+// Fixed with correct provider header, plan data, and footer
 
 const ASSETS = '/figma-assets/34227-79155'
 
@@ -35,7 +35,7 @@ export function Node34227_79155() {
       {/* Main content */}
       <div className="flex flex-1 items-start justify-center w-full overflow-hidden">
         <div className="bg-gray-50 flex items-start gap-6 px-6 py-5">
-          {/* Sidebar - 376px */}
+          {/* Sidebar */}
           <div className="flex flex-col w-[376px] shrink-0">
             <div className="bg-gray-50 border-b border-gray-200 flex gap-2.5 items-center px-3.5 py-3">
               <img src={`${ASSETS}/7c8362e2-f22e-4db1-8a3a-952f96965e4f.png`} alt="" className="w-10 h-10 rounded object-cover" />
@@ -54,7 +54,7 @@ export function Node34227_79155() {
             ))}
           </div>
 
-          {/* Main content - 600px */}
+          {/* Main content */}
           <div className="bg-white border border-gray-200 flex flex-col overflow-hidden rounded-t w-[600px] shrink-0">
             {/* Advisor card */}
             <div className="bg-white flex items-center justify-center p-4 w-full">
@@ -88,48 +88,113 @@ export function Node34227_79155() {
               </div>
             </div>
 
-            {/* Insurance offer */}
+            {/* Insurance offer card */}
             <div className="flex flex-col items-start py-3.5 w-full">
-              <div className="flex flex-col items-start px-4 w-full">
-                <div className="flex items-center gap-2 pb-2.5">
+              {/* Provider header */}
+              <div className="flex flex-col items-start px-4 pb-3 w-full">
+                <div className="border-2 border-dashed border-gray-300 flex items-center justify-center h-12 w-full rounded mb-2">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PROVIDER LOGO</p>
+                </div>
+                <div className="flex items-center justify-between w-full">
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-semibold text-black">Allianz Travel</p>
+                      <p className="text-xs font-normal text-blue-gray-500">(example)</p>
+                    </div>
+                    <p className="text-xs text-blue-gray-600">Comprehensive travel protection</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-green-100 border border-green-400 inline-flex items-center justify-center px-2.5 py-0.5 rounded-3xl">
+                      <p className="text-xs font-normal text-green-800 leading-relaxed">Active</p>
+                    </div>
+                    <img src={`${ASSETS}/f0af18af-185b-4274-b4ce-5a75ef9aca6e.svg`} alt="" className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Header */}
+              <div className="flex flex-col items-start px-4 pb-3 w-full">
+                <div className="flex items-center gap-2 pb-1">
                   <div className="bg-primary-100 flex items-center justify-center px-2.5 py-0.5 rounded-full">
                     <p className="text-xs font-semibold text-primary-800 leading-relaxed">Choose a plan</p>
                   </div>
-                  <img src={`${ASSETS}/f0af18af-185b-4274-b4ce-5a75ef9aca6e.svg`} alt="" className="w-4 h-4" />
                 </div>
-                <p className="text-base font-semibold text-blue-gray-900 pb-1 w-full">Travel Protection</p>
-                <p className="text-sm text-blue-gray-600 w-full">Choose from these comprehensive insurance plans to protect your trip investment.</p>
+                <p className="text-base font-semibold text-blue-gray-900 w-full">Travel Protection</p>
               </div>
 
               {/* Plans */}
-              <div className="flex flex-col border-b border-gray-200 w-full">
-                {[
-                  { name: 'OneTrip Prime', price: '$72', highlights: ['Cancellation up to $8,400', 'Medical $50,000', 'Baggage $1,000'] },
-                  { name: 'OneTrip Basic', price: '$48', highlights: ['Cancellation up to $8,400', 'Medical $25,000', 'Baggage $500'] },
-                  { name: 'Deluxe Plan', price: '$96', highlights: ['Cancellation up to $8,400', 'Medical $100,000', 'Baggage $2,000'] },
-                ].map((plan, idx) => (
-                  <div key={idx} className="bg-white border-t border-gray-100 flex gap-3 items-center px-4 py-3 w-full">
-                    <div className="relative shrink-0 size-4.5">
-                      <img src={`${ASSETS}/6dda37ce-54ae-4720-8fbb-440add7cd37e.svg`} alt="" className="w-full h-full" />
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1 items-start overflow-hidden min-w-0">
-                      <p className="font-bold leading-tight text-sm text-blue-gray-900 whitespace-nowrap">{plan.name}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-normal leading-relaxed text-xs text-blue-gray-600 w-full">
-                        {plan.highlights.map((h, i) => (
-                          <p key={i} className="shrink-0 whitespace-nowrap">{h}</p>
-                        ))}
-                      </div>
-                    </div>
-                    <p className="font-bold leading-relaxed text-xl text-blue-gray-900 text-right whitespace-nowrap shrink-0">{plan.price}</p>
+              <div className="border border-gray-200 flex flex-col overflow-hidden rounded-lg mx-4 mb-3 w-[calc(100%-32px)]">
+                {/* OneTrip Basic */}
+                <div className="bg-white flex gap-3 items-center px-4 py-3 w-full">
+                  <div className="relative shrink-0 size-[18px]">
+                    <div className="absolute inset-0 border-2 border-gray-300 rounded-full" />
                   </div>
-                ))}
+                  <div className="flex-1 flex flex-col gap-1 items-start overflow-hidden min-w-0">
+                    <p className="font-bold leading-tight text-sm text-blue-gray-900 whitespace-nowrap">OneTrip Basic</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-normal leading-relaxed text-xs text-blue-gray-600 w-full">
+                      <p className="shrink-0 whitespace-nowrap">Cancellation up to $5,000</p>
+                      <p className="shrink-0 whitespace-nowrap">Medical $10,000</p>
+                    </div>
+                  </div>
+                  <p className="font-bold leading-relaxed text-xl text-blue-gray-900 text-right whitespace-nowrap shrink-0">$38</p>
+                </div>
+
+                {/* OneTrip Prime - SELECTED */}
+                <div className="bg-primary-50 border-t border-blue-gray-100 flex gap-3 items-center px-4 py-3 w-full relative">
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary-600" />
+                  <div className="relative shrink-0 size-[18px]">
+                    <div className="absolute inset-0 border-2 border-primary-600 rounded-full bg-white" />
+                    <div className="absolute inset-[5px] bg-primary-600 rounded-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1 items-start overflow-hidden min-w-0">
+                    <p className="font-bold leading-tight text-sm text-blue-gray-900 whitespace-nowrap">OneTrip Prime</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-normal leading-relaxed text-xs text-blue-gray-600 w-full">
+                      <p className="shrink-0 whitespace-nowrap">Cancellation up to $8,400</p>
+                      <p className="shrink-0 whitespace-nowrap">Medical $50,000</p>
+                      <p className="shrink-0 whitespace-nowrap">Baggage $1,000</p>
+                    </div>
+                  </div>
+                  <p className="font-bold leading-relaxed text-xl text-blue-gray-900 text-right whitespace-nowrap shrink-0">$72</p>
+                </div>
+
+                {/* OneTrip Premier */}
+                <div className="bg-white border-t border-blue-gray-100 flex gap-3 items-center px-4 py-3 w-full">
+                  <div className="relative shrink-0 size-[18px]">
+                    <div className="absolute inset-0 border-2 border-gray-300 rounded-full" />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1 items-start overflow-hidden min-w-0">
+                    <p className="font-bold leading-tight text-sm text-blue-gray-900 whitespace-nowrap">OneTrip Premier</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-normal leading-relaxed text-xs text-blue-gray-600 w-full">
+                      <p className="shrink-0 whitespace-nowrap">Cancellation up to $8,400</p>
+                      <p className="shrink-0 whitespace-nowrap">Medical $100,000</p>
+                      <p className="shrink-0 whitespace-nowrap">Baggage $2,000</p>
+                    </div>
+                  </div>
+                  <p className="font-bold leading-relaxed text-xl text-blue-gray-900 text-right whitespace-nowrap shrink-0">$118</p>
+                </div>
               </div>
 
-              {/* Footer links */}
-              <div className="flex flex-col items-start gap-1 px-4 pt-2.5 w-full">
-                <button className="text-sm font-semibold text-primary-600 underline">Compare all plans</button>
-                <button className="text-sm text-blue-gray-600 underline">I don't want travel protection</button>
+              {/* Footer */}
+              <div className="flex flex-col gap-2 px-4 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <button className="text-sm font-normal text-primary-600">Compare coverage ▾</button>
+                  <p className="text-xs font-normal text-blue-gray-500">Prices may change slightly before purchase.</p>
+                </div>
+                <div className="flex items-center gap-2 w-full">
+                  <button className="border border-gray-200 flex gap-2 items-center justify-center px-4 py-2 rounded">
+                    <p className="text-sm font-semibold text-primary-600 leading-tight">Decline</p>
+                  </button>
+                  <button className="bg-primary-600 flex-1 flex gap-2 items-center justify-center px-4 py-2 rounded">
+                    <p className="text-sm font-semibold text-white leading-tight">Continue with Prime, $72</p>
+                  </button>
+                </div>
               </div>
+            </div>
+
+            {/* Information & Documents section */}
+            <div className="border-t border-gray-200 flex items-center gap-4 px-4 py-3 w-full">
+              <p className="font-bold text-base text-blue-gray-900 uppercase tracking-wider">Information & Documents</p>
+              <div className="flex-1 h-0 border-t border-gray-200" />
             </div>
           </div>
         </div>
