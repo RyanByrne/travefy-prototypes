@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom'
+
 const imgFlowbiteSolidX = "/src/prototypes/link-insurance-v1/assets/4321a8d6-bea5-47cf-b1ac-b3ecd7a8936d.svg";
 const imgSeparator = "/src/prototypes/link-insurance-v1/assets/16cb14ff-71cf-431b-a03c-ac70c6783a83.svg";
 const imgSeparator1 = "/src/prototypes/link-insurance-v1/assets/bdf6e911-dce0-45fd-9f7c-a170d872d56f.svg";
 const imgFlowbiteSolidChevronDown = "/src/prototypes/link-insurance-v1/assets/9309fa3c-b7af-4d47-b27f-077a07291ca9.svg";
 
 export default function AdvisorAddPolicyForJackHawthorne() {
+  const navigate = useNavigate()
   return (
     <div className="bg-[var(--white,white)] border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex flex-col items-start relative rounded-[var(--rounded-sm,4px)] size-full" data-node-id="34227:78999" data-name="Advisor: Add policy for Jack Hawthorne">
       <div className="bg-[var(--gray\/50,#f6f8f9)] border-[var(--blue-gray\/200,#d1dae0)] border-l border-r border-solid border-t content-stretch flex gap-[16px] h-[48px] items-center justify-end px-[var(--4,16px)] py-[var(--2,8px)] relative rounded-tl-[var(--rounded-sm,4px)] rounded-tr-[var(--rounded-sm,4px)] shrink-0 w-full" data-node-id="34227:79000" data-name="Modal Header">
@@ -197,13 +200,13 @@ export default function AdvisorAddPolicyForJackHawthorne() {
       <div className="bg-[var(--gray\/50,#f6f8f9)] border border-[var(--blue-gray\/200,#d1dae0)] border-solid content-stretch flex items-center p-[var(--4,16px)] relative rounded-bl-[var(--rounded,4px)] rounded-br-[var(--rounded,4px)] shrink-0 w-full" data-node-id="34227:79017" data-name="Modal Footer">
         <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-center min-w-px relative" data-node-id="I34227:79017;15411:11771" data-name="Modal footer actions">
           <div className="flex flex-[1_0_0] flex-row items-center self-stretch" data-node-id="I34227:79017;15411:11771;15411:11725">
-            <div className="content-stretch flex flex-[1_0_0] h-full items-center min-w-px px-[var(--0,0px)] relative" data-name="Cancel">
+            <div className="content-stretch flex flex-[1_0_0] h-full items-center min-w-px px-[var(--0,0px)] relative cursor-pointer" data-name="Cancel" onClick={() => navigate('/link-insurance-v1/screen/34227-78843')}>
               <p className="[word-break:break-word] font-['Inter:Semibold'] leading-[1.5] not-italic relative shrink-0 text-[16px] text-[color:var(--primary\/600,#2a79a6)] whitespace-nowrap" data-node-id="I34227:79017;15411:11771;15411:11724">
                 Cancel
               </p>
             </div>
           </div>
-          <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--5,20px)] py-[var(--2․5,10px)] relative rounded-[var(--rounded-sm,4px)] shrink-0" data-node-id="I34227:79017;15411:11771;15411:11700" data-name="Button">
+          <div className="bg-[var(--primary\/600,#2a79a6)] content-stretch flex gap-[var(--2,8px)] items-center justify-center px-[var(--5,20px)] py-[var(--2․5,10px)] relative rounded-[var(--rounded-sm,4px)] shrink-0 cursor-pointer" data-node-id="I34227:79017;15411:11771;15411:11700" data-name="Button" onClick={() => navigate('/link-insurance-v1/screen/34237-3169')}>
             <p className="[word-break:break-word] font-['Inter:Regular'] leading-[1.5] not-italic relative shrink-0 text-[16px] text-[color:var(--white,white)] whitespace-nowrap" data-node-id="I34227:79017;15411:11771;15411:11700;27:127539">
               Save policy
             </p>
